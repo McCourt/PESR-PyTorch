@@ -1,0 +1,19 @@
+hr_dir = 'SR_testing_datasets/Set5/';
+srp_dir = 'Set5/x8/';
+sr_dir = 'Set5_1/x8/sr';
+clip = 9;
+psnr_score = 0;
+
+hrs = dir(fullfile(hr_dir,'*.png'));
+for i = 1:numel(hrs)
+    hr = rgb2ycbcr(imread(fullfile(hr_dir, hrs(i).name)));
+    sr = rgb2ycbcr(imread(fullfile(sr_dir, hrs(i).name)));
+    srp = rgb2ycbcr(imread(fullfile(srp_dir, strrep(hrs(i).name, '.', '_LapSRN.'))));
+    sr_size = size(sr)
+    hr = hr(1:sr_size(0), 1:size(sr)(1), :);
+    hr = hr(1+clip:end-clip, 1+clip:end-clip, 1);
+    sr = sr(1+clip:end-clip, 1+clip:end-clip, 1);
+    srp = srp(1+clip:end-clip, 1+clip:end-clip, 1);
+    psnr_score = psnr_score + psnr(sr, hr);
+end
+psnr_avg = psnr_score / numel(hrs);
