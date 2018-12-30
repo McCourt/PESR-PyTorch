@@ -2,8 +2,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-class BicubicDownSample(nn.Module):
-    def bicubic_kernel(self, x, a=-0.5):
+class HermiteDownSample(nn.Module):
+    def hermite_kernel(self, x, a=0.0):
         """
         This equation is exactly copied from the website below:
         https://clouard.users.greyc.fr/Pantheon/experiments/rescaling/index-en.html#bicubic
@@ -20,7 +20,7 @@ class BicubicDownSample(nn.Module):
         super().__init__()
         self.factor = factor
         size = factor * 4
-        k = torch.tensor([self.bicubic_kernel((i - torch.floor(torch.tensor(size / 2)) + 0.5) / factor) for i in range(size)],dtype=torch.float32)
+        k = torch.tensor([self.hermite_kernel((i - torch.floor(torch.tensor(size / 2)) + 0.5) / factor) for i in range(size)],dtype=torch.float32)
         k = k / torch.sum(k)
         k = torch.einsum('i,j->ij', (k, k))
         k = torch.reshape(k, shape=(1, 1, size, size))

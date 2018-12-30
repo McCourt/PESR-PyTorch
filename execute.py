@@ -89,7 +89,7 @@ if __name__ == '__main__':
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08,
                                      weight_decay=DECAY_RATE)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=DECAY_STEP)
-        data_set = ResolutionDataset(HR_DIR, LR_DIR, upsample=UPSAMPLE, h=WIN_SIZE, w=WIN_SIZE)
+        data_set = ResolutionDataset(HR_DIR, LR_DIR, upscale=UPSAMPLE, h=WIN_SIZE, w=WIN_SIZE)
         data_loader = DataLoader(data_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
         ## load checkpoint

@@ -1,10 +1,7 @@
-from bicubic import BicubicDownSample
+from downsample.bicubic import BicubicDownSample
 import torch
 from torch import nn
 from imageio import imread, imwrite
-from skimage.transform import resize
-from skimage.measure import compare_psnr, compare_ssim, compare_mse
-from skimage.color import rgb2ycbcr
 import numpy as np
 import sys, os
 import getopt

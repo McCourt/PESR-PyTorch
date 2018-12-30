@@ -1,8 +1,5 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
-import numpy as np
-from bicubic import BicubicDownSample
 from time import time
 import os
 
