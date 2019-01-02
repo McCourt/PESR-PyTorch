@@ -108,7 +108,6 @@ if __name__=='__main__':
                     ds_in_tensor = bds(in_tensor, nhwc=True)
                     lr_l = lr_loss(ds_in_tensor, lr_tensor)
                     l2_l = l2_loss(in_tensor, org_tensor)
-                    hr_l = hr_loss(in_tensor, hr_tensor)
                     l = lr_l + LAMBDA * l2_l
                     l.backward()
 
@@ -120,12 +119,12 @@ if __name__=='__main__':
                     in_tensor.requires_grad = True
 
                     sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                    sr_img = np.moveaxis(sr_img.reshape(np_ds.shape[1:]), 0, -1)
+                    # sr_img = np.moveaxis(sr_img.reshape(np_ds.shape[1:]), 0, -1)
                     report = '{} | {:.4f} | {:.4f}'.format(IMG_NAME, lr_l, l2_l, compare_psnr(sr_img, hr_img), time() - begin_time)
                     if epoch == 0 or epoch == NUM_EPOCH - 1:
                         print(report)
                     f.write(report)
-                psnrs.append(float(psnr(hr_l)))
+                # psnrs.append(float(psnr(hr_l)))
                     # sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.int16)
                     # sr_img = rgb2ycbcr(sr_img.reshape(sr_img.shape[1:]))[CLIP:-CLIP, CLIP:-CLIP, 0]
                     # psnr_dict[IMG_NAME].append(float(psnr(hr_l)))
@@ -136,10 +135,10 @@ if __name__=='__main__':
 
                 if SAVE:
                     sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                    sr_img = sr_img.reshape(np_ds.shape[1:])
+                    # sr_img = sr_img.reshape(np_ds.shape[1:])
                     imwrite(os.path.join(OUT_DIR, 'sr', IMG_NAME), sr_img, format='png', compress_level=0)
                     lr_img = torch.clamp(torch.round(ds_in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                    lr_img = lr_img.reshape(np_ds.shape[1:])
+                    # lr_img = lr_img.reshape(np_ds.shape[1:])
                     imwrite(os.path.join(OUT_DIR, 'dsr', IMG_NAME), lr_img, format='png', compress_level=0)
 
                 # rt = time() - begin_time

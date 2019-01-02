@@ -9,7 +9,6 @@ import os, sys, math
 import getopt
 from time import time
 
-
 if __name__ == '__main__':
     args = sys.argv[1:]
     long_opts = [
@@ -74,18 +73,17 @@ if __name__ == '__main__':
         else:
             continue
 
+    # initialize the SRResNet model and loss function and optimizer and learning rate scheduler
     model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
-
-    ## initialize the SRResNet model and loss function and optimizer and learning rate scheduler
     model = model.to(DEVICE)
-    loss = MSEnDSLoss(add_ds=ADD_DS).to(DEVICE)
+    loss = MSEnDSLoss().to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=DECAY_RATE)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=DECAY_STEP)
-    dataset = ResolutionDataset(HR_DIR, LR_DIR, upscale=UPSAMPLE, h=WIN_SIZE, w=WIN_SIZE)
+    dataset = ResolutionDataset(HR_DIR, LR_DIR, h=WIN_SIZE, w=WIN_SIZE)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=6)
     begin_epoch = 0
 
-    ## load checkpoint
+    # load checkpoint
     ckpt = load_checkpoint(load_dir=CKPT_DIR, map_location=None, model_name=model_name)
     if ckpt is not None:
         print('recovering from checkpoints...')
@@ -93,22 +91,24 @@ if __name__ == '__main__':
         begin_epoch = ckpt['epoch'] + 1
         print('resuming training')
 
-    ## training loop
+    # training loop
     begin = time()
-    with open(os.path.join(LOG_PATH, '{}.log'.format(model_name)), 'a') as f:
+    with open(os.path.join(LR_DIR, '{}.log'.format(model_name)), 'a') as f:
         for epoch in range(begin_epoch, NUM_EPOCH):
-            epoch_loss = 0
+            epoch_loss = []
             for bid, batch in enumerate(dataloader):
                 hr, lr = batch['hr'].to(DEVICE), batch['lr'].to(DEVICE)
                 optimizer.zero_grad()
                 x = model(lr)
-                l = loss(x, hr, lr)
-                l.backward()
+                batch_loss = loss(x, hr, lr)
+                batch_loss.backward()
                 optimizer.step()
-                epoch_loss += l
+                epoch_loss.append(batch_loss)
 
-                print('Epoch {} | Batch {} | Bpsnr {:6f} | Epsnr {:6f} | RT {:6f}'.format(epoch, bid, psnr(l), psnr(epoch_loss / (1 + bid)), since(begin)))
-                f.write('{},{},{},{},{}\n'.format(epoch, bid, l, epoch_loss / (1 + bid), since(begin)))
+                print('Epoch {} | Batch {} | Bpsnr {:6f} | Epsnr {:6f} | RT {:6f}'.format(epoch, bid, psnr(batch_loss),
+                                                                                          psnr(np.mean(epoch_loss)),
+                                                                                          since(begin)))
+                f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
                 f.flush()
             state_dict = {
                 'model': model.state_dict(),

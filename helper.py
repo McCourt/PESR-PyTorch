@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from time import time
 import os
+from downsample.bicubic import BicubicDownSample
 
 
 def since(begin):
@@ -16,24 +17,20 @@ class Timer(object):
         return since(self.begin)
 
 
-def psnr(mse_loss, R=255):
-    return 10 * torch.log10(R ** 2 / mse_loss)
+def psnr(mse_loss, r=255):
+    return 10 * torch.log10(r ** 2 / mse_loss)
 
 
 class MSEnDSLoss(nn.Module):
-    def __init__(self, add_ds=True, ds=None):
+    def __init__(self):
         super().__init__()
-        self.add_ds = add_ds
-        self.hr = nn.MSELoss(reduction='elementwise_mean')
-        if self.add_ds:
-            self.ds = ds
-            self.lr = nn.MSELoss(reduction='elementwise_mean')
+        self.hr_loss = nn.MSELoss(reduction='elementwise_mean')
+        self.lr_loss = nn.MSELoss(reduction='elementwise_mean')
 
-    def forward(self, x, hr, lr):
-        loss = self.hr(x, hr)
-        if self.add_ds and lr is not None:
-            ds = self.ds(x)
-            loss += self.lr(ds, lr)
+    def forward(self, sr, hr, lr, dsr=None, lambda_lr=0.2):
+        loss = self.hr_loss(sr, hr)
+        if dsr is not None:
+            loss += lambda_lr * self.lr_loss(dsr, lr)
         return loss
 
 
