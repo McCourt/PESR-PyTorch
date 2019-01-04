@@ -7,20 +7,23 @@ from helper import load_checkpoint, save_checkpoint, psnr, since
 import numpy as np
 from time import time
 import os
-
+DEVICE = torch.device('cuda:2' if torch.cuda.is_available else 'cpu')
 
 if __name__ == '__main__':
     model = ConvolutionDownscale()
-    model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
+    print(DEVICE, torch.cuda.is_available)
+    model = model.to(DEVICE)
+    # model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     loss = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=.96)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10000)
-    dataset = ImageDataset(HR_DI='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR/',
-                           LR_DIR='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_LR_bicubic//')
-    loader = DataLoader(dataset, batch_size=40, shuffle=True, num_workers=8)
+    optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=.96)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000)
+    dataset = ImageDataset(hr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR/',
+                           lr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_LR_bicubic/X4',
+                           lr_parse=lambda x: x.replace('x4', ''))
+    loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=8)
     begin_epoch = 0
 
-    ckpt = load_checkpoint(load_dir='', map_location=None, model_name='down_sample')
+    ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
     if ckpt is not None:
         print('recovering from checkpoints...')
         model.load_state_dict(ckpt['model'])
@@ -29,22 +32,20 @@ if __name__ == '__main__':
 
     begin = time()
     with open(os.path.join('./', 'down_sample.log'), 'w') as f:
-        for epoch in range(begin_epoch, 30):
+        for epoch in range(begin_epoch, 1000):
             epoch_loss = []
             for bid, batch in enumerate(loader):
-                hr, lr = batch['hr'], batch['lr']
+                hr, lr = batch['hr'].to(DEVICE), batch['lr'].to(DEVICE)
                 optimizer.zero_grad()
                 ds = model(hr)
                 batch_loss = loss(ds, lr)
                 batch_loss.backward()
                 optimizer.step()
                 epoch_loss.append(batch_loss)
-
-                print('Epoch {} | Batch {} | Bpsnr {:6f} | Epsnr {:6f} | RT {:6f}'.format(epoch, bid, batch_loss,
-                                                                                          np.mean(epoch_loss),
+                print('Epoch {} | Batch {} | BMSE {:6f} |  RT {:6f}'.format(epoch, bid, batch_loss,
                                                                                           since(begin)))
-                f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
-                f.flush()
+                # f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
+                # f.flush()
             state_dict = {
                 'model': model.state_dict(),
                 'epoch': epoch

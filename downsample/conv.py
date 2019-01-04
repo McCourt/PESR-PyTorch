@@ -6,11 +6,11 @@ class ConvolutionDownscale(nn.Module):
         super().__init__()
         self.model = nn.Sequential(
             nn.Conv2d(in_channels=channels,
-                      out_channels=scale ** 2,
-                      kernel_size=channels,
-                      stride=channels,
+                      out_channels=channels * scale ** 2,
+                      kernel_size=scale,
+                      stride=scale,
                       padding=0),
-            nn.Conv2d(in_channels=scale ** 2,
+            nn.Conv2d(in_channels=channels * scale ** 2,
                       out_channels=channels,
                       kernel_size=1,
                       stride=1,
