@@ -15,12 +15,12 @@ if __name__ == '__main__':
     model = model.to(DEVICE)
     # model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
     loss = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=.96)
+    optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=.96)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000)
     dataset = ImageDataset(hr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR/',
                            lr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_LR_bicubic/X4',
                            lr_parse=lambda x: x.replace('x4', ''))
-    loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=8)
+    loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8)
     begin_epoch = 0
 
     ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
@@ -41,11 +41,12 @@ if __name__ == '__main__':
                 batch_loss = loss(ds, lr)
                 batch_loss.backward()
                 optimizer.step()
-                epoch_loss.append(batch_loss)
-                print('Epoch {} | Batch {} | BMSE {:6f} |  RT {:6f}'.format(epoch, bid, batch_loss,
-                                                                                          since(begin)))
-                # f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
-                # f.flush()
+                epoch_loss.append(batch_loss.cpu().detach().numpy())
+                print('Epoch {} | Batch {} | BMSE {:6f} | EMSE {:.6f} | RT {:6f}'.format(epoch, bid, batch_loss,
+                                                                                         np.mean(epoch_loss),
+                                                                                         since(begin)))
+                f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
+                f.flush()
             state_dict = {
                 'model': model.state_dict(),
                 'epoch': epoch
