@@ -3,6 +3,7 @@ import sys, os
 from imageio import imread
 import numpy as np
 from scipy.misc import imresize
+
 default_parse = lambda x: x
 
 
@@ -42,5 +43,22 @@ class ResolutionDataset(Dataset):
         rand_h, rand_w = np.random.randint(0, self.lrh - self.h), np.random.randint(0, self.lrw - self.w)
         lr = self.lr[:, rand_h:rand_h + self.h, rand_w:rand_w + self.w]
         hr = self.hr[:, rand_h * self.scale:(rand_h + self.h) * self.scale,
-                        rand_w * self.scale:(rand_w + self.w) * self.scale]
+             rand_w * self.scale:(rand_w + self.w) * self.scale]
+        return {'hr': np.array(hr).astype(np.float32), 'lr': np.array(lr).astype(np.float32)}
+
+
+class ImageDataset(Dataset):
+    def __init__(self, hr_dir, lr_dir, img_format='png', hr_parse=default_parse, lr_parse=default_parse):
+        hr_names = sorted([os.path.join(hr_dir, hr_parse(i)) for i in os.listdir(hr_dir) if img_format in i])
+        lr_names = sorted([os.path.join(lr_dir, lr_parse(i)) for i in os.listdir(lr_dir) if img_format in i])
+        assert len(hr_names) == len(lr_names) and all(i == j for i, j in zip(hr_names, lr_names))
+        self.hr_names = [os.path.join(hr_dir, i) for i in hr_names]
+        self.lr_names = [os.path.join(lr_dir, i) for i in lr_names]
+
+    def __len__(self):
+        return len(self.hr_names)
+
+    def __getitem__(self, item):
+        hr = np.moveaxis(imread(self.hr_names[self.id]), -1, 0)
+        lr = np.moveaxis(imread(self.lr_names[self.id]), -1, 0)
         return {'hr': np.array(hr).astype(np.float32), 'lr': np.array(lr).astype(np.float32)}

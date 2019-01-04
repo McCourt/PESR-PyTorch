@@ -27,7 +27,7 @@ class BicubicDownSample(nn.Module):
         k = torch.reshape(k, shape=(1, 1, size, size))
         self.k = torch.cat([k, k, k], dim=0)
 
-    def forward(self, x, nhwc = False):
+    def forward(self, x, nhwc=False):
         filter_height = self.factor * 4
         filter_width = self.factor * 4
         stride = self.factor

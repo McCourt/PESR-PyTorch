@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     # initialize the SRResNet model and loss function and optimizer and learning rate scheduler
     model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
-    model = model.to(DEVICE)
+    # model = model.to(DEVICE)
     loss = MSEnDSLoss().to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=DECAY_RATE)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=DECAY_STEP)
