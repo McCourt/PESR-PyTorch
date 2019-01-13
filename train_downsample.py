@@ -31,7 +31,7 @@ if __name__ == '__main__':
         print('resuming training')
 
     begin = time()
-    with open(os.path.join('./', 'down_sample.log'), 'w') as f:
+    with open(os.path.join('./logs', 'down_sample.log'), 'w') as f:
         for epoch in range(begin_epoch, 1000):
             epoch_loss = []
             for bid, batch in enumerate(loader):
