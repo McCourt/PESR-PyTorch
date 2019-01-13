@@ -20,6 +20,7 @@ class ConvolutionDownscale(nn.Module):
                       kernel_size=scale * 4,
                       stride=scale,
                       padding=0, groups=channels),
+            nn.ReLU(),
             nn.Conv2d(in_channels=channels * scale ** 2,
                       out_channels=channels,
                       kernel_size=1,

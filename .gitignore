@@ -1,3 +1,4 @@
+imgs/
 .idea/
 .ipynb_checkpoints/
 .DS_Store
@@ -8,6 +9,6 @@ models/__pycache__/
 __pycache__/
 .nfs*
 checkpoints/
-SR_testing_datasets/
-Set5/
 results/
+info.txt
+source_data/
