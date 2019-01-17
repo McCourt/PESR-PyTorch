@@ -1,4 +1,5 @@
 from downsample.bicubic import BicubicDownSample
+from downsample.hermite import HermiteDownSample
 import torch
 from torch import nn
 from imageio import imread, imwrite
@@ -89,7 +90,9 @@ if __name__=='__main__':
 
     attentioner = nn.Sigmoid()
     bds = BicubicDownSample(SCALE)
+    hds = HermiteDownSample(SCALE)
     lr_loss = nn.MSELoss()
+    her_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
     lambdas = np.linspace(0, 1, 101)
@@ -126,9 +129,11 @@ if __name__=='__main__':
             
             for epoch in range(NUM_EPOCH):
                 ds_in_tensor = bds(in_tensor, nhwc=True)
-                lr_l = lr_loss(ds_in_tensor, lr_tensor)
+                hds_in_tensor = hds(in_tensor, nhwc=True)
+                lr_l_bicubic = lr_loss(ds_in_tensor, lr_tensor)
+                lr_l_her = her_loss(hds_in_tensor,lr_tensor)
                 l2_l = l2_loss(in_tensor, org_tensor)
-                l = lr_l + LAMBDA * l2_l
+                l = 0.9*lr_l_bicubic + 0.1*lr_l_her + LAMBDA * l2_l
                 l.backward()
 
                 gradient = in_tensor.grad * LEARING_RATE
@@ -141,7 +146,7 @@ if __name__=='__main__':
                 sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 # sr_img = np.moveaxis(sr_img.reshape(np_ds.shape[1:]), 0, -1)
                 psnr = compare_psnr(sr_img[0], hr_img)
-                report = 'Image Name: {} | Epoch: {:03d}| PSNR vHR: {:.4f} | LR-PSNR: {:.4f} |Time: {:.4f}'.format(IMG_NAME, epoch, psnr, lr_l,  time() - begin_time)
+                report = 'Image Name: {} | Epoch: {:03d}| PSNR vHR: {:.4f} | LR-PSNR: {:.4f} |Time: {:.4f}'.format(IMG_NAME, epoch, psnr, lr_l_bicubic,  time() - begin_time)
                 if epoch==0:
                     print(report)
                     psnr0=psnr
