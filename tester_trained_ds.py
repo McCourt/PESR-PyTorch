@@ -12,7 +12,7 @@ model = 'EnhanceNet-E'
 dataset = 'Urban100'
 method = 'convolution_down_sample'
 scale = 4
-device_name = 'cuda:0'
+device_name = 'cuda:2'
 num_epoch = 300
 beta = 0.2
 learning_rate = 5e-3
@@ -28,18 +28,18 @@ device = torch.device(device_name if torch.cuda.is_available else 'cpu')
 
 if __name__ == '__main__':
     if not os.path.exists(out_dir):
-        os.mkdirs(out_dir)
+        os.makedirs(out_dir)
     if not os.path.exists(os.path.join(out_dir, 'sr')):
-        os.mkdir(os.path.join(out_dir, 'sr'))
+        os.makedirs(os.path.join(out_dir, 'sr'))
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
-        os.mkdir(os.path.join(out_dir, 'dsr'))
+        os.makedirs(os.path.join(out_dir, 'dsr'))
 
     bds = ConvolutionDownscale()
     ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
     try:
         if ckpt is not None:
             print('recovering from checkpoints...')
-            bds.load_state_dict(ckpt['model'], map_location=device)
+            bds.load_state_dict(ckpt['model'])
             print('resuming training')
     except Exception as e:
         print(e)
