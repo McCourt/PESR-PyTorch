@@ -39,20 +39,21 @@ if __name__ == '__main__':
     try:
         if ckpt is not None:
             print('recovering from checkpoints...')
-            bds.load_state_dict(ckpt['model'])
+            bds.load_state_dict(ckpt['model'], map_location=device)
             print('resuming training')
     except Exception as e:
         print(e)
         raise FileNotFoundError('Check checkpoints')
     bds = bds.to(device)
-    lr_loss = nn.MSELoss()
-    l2_loss = nn.MSELoss()
-    hr_loss = nn.MSELoss()
+    lr_loss = nn.MSELoss(reduction='mean')
+    l2_loss = nn.MSELoss(reduction='mean')
+    hr_loss = nn.MSELoss(reduction='mean')
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
         for img_name in os.listdir(hr_dir):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
             hr_img = np.array(imread(os.path.join(hr_dir, img_name)))
+
             if len(lr_img.shape) == 2:
                 lr_img = gray2rgb(lr_img)
             if len(sr_img.shape) == 2:
@@ -64,7 +65,7 @@ if __name__ == '__main__':
             sr_img = np.expand_dims(np.moveaxis(sr_img, -1, 0).astype(np.float32), axis=0)
             hr_img = np.expand_dims(np.moveaxis(hr_img, -1, 0).astype(np.float32), axis=0)
             _, c, h, w = sr_img.shape
-            
+
             lr_tensor = torch.from_numpy(lr_img).type('torch.cuda.FloatTensor').to(device)
             in_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
@@ -90,6 +91,5 @@ if __name__ == '__main__':
             if save:
                 sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
-                print(sr_img.shape)
                 imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
         print(np.mean(psnrs))
