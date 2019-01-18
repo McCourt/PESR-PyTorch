@@ -133,7 +133,7 @@ if __name__=='__main__':
                 lr_l_bicubic = lr_loss(ds_in_tensor, lr_tensor)
                 lr_l_her = her_loss(hds_in_tensor,lr_tensor)
                 l2_l = l2_loss(in_tensor, org_tensor)
-                l = 0.9*lr_l_bicubic + 0.1*lr_l_her + LAMBDA * l2_l
+                l = 0*lr_l_bicubic + 1*lr_l_her + LAMBDA * l2_l
                 l.backward()
 
                 gradient = in_tensor.grad * LEARING_RATE

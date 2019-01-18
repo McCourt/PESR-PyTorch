@@ -1,6 +1,6 @@
 dataset='Set5'
-model='EnhanceNet-PAT'
-method='TTO_0.9bicubic+0.1hermite'
+model='EnhanceNet-E'
+method='TTO_1hermite'
 scale='4'
 path1='/usr/xtmp/superresoluter/superresolution'
 
