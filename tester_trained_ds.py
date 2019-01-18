@@ -13,9 +13,9 @@ dataset = 'Urban100'
 method = 'convolution_down_sample'
 scale = 4
 device_name = 'cuda:2'
-num_epoch = 300
-beta = 0.2
-learning_rate = 5e-3
+num_epoch = 50
+beta = 1
+learning_rate = 5e-2
 save = True
 
 root_dir = '/usr/xtmp/superresoluter/superresolution'
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(out_dir, 'sr'))
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
         os.makedirs(os.path.join(out_dir, 'dsr'))
-
+    print(device)
     bds = ConvolutionDownscale()
     ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
     try:
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
         raise FileNotFoundError('Check checkpoints')
-
+    bds = bds.to(device)
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
@@ -53,46 +53,43 @@ if __name__ == '__main__':
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
             hr_img = np.array(imread(os.path.join(hr_dir, img_name)))
-
             if len(lr_img.shape) == 2:
-                lr_img = np.moveaxis(gray2rgb(lr_img), -1, 0)
+                lr_img = gray2rgb(lr_img)
             if len(sr_img.shape) == 2:
-                sr_img = np.moveaxis(gray2rgb(sr_img), -1, 0)
+                sr_img = gray2rgb(sr_img)
             if len(hr_img.shape) == 2:
-                hr_img = np.moveaxis(gray2rgb(hr_img), -1, 0)
-            c, h, w = sr_img.shape
+                hr_img = gray2rgb(hr_img)
 
             lr_img = np.expand_dims(np.moveaxis(lr_img, -1, 0).astype(np.float32), axis=0)
             sr_img = np.expand_dims(np.moveaxis(sr_img, -1, 0).astype(np.float32), axis=0)
             hr_img = np.expand_dims(np.moveaxis(hr_img, -1, 0).astype(np.float32), axis=0)
-
-            lr_tensor = torch.from_numpy(lr_img).to(device)
-            in_tensor = torch.from_numpy(sr_img).to(device)
-            org_tensor = torch.from_numpy(sr_img).to(device)
+            _, c, h, w = sr_img.shape
+            
+            lr_tensor = torch.from_numpy(lr_img).type('torch.cuda.FloatTensor').to(device)
+            in_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
+            org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
+            hr_tensor = torch.from_numpy(hr_img).type('torch.cuda.FloatTensor').to(device)
             in_tensor.requires_grad = True
-            optimizer = torch.optim.Adam(in_tensor, lr=learning_rate)
+            optimizer = torch.optim.Adam([in_tensor], lr=learning_rate)
             psnrs = []
             begin_time = time()
-            try:
-                for epoch in range(num_epoch):
-                    ds_in_tensor = bds(in_tensor)
-                    lr_l = lr_loss(ds_in_tensor, lr_tensor)
-                    l2_l = l2_loss(in_tensor, org_tensor)
-                    l = lr_l + beta * l2_l
-                    l.backward()
-                    optimizer.step()
-                    in_tensor.requires_grad = True
-                    report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l,
-                                                                             psnr(lr_l), psnr(lr_l))
-                    if epoch % 50 == 0 or epoch == num_epoch - 1:
-                        print(report)
-                    f.write(report)
+            for epoch in range(num_epoch):
+                ds_in_tensor = bds(in_tensor)
+                lr_l = lr_loss(ds_in_tensor, lr_tensor)
+                l2_l = l2_loss(in_tensor, org_tensor)
+                l0_l = hr_loss(in_tensor, hr_tensor)
+                l = lr_l + beta * l2_l
+                l.backward()
+                optimizer.step()
+                in_tensor.requires_grad = True
+                report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l, l0_l,psnr(lr_l), psnr(lr_l), psnr(l0_l))
+                if epoch % 10 == 0 or epoch == num_epoch - 1:
+                    print(report)
+                f.write(report)
 
-                if save:
-                    sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                    sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
-                    imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
-            except Exception as e:
-                print(e)
-                print('Failure on {}'.format(img_name))
+            if save:
+                sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
+                print(sr_img.shape)
+                imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
         print(np.mean(psnrs))
