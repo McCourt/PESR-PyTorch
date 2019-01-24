@@ -1,3 +1,5 @@
+import random
+
 import torch
 from torch import nn
 from time import time
@@ -88,3 +90,18 @@ def load_parameters(key, path='./parameter.json'):
         for pars in json.load(f):
             if pars['method'] == key:
                 return pars
+
+
+class ChannelGradientShuffle(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        return input
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = grad_output.clone()
+        channels = [1, 2, 3]
+        random.shuffle(channels)
+        grad_input = grad_input[:, channels, :, :]
+        return grad_input
+

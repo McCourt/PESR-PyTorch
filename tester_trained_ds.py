@@ -8,7 +8,7 @@ import numpy as np
 import os, sys
 from time import time
 from skimage.color import gray2rgb
-from helper import load_checkpoint, psnr, load_parameters
+from helper import load_checkpoint, psnr, load_parameters, ChannelGradientShuffle
 import getopt
 
 
@@ -94,23 +94,21 @@ if __name__ == '__main__':
             _, c, h, w = sr_img.shape
 
             lr_tensor = torch.from_numpy(lr_img).type('torch.cuda.FloatTensor').to(device)
-            in_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
+            sr_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             hr_tensor = torch.from_numpy(hr_img).type('torch.cuda.FloatTensor').to(device)
-            in_tensor.requires_grad = True
+            sr_tensor.requires_grad = True
+            if rgb_shuffle:
+                channel_shuffle = ChannelGradientShuffle.apply
+                in_tensor = channel_shuffle(sr_tensor)
+            else:
+                in_tensor = sr_tensor
             optimizer = torch.optim.Adam([in_tensor], lr=learning_rate)
             psnrs = []
             begin_time = time()
             channel = [0, 1, 2]
             for epoch in range(num_epoch):
-                in_tensor.requires_grad = True
-                if rgb_shuffle:
-                    random.shuffle(channel)
-                    in_tensor = in_tensor[:, channel, :, :]
-                    lr_tensor = lr_tensor[:, channel, :, :]
-                    org_tensor = org_tensor[:, channel, :, :]
-                    hr_tensor = hr_tensor[:, channel, :, :]
-
+                # in_tensor.requires_grad = True
                 ds_in_tensor = bds(in_tensor)
                 lr_l = lr_loss(ds_in_tensor, lr_tensor)
                 l2_l = l2_loss(in_tensor, org_tensor)
