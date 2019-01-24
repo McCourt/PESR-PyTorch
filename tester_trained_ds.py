@@ -103,7 +103,7 @@ if __name__ == '__main__':
                 in_tensor = channel_shuffle(sr_tensor)
             else:
                 in_tensor = sr_tensor
-            optimizer = torch.optim.Adam([in_tensor], lr=learning_rate)
+            optimizer = torch.optim.Adam([sr_tensor], lr=learning_rate)
             psnrs = []
             begin_time = time()
             channel = [0, 1, 2]

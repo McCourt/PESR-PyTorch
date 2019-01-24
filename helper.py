@@ -100,7 +100,7 @@ class ChannelGradientShuffle(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         grad_input = grad_output.clone()
-        channels = [1, 2, 3]
+        channels = [0, 1, 2]
         random.shuffle(channels)
         grad_input = grad_input[:, channels, :, :]
         return grad_input

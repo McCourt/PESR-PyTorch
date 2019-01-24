@@ -2,8 +2,8 @@
   "method": "convolution_down_sample",
   "learning_rate": 1e-2,
   "beta": 0,
-  "num_epoch": 50,
+  "num_epoch": 500,
   "device_name": "cuda:2",
   "save": true,
-  "rgb_shuffle": false
+  "rgb_shuffle": true
 }]
