@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from time import time
 import os
-from downsample.bicubic import BicubicDownSample
+import json
 
 
 def since(begin):
@@ -81,3 +81,10 @@ def report(epoch, bid, l, epoch_loss, bpsnr, epsnr, time):
     return '#E {} | #B {} | Bmse {:6f} | Emse {:6f} | Bpsnr {:6f} | Epsnr {:6f} | RT {:6f}'.format(epoch, bid, l,
                                                                                                    epoch_loss, bpsnr,
                                                                                                    epsnr, time)
+
+
+def load_parameters(key, path='./parameter.json'):
+    with open(path, 'r') as f:
+        for pars in json.load(f):
+            if pars['key'] == key:
+                return pars

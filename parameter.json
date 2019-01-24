@@ -1,0 +1,9 @@
+[{
+  "method": "convolution_down_sample",
+  "learning_rate": 1e-4,
+  "beta": 1,
+  "num_epoch": 50,
+  "device_name": "cuda:2",
+  "save": true,
+  "rgb_shuffle": false
+}]
