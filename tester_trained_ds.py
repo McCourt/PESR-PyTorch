@@ -104,6 +104,7 @@ if __name__ == '__main__':
             else:
                 in_tensor = sr_tensor
             optimizer = torch.optim.Adam([in_tensor], lr=learning_rate)
+            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7)
             psnrs = []
             begin_time = time()
             channel = [0, 1, 2]
@@ -116,6 +117,7 @@ if __name__ == '__main__':
                 l = lr_l + beta * l2_l
                 l.backward()
                 optimizer.step()
+                scheduler.step()
                 report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l, l0_l,psnr(lr_l), psnr(lr_l), psnr(l0_l))
                 if epoch % 10 == 0 or epoch == num_epoch - 1:
                     print(report)
