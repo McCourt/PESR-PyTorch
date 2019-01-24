@@ -9,13 +9,13 @@ from skimage.color import gray2rgb
 from helper import load_checkpoint, psnr
 
 model = 'EnhanceNet-E'
-dataset = 'Urban100'
+dataset = 'Set5'
 method = 'convolution_down_sample'
 scale = 4
 device_name = 'cuda:2'
-num_epoch = 50
-beta = 1
-learning_rate = 5e-2
+num_epoch = 500
+beta = 0.0
+learning_rate = 5e-3
 save = True
 
 root_dir = '/usr/xtmp/superresoluter/superresolution'
@@ -27,6 +27,9 @@ log_dir = os.path.join(root_dir, 'imgs/stage_two_image/{}-{}/{}/x{}'.format(mode
 device = torch.device(device_name if torch.cuda.is_available else 'cpu')
 
 if __name__ == '__main__':
+    print(out_dir)
+    print(sr_dir)
+    print(hr_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     if not os.path.exists(os.path.join(out_dir, 'sr')):
@@ -85,11 +88,10 @@ if __name__ == '__main__':
                 report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l, l0_l,psnr(lr_l), psnr(lr_l), psnr(l0_l))
                 if epoch % 10 == 0 or epoch == num_epoch - 1:
                     print(report)
-                f.write(report)
+                f.write(report + '\n')
 
             if save:
                 sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
                 print(sr_img.shape)
                 imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
-        print(np.mean(psnrs))
