@@ -17,7 +17,7 @@ from pathlib import Path
 if __name__=='__main__':
     args = sys.argv[1:]
     longopts = [
-        'model-name=', 'method-name=', 'image-list=', 'hr-dir=', 'lr-dir=', 'ckpt-dir=',
+        'model-name=', 'method-name=', 'dataset-name= ', 'image-list=', 'hr-dir=', 'lr-dir=', 'ckpt-dir=',
         'stage1-dir=', 'output-dir=', 'learning-rate=', 'num-epoch=',
         'gpu-device=', 'log-dir=', 'print-every=', 'attention=',
          'clip=', 'scale=', 'lambda=', 'save='
@@ -32,6 +32,8 @@ if __name__=='__main__':
             model_name = str(opt)
         elif arg == '--method-name':
             method_name = str(opt)
+        elif arg == '--dataset-name':
+            dataset_name = str(opt)
         elif arg == '--image-list':
             IMG_LIST = sorted([i for i in os.listdir(str(opt))])
         elif arg == '--hr-dir':
@@ -120,9 +122,12 @@ if __name__=='__main__':
             org_tensor = torch.tensor(np.expand_dims(sr_img.astype(np.float32), axis=0)).type('torch.DoubleTensor').to(DEVICE)
             in_tensor.requires_grad = True
             delta_psnr = []
+            delta_lr_psnr = []
             begin_time = time()
             psnr0 = 0
             psnrF = 0
+            lr_psnr0 = 0
+            lr_psnrF = 0
             
             for epoch in range(NUM_EPOCH):
                 ds_in_tensor = bds(in_tensor, nhwc=True)
@@ -139,15 +144,19 @@ if __name__=='__main__':
                 in_tensor.requires_grad = True
 
                 sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                dsr_img = torch.clamp(torch.round(ds_in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 # sr_img = np.moveaxis(sr_img.reshape(np_ds.shape[1:]), 0, -1)
                 psnr = compare_psnr(sr_img[0], hr_img)
-                report = 'Image Name: {} | Epoch: {:03d}| PSNR vHR: {:.4f} | LR-PSNR: {:.4f} |Time: {:.4f}'.format(IMG_NAME, epoch, psnr, lr_l,  time() - begin_time)
+                lr_psnr = compare_psnr(dsr_img[0], lr_img)
+                report = 'Image Name: {} | Epoch: {:03d}| PSNR vHR: {:.4f} | LR-PSNR: {:.4f} |Time: {:.4f}'.format(IMG_NAME, epoch, psnr, lr_psnr,  time() - begin_time)
                 if epoch==0:
                     print(report)
-                    psnr0=psnr
+                    psnr0 = psnr
+                    lr_psnr0 = lr_psnr
                 elif epoch==NUM_EPOCH-1:
                     print(report)
-                    psnrF=psnr
+                    psnrF = psnr
+                    lr_psnrF = lr_psnr
                 f.write(report + "\n")
             # psnrs.append(float(psnr(hr_l)))
                 # sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.int16)
@@ -158,13 +167,14 @@ if __name__=='__main__':
                 #                                         hr_img[CLIP:-CLIP, CLIP:-CLIP, :].astype(np.int16),
                 #                                         data_range=255, multichannel=True))
             delta_psnr.append(psnrF-psnr0)
+            delta_lr_psnr.append(lr_psnrF-lr_psnr0)
             if SAVE:
-                sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                #sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 # sr_img = sr_img.reshape(np_ds.shape[1:])
                 imwrite(str(OUT_DIR / 'sr' / IMG_NAME), sr_img[0], format='png', compress_level=0)
-                lr_img = torch.clamp(torch.round(ds_in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                #dsr_img = torch.clamp(torch.round(ds_in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 # lr_img = lr_img.reshape(np_ds.shape[1:])
-                imwrite(str(OUT_DIR / 'dsr' / IMG_NAME), lr_img[0], format='png', compress_level=0)
+                imwrite(str(OUT_DIR / 'dsr' / IMG_NAME), dsr_img[0], format='png', compress_level=0)
 
             # rt = time() - begin_time
             # cnt += 1
@@ -186,6 +196,8 @@ if __name__=='__main__':
             #except Exception as e:
                 #print(e)
                 #print('Failure on {}'.format(IMG_NAME))
-        print(np.mean(delta_psnr))
+        report = 'Model: {} | Method: {}| Dataset: {} | Avg deltaPSNR: {:.4f} | Avg deltaLR-PSNR: {:.4f}'.format(model_name, method_name, dataset_name, np.mean(delta_psnr), np.mean(deltalr__psnr))
+        print(report)
+        f.write(str(report) + "\n")
         # print('Mean prior PNSR {}\nMean posterior PSNR {}\nMean increase of PSNR {}'.format(mean_prior_psnr / cnt, mean_post_psnr / cnt, mean_diff_psnr / cnt))
         #print('Mean prior SSIM {}\nMean posterior SSIM {}\nMean increase of SSIM {}'.format(mean_prior_ssim / cnt, mean_post_ssim / cnt, mean_diff_ssim / cnt))
