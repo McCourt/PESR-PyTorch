@@ -1,6 +1,7 @@
 import random
 
 from downsample.conv import ConvolutionDownscale
+from downsample.bicubic import BicubicDownSample
 import torch
 from torch import nn
 from imageio import imread, imwrite
@@ -61,7 +62,8 @@ if __name__ == '__main__':
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
         os.makedirs(os.path.join(out_dir, 'dsr'))
     print(device)
-    bds = ConvolutionDownscale()
+    bds = BicubicDownSample() #ConvolutionDownscale()
+    """
     ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
     try:
         if ckpt is not None:
@@ -71,6 +73,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
         raise FileNotFoundError('Check checkpoints')
+    """
     bds = bds.to(device)
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
