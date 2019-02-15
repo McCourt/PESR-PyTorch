@@ -10,7 +10,7 @@ from helper import psnr
 from skimage.color import gray2rgb
 from skimage.measure import compare_psnr
 from pathlib import Path
-import pytorch_ssim
+import pytorch_msssim
 
 
 ##---------main + args parser-----------
@@ -92,8 +92,10 @@ if __name__=='__main__':
 
     attentioner = nn.Sigmoid()
     bds = BicubicDownSample(SCALE)
-    lr_loss = nn.MSELoss()
-    l2_loss = nn.MSELoss()
+    #lr_loss = nn.MSELoss()
+    lr_loss = pytorch_msssim.MSSSIM()
+    #l2_loss = nn.MSELoss()
+    l2_loss = pytorch_msssim.MSSSIM()
     hr_loss = nn.MSELoss()
     lambdas = np.linspace(0, 1, 101)
     with open(str(LOG_PATH / '{}-{}.log'.format(model_name, method_name)), 'w') as f:
@@ -118,9 +120,9 @@ if __name__=='__main__':
             # ssim_dict[IMG_NAME].append(compare_ssim(sr_img[CLIP:-CLIP, CLIP:-CLIP, :],
             #                                        hr_img[CLIP:-CLIP, CLIP:-CLIP, :]))
 
-            lr_tensor = torch.tensor(np.expand_dims(lr_img.astype(np.float32), axis=0)).type('torch.DoubleTensor').to(DEVICE)
-            in_tensor = torch.tensor(np.expand_dims(sr_img.astype(np.float32), axis=0)).type('torch.DoubleTensor').to(DEVICE)
-            org_tensor = torch.tensor(np.expand_dims(sr_img.astype(np.float32), axis=0)).type('torch.DoubleTensor').to(DEVICE)
+            lr_tensor = torch.tensor(np.expand_dims(lr_img.astype(np.float32), axis=0)).type('torch.FloatTensor').to(DEVICE)
+            in_tensor = torch.tensor(np.expand_dims(sr_img.astype(np.float32), axis=0)).type('torch.FloatTensor').to(DEVICE)
+            org_tensor = torch.tensor(np.expand_dims(sr_img.astype(np.float32), axis=0)).type('torch.FloatTensor').to(DEVICE)
             in_tensor.requires_grad = True
             delta_psnr = []
             delta_lr_psnr = []

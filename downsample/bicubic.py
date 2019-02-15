@@ -49,7 +49,7 @@ class BicubicDownSample(nn.Module):
         x = pad(x)
 
         # downsampling performed by strided convolution
-        x = F.conv2d(input=x, weight=filters.type('torch.cuda.DoubleTensor').cuda(), stride=stride, groups=3)
+        x = F.conv2d(input=x, weight=filters.type('torch.cuda.FloatTensor').cuda(), stride=stride, groups=3)
         if nhwc:
             return torch.transpose(torch.transpose(x, 1, 3), 1, 2)
         else:
