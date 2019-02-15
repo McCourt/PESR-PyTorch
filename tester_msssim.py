@@ -10,6 +10,7 @@ from helper import psnr
 from skimage.color import gray2rgb
 from skimage.measure import compare_psnr
 from pathlib import Path
+import pytorch_ssim
 
 
 ##---------main + args parser-----------

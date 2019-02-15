@@ -1,10 +1,10 @@
 dataset='Set5'
 model='EnhanceNet-E'
-method='TTO_bicubic'
+method='15Feb_TTO_msssim_bicubic'
 scale='4'
 path1='/usr/xtmp/superresoluter/superresolution'
 
-python3 -W ignore /usr/xtmp/superresoluter/superresolution/tester.py \
+python3 -W ignore /usr/xtmp/superresoluter/superresolution/tester_msssim.py \
   --model-name="${model}" \
   --method-name="${method}" \
   --dataset-name="${dataset}" \
