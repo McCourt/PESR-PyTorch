@@ -1,5 +1,5 @@
 import random
-
+from models.Discriminator_VGG import Discriminator_VGG_128
 from downsample.conv import ConvolutionDownscale
 from downsample.bicubic import BicubicDownSample
 import torch
@@ -78,6 +78,18 @@ if __name__ == '__main__':
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
+    vs_loss = Discriminator_VGG_128()
+    """
+    ckpt = torch.load('')
+    try:
+        if ckpt is not None:
+            print('recovering from checkpoints...')
+            vs_loss.load_state_dict(ckpt['model'])
+            print('resuming training')
+    except Exception as e:
+        print(e)
+        raise FileNotFoundError('Check checkpoints')
+    """
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
         for img_name in os.listdir(hr_dir):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))

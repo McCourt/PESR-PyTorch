@@ -40,6 +40,7 @@ def contributions(in_length, out_length, scale, kernel, k_width):
     indices = ind.astype(np.int32)
     weights = h(np.expand_dims(u, axis=1) - indices - 1) # -1 because indexing from 0
     weights = np.divide(weights, np.expand_dims(np.sum(weights, axis=1), axis=1))
+    print(weights.shape)
     aux = np.concatenate((np.arange(in_length), np.arange(in_length - 1, -1, step=-1))).astype(np.int32)
     indices = aux[np.mod(indices, aux.size)]
     ind2store = np.nonzero(np.any(weights, axis=0))
