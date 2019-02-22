@@ -30,16 +30,16 @@ class BicubicDownSample(nn.Module):
         k2 = torch.reshape(k, shape=(1, 1, 1, size))
         self.k2 = torch.cat([k2, k2, k2], dim=0)
 
-    def forward(self, x, nhwc=False, clip_round=True):
-        x = torch.from_numpy(x).type('torch.FloatTensor')
+    def forward(self, x, nhwc=False, clip_round=False):
+        # x = torch.from_numpy(x).type('torch.FloatTensor')
         filter_height = self.factor * 4
         filter_width = self.factor * 4
         stride = self.factor
 
         pad_along_height = max(filter_height - stride, 0)
         pad_along_width = max(filter_width - stride, 0)
-        filters1 = self.k1.type('torch.FloatTensor')
-        filters2 = self.k2.type('torch.FloatTensor')
+        filters1 = self.k1.type('torch.cuda.FloatTensor')
+        filters2 = self.k2.type('torch.cuda.FloatTensor')
 
         # compute actual padding values for each side
         pad_top = pad_along_height // 2
@@ -54,14 +54,14 @@ class BicubicDownSample(nn.Module):
         # downsampling performed by strided convolution
         x = F.pad(x, (0, 0, pad_top, pad_bottom), 'reflect')
         x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
-        x = torch.clamp(torch.round(x), 0.0, 255.)
+        x = torch.clamp(x, 0.0, 255.)
         
         x = F.pad(x, (pad_left, pad_right, 0, 0), 'reflect')
         x = F.conv2d(input=x, weight=filters2, stride=(1, stride), groups=3)
-        x = torch.clamp(torch.round(x), 0.0, 255.)
+        x = torch.clamp(x, 0.0, 255.)
         if nhwc:
             x = torch.transpose(torch.transpose(x, 1, 3), 1, 2)
         if clip_round:
-            return x.type('torch.ByteTensor')
+            return x.type('torch.cuda.ByteTensor')
         else:
             return x

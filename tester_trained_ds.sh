@@ -1,4 +1,4 @@
-dataset='Urban100'
+dataset='Set5'
 model='EnhanceNet-E'
 method='convolution_down_sample'
 scale=4

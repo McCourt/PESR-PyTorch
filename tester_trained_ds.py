@@ -78,7 +78,7 @@ if __name__ == '__main__':
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
-    vs_loss = Discriminator_VGG_128()
+    # vs_loss = Discriminator_VGG_128()
     """
     ckpt = torch.load('')
     try:
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         raise FileNotFoundError('Check checkpoints')
     """
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        for img_name in os.listdir(hr_dir):
+        for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
             hr_img = np.array(imread(os.path.join(hr_dir, img_name)))
@@ -118,27 +118,28 @@ if __name__ == '__main__':
                 in_tensor = channel_shuffle(sr_tensor)
             else:
                 in_tensor = sr_tensor
-            optimizer = torch.optim.Adam([in_tensor], lr=learning_rate)
-            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7)
+            optimizer = torch.optim.Adam([sr_tensor], lr=learning_rate)
+            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
             psnrs = []
             begin_time = time()
             channel = [0, 1, 2]
             for epoch in range(num_epoch):
+                optimizer.zero_grad()
                 # in_tensor.requires_grad = True
-                ds_in_tensor = bds(in_tensor)
+                ds_in_tensor = bds(sr_tensor)
                 lr_l = lr_loss(ds_in_tensor, lr_tensor)
-                l2_l = l2_loss(in_tensor, org_tensor)
-                l0_l = hr_loss(in_tensor, hr_tensor)
+                l2_l = l2_loss(sr_tensor, org_tensor)
+                l0_l = hr_loss(sr_tensor, hr_tensor)
                 l = lr_l + beta * l2_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
                 report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l, l0_l,psnr(lr_l), psnr(lr_l), psnr(l0_l))
-                if epoch % 10 == 0 or epoch == num_epoch - 1:
+                if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
 
             if save:
-                sr_img = torch.clamp(torch.round(in_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
                 imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
