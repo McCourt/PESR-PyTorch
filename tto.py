@@ -92,12 +92,13 @@ if __name__ == '__main__':
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        report_formatter = '{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        report = report_formatter.format('Name', 'DSL', 'REGL','DISL', 'SRL', 'LRPSNR','SRPSNR')
+        report_formatter = '{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        report = report_formatter.format('IMG Name', 'DS Loss', 'REG Loss','DIS Loss', 'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
+        print(''.join(['-' for i in range(100)]))
         print(report)
-        print(''.join(['-' for i in range(86)]))
+        print(''.join(['-' for i in range(100)]))
         f.write(report + '\n')
-        report_formatter = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
+        report_formatter = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
 
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
@@ -133,9 +134,9 @@ if __name__ == '__main__':
             scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 
             psnrs = []
-            begin_time = time()
             channel = [0, 1, 2]
             for epoch in range(num_epoch):
+                begin_time = time()
                 optimizer.zero_grad()
                 # in_tensor.requires_grad = True
                 ds_in_tensor = down_sampler(sr_tensor)
@@ -151,11 +152,11 @@ if __name__ == '__main__':
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l))
+                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), time() - begin_time)
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
-            print(''.join(['-' for i in range(86)]))
+            print(''.join(['-' for i in range(100)]))
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)

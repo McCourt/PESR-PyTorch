@@ -1,6 +1,6 @@
-dataset='Urban100'
+dataset='Set5'
 model='EnhanceNet-E'
-method='convolution_down_sample'
+method='bicubic+reg+vgg_discriminator'
 scale=4
 path="/usr/xtmp/superresoluter/superresolution"
 
