@@ -92,9 +92,13 @@ if __name__ == '__main__':
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        print('{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'.format('Name', 'DSL', 'REGL', 'DISL', 
-                                                                                          'SRL', 'LRPSNR', 'SRPSNR'))
+        report_formatter = '{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        report = report_formatter.format('Name', 'DSL', 'REGL','DISL', 'SRL', 'LRPSNR','SRPSNR')
+        print(report)
         print(''.join(['-' for i in range(86)]))
+        f.write(report + '\n')
+        report_formatter = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
+
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
@@ -147,10 +151,7 @@ if __name__ == '__main__':
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'.format(img_name,
-                                                                                                           lr_l, l2_l, vs_l,
-                                                                                                           l0_l, psnr(lr_l),
-                                                                                                           psnr(l0_l))
+                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l))
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
