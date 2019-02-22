@@ -92,13 +92,14 @@ if __name__ == '__main__':
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        report_formatter = '{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        report = report_formatter.format('IMG Name', 'DS Loss', 'REG Loss','DIS Loss', 'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
-        print(''.join(['-' for i in range(100)]))
-        print(report)
-        print(''.join(['-' for i in range(100)]))
-        f.write(report + '\n')
-        report_formatter = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
+        title_formatter = '{:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        title = title_formatter.format('IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
+                                       'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
+        print(''.join(['-' for i in range(101)]))
+        print(title)
+        print(''.join(['-' for i in range(101)]))
+        f.write(title + '\n')
+        report_formatter = '{:^10s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
 
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
@@ -136,15 +137,18 @@ if __name__ == '__main__':
             psnrs = []
             channel = [0, 1, 2]
             for epoch in range(num_epoch):
+                print(title, end='\r')
                 begin_time = time()
                 optimizer.zero_grad()
-                # in_tensor.requires_grad = True
                 ds_in_tensor = down_sampler(sr_tensor)
 
                 lr_l = lr_loss(ds_in_tensor, lr_tensor)
                 l2_l = l2_loss(sr_tensor, org_tensor)
                 vs_l = torch.sum(
-                    -discriminator(F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').view((-1, 3, 128, 128))))
+                    -discriminator(
+                        F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').view((-1, 3, 128, 128))
+                    )
+                )
 
                 l0_l = hr_loss(sr_tensor, hr_tensor)
 
@@ -152,11 +156,12 @@ if __name__ == '__main__':
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), time() - begin_time)
+                diff = time() - begin_time
+                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), diff)
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
-            print(''.join(['-' for i in range(100)]))
+            print(''.join(['-' for i in range(101)]))
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
