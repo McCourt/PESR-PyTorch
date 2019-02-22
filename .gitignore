@@ -9,3 +9,4 @@ __pycache__/
 checkpoints/
 *.ckpt
 logs/
+info.txt
