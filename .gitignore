@@ -2,7 +2,6 @@ imgs/
 .idea/
 .ipynb_checkpoints/
 .DS_Store
-Archive/
 *.ipynb
 __pycache__/
 .nfs*

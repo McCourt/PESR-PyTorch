@@ -3,16 +3,20 @@ from models.Discriminator_VGG import Discriminator_VGG_128
 from downsample.conv import ConvolutionDownscale
 from downsample.bicubic import BicubicDownSample
 import torch
-from torch import nn
+import torch.nn as nn
 import torch.nn.functional as F
 from imageio import imread, imwrite
 import numpy as np
 import os, sys
 from time import time
 from skimage.color import gray2rgb
+import os, sys, getopt, random
+
+from models.Discriminator_VGG import Discriminator_VGG_128
+from downsample.bicubic import BicubicDownSample
+# from downsample.conv import ConvolutionDownscale
 from helper import load_checkpoint, psnr, load_parameters, ChannelGradientShuffle
 import getopt
-
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -64,8 +68,10 @@ if __name__ == '__main__':
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
         os.makedirs(os.path.join(out_dir, 'dsr'))
     print(device)
-    bds = BicubicDownSample() #ConvolutionDownscale()
+    down_sampler = BicubicDownSample()
+
     """
+    down_sampler = ConvolutionDownscale()
     ckpt = load_checkpoint(load_dir='./checkpoints/', map_location=None, model_name='down_sample')
     try:
         if ckpt is not None:
@@ -76,27 +82,20 @@ if __name__ == '__main__':
         print(e)
         raise FileNotFoundError('Check checkpoints')
     """
-    bds = bds.to(device)
+    down_sampler = down_sampler.to(device)
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
-    vs_loss = Discriminator_VGG_128()
+
+    discriminator = Discriminator_VGG_128()
     ckpt = torch.load("./checkpoints/155000_D.pth")
-    vs_loss.load_state_dict(ckpt)
-    vs_loss.require_grad = False
-    vs_loss = vs_loss.to(device)
-    """
-    ckpt = torch.load('')
-    try:
-        if ckpt is not None:
-            print('recovering from checkpoints...')
-            vs_loss.load_state_dict(ckpt['model'])
-            print('resuming training')
-    except Exception as e:
-        print(e)
-        raise FileNotFoundError('Check checkpoints')
-    """
+    discriminator.load_state_dict(ckpt)
+    discriminator.require_grad = False
+    discriminator = discriminator.to(device)
+
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
+        print('{:8s} | {:5s} | {:5s} | {:8s} | {:7s} | {:7s} | {:10s}'.format('Name', 'DSL', 'REGL', 'DISL', 'SRL',
+                                                                             'LRPSNR', 'SRPSNR'))
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
@@ -108,52 +107,50 @@ if __name__ == '__main__':
                 sr_img = gray2rgb(sr_img)
             if len(hr_img.shape) == 2:
                 hr_img = gray2rgb(hr_img)
-            '''
-            h_0, w_0, c_0 = sr_img.shape
-            pad_h, pad_w = h % 128, w % 128
-            sr_img = np.pad(sr_img, ((0, pad_h), (0, pad_w), (0, 0)), mode='constant')
 
-            h, w, c = hr_img.shape
-            pad_h, pad_w = 128 - h % 128, 128 - w % 128
-            hr_img = np.pad(hr_img, ((0, pad_h), (0, pad_w), (0, 0)), mode='constant')
-
-            h, w, c = lr_img.shape
-            pad_h, pad_w = 32 - h % 32, 32 - w % 32
-            lr_img = np.pad(lr_img, ((0, pad_h), (0, pad_w), (0, 0)), mode='contant')
-            '''
-            h, w, c = sr_img.shape
-            lr_img = np.expand_dims(np.moveaxis(lr_img, -1, 0).astype(np.float32), 0)
-            sr_img = np.expand_dims(np.moveaxis(sr_img, -1, 0).astype(np.float32), 0)
-            hr_img = np.expand_dims(np.moveaxis(hr_img, -1, 0).astype(np.float32), 0)
-            pad_h, pad_w = 128 - sr_img.shape[2] % 128, 128 - sr_img.shape[3] % 128
+            lr_img = np.expand_dims(np.moveaxis(lr_img, -1, 0).astype(np.float32), axis=0)
+            sr_img = np.expand_dims(np.moveaxis(sr_img, -1, 0).astype(np.float32), axis=0)
+            hr_img = np.expand_dims(np.moveaxis(hr_img, -1, 0).astype(np.float32), axis=0)
+            _, c, h, w = sr_img.shape
 
             lr_tensor = torch.from_numpy(lr_img).type('torch.cuda.FloatTensor').to(device)
             sr_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             hr_tensor = torch.from_numpy(hr_img).type('torch.cuda.FloatTensor').to(device)
+            pad_h, pad_w = 128 - sr_img.shape[2] % 128, 128 - sr_img.shape[3] % 128
             sr_tensor.requires_grad = True
+
             if rgb_shuffle:
                 channel_shuffle = ChannelGradientShuffle.apply
                 in_tensor = channel_shuffle(sr_tensor)
             else:
                 in_tensor = sr_tensor
+
             optimizer = torch.optim.Adam([sr_tensor], lr=learning_rate)
             scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+
             psnrs = []
             begin_time = time()
             channel = [0, 1, 2]
             for epoch in range(num_epoch):
                 optimizer.zero_grad()
-                ds_in_tensor = bds(sr_tensor)
+                # in_tensor.requires_grad = True
+                ds_in_tensor = down_sampler(sr_tensor)
+
                 lr_l = lr_loss(ds_in_tensor, lr_tensor)
                 l2_l = l2_loss(sr_tensor, org_tensor)
-                vs_l = torch.sum(-vs_loss(F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').view((-1, 3, 128, 128))))
+                vs_l = torch.sum(
+                    -discriminator(F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').view((-1, 3, 128, 128))))
+
                 l0_l = hr_loss(sr_tensor, hr_tensor)
+
                 l = lr_l + beta * l2_l + beta_1 * vs_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f}'.format(img_name, lr_l, l2_l, l0_l,psnr(lr_l), psnr(lr_l), psnr(l0_l), vs_l)
+                report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.2f}'.format(img_name,
+                                                                                           lr_l, l2_l, vs_l, l0_l,
+                                                                                           psnr(lr_l), psnr(l0_l))
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
