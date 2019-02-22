@@ -1,13 +1,8 @@
-import random
-from models.Discriminator_VGG import Discriminator_VGG_128
-from downsample.conv import ConvolutionDownscale
-from downsample.bicubic import BicubicDownSample
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from imageio import imread, imwrite
 import numpy as np
-import os, sys
 from time import time
 from skimage.color import gray2rgb
 import os, sys, getopt, random
