@@ -89,7 +89,7 @@ if __name__ == '__main__':
     discriminator = discriminator.to(device)
 
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        print('{:8s} | {:5s} | {:5s} | {:8s} | {:7s} | {:7s} | {:10s}'.format('Name', 'DSL', 'REGL', 'DISL', 'SRL',
+        print('{:8s} | {:6s} | {:6s} | {:8s} | {:8s} | {:7s} | {:7s}'.format('Name', 'DSL', 'REGL', 'DISL', 'SRL',
                                                                              'LRPSNR', 'SRPSNR'))
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
@@ -143,9 +143,10 @@ if __name__ == '__main__':
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = '{} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.4f} | {:.2f}'.format(img_name,
-                                                                                           lr_l, l2_l, vs_l, l0_l,
-                                                                                           psnr(lr_l), psnr(l0_l))
+                report = '{:8s} | {:6.4f} | {:6.4f} | {:8.2f} | {:8.4f} | {:7.4f} | {:7.4f}'.format(img_name,
+                                                                                                    lr_l, l2_l, vs_l,
+                                                                                                    l0_l, psnr(lr_l),
+                                                                                                    psnr(l0_l))
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
