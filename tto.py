@@ -36,7 +36,10 @@ if __name__ == '__main__':
 
     try:
         parameters = load_parameters(method)
-        print(parameters)
+        print('Parameters loaded')
+        print(''.join(['-' for i in range(30)]))
+        for i in parameters:
+            print('{:<15s} -> {:<15s}'.format(str(i), str(parameters[i])))
         device_name = parameters['device_name']
         num_epoch = parameters['num_epoch']
         beta = parameters['beta']
@@ -62,7 +65,6 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(out_dir, 'sr'))
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
         os.makedirs(os.path.join(out_dir, 'dsr'))
-    print(device)
     down_sampler = BicubicDownSample()
 
     """
@@ -88,9 +90,11 @@ if __name__ == '__main__':
     discriminator.require_grad = False
     discriminator = discriminator.to(device)
 
+    print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        print('{:8s} | {:6s} | {:6s} | {:8s} | {:8s} | {:7s} | {:7s}'.format('Name', 'DSL', 'REGL', 'DISL', 'SRL',
-                                                                             'LRPSNR', 'SRPSNR'))
+        print('{:^8s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'.format('Name', 'DSL', 'REGL', 'DISL', 
+                                                                                          'SRL', 'LRPSNR', 'SRPSNR'))
+        print(''.join(['-' for i in range(86)]))
         for img_name in sorted(os.listdir(hr_dir)):
             lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
             sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
@@ -143,13 +147,14 @@ if __name__ == '__main__':
                 l.backward()
                 optimizer.step()
                 scheduler.step()
-                report = '{:8s} | {:6.4f} | {:6.4f} | {:8.2f} | {:8.4f} | {:7.4f} | {:7.4f}'.format(img_name,
-                                                                                                    lr_l, l2_l, vs_l,
-                                                                                                    l0_l, psnr(lr_l),
-                                                                                                    psnr(l0_l))
+                report = '{:^8s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'.format(img_name,
+                                                                                                           lr_l, l2_l, vs_l,
+                                                                                                           l0_l, psnr(lr_l),
+                                                                                                           psnr(l0_l))
                 if epoch % 100 == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
+            print(''.join(['-' for i in range(86)]))
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
