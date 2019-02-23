@@ -5,8 +5,7 @@
     "lr_dir": "imgs/source_image/{}/LR_PIL/x{}",
     "sr_dir": "imgs/stage_one_image/{}/{}/x{}/",
     "out_dir": "imgs/stage_two_image/{}-{}/{}/x{}",
-    "log_dir": "imgs/stage_two_image/{}-{}/{}/x{}",
-    "device_name": "cuda:0"
+    "log_dir": "imgs/stage_two_image/{}-{}/{}/x{}"
   },
   "tto": {
     "method": "bicubic+reg+vgg_discriminator",
@@ -17,6 +16,7 @@
     "save": true,
     "rgb_shuffle": false,
     "print_every": 100,
-    "discriminator_checkpoint": "checkpoints/155000_D.pth"
+    "disk_ckpt": "checkpoints/155000_D.pth",
+    "device_name": "cuda:0"
   }
 }

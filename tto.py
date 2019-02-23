@@ -34,11 +34,11 @@ if __name__ == '__main__':
             raise UserWarning('Redundant argument {}'.format(arg))
 
     try:
-        params = load_parameters('parameters.json')
+        params = load_parameters()
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         for i in params['tto']:
-            print('{:<15s} -> {}'.format(str(i), params[i]))
+            print('{:<15s} -> {}'.format(str(i), params['tto'][i]))
         device_name = params['tto']['device_name']
         num_epoch = params['tto']['num_epoch']
         beta = params['tto']['beta']
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     hr_loss = nn.MSELoss()
 
     discriminator = Discriminator_VGG_128()
-    ckpt = torch.load(os.path.join(params['common']['root_dir'], params['tto']['discriminator_checkpoint']))
+    ckpt = torch.load(os.path.join(params['common']['root_dir'], params['tto']['disk_ckpt']))
     discriminator.load_state_dict(ckpt)
     discriminator.require_grad = False
     discriminator = discriminator.to(device)
@@ -97,9 +97,9 @@ if __name__ == '__main__':
         title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
         title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
                                        'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
-        print(''.join(['-' for i in range(101)]))
+        print(''.join(['-' for i in range(110)]))
         print(title)
-        print(''.join(['-' for i in range(101)]))
+        print(''.join(['-' for i in range(110)]))
         f.write(title + '\n')
         report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} ' \
                            '| {:^10.4f} '
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
-            print(''.join(['-' for i in range(101)]))
+            print(''.join(['-' for i in range(110)]))
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)

@@ -7,5 +7,4 @@ path="/usr/xtmp/superresoluter/superresolution"
 python3 -W ignore ${path}/tto.py \
   --model-name=${model} \
   --dataset=${dataset} \
-  --method=${method} \
   --scale=${scale}
