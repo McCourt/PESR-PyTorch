@@ -4,7 +4,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 import numpy as np
 from helper import *
-from dataset import ResolutionDataset
+from dataset import SRTrainDataset
 import os, sys, math
 import getopt
 from time import time
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     loss = MSEnDSLoss().to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=DECAY_RATE)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=DECAY_STEP)
-    dataset = ResolutionDataset(HR_DIR, LR_DIR, h=WIN_SIZE, w=WIN_SIZE)
+    dataset = SRTrainDataset(HR_DIR, LR_DIR, h=WIN_SIZE, w=WIN_SIZE)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=6)
     begin_epoch = 0
 

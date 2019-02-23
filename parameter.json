@@ -1,10 +1,22 @@
-[{
-  "method": "bicubic+reg+vgg_discriminator",
-  "learning_rate": 1e-2,
-  "beta": 1e-2,
-  "beta_1": 1e-3,
-  "num_epoch": 500,
-  "device_name": "cuda:0",
-  "save": true,
-  "rgb_shuffle": false
-}]
+{
+  "common": {
+    "root_dir": "/usr/xtmp/superresoluter/superresolution",
+    "hr_dir": "imgs/source_image/{}/HR",
+    "lr_dir": "imgs/source_image/{}/LR_PIL/x{}",
+    "sr_dir": "imgs/stage_one_image/{}/{}/x{}/",
+    "out_dir": "imgs/stage_two_image/{}-{}/{}/x{}",
+    "log_dir": "imgs/stage_two_image/{}-{}/{}/x{}",
+    "device_name": "cuda:0"
+  },
+  "tto": {
+    "method": "bicubic+reg+vgg_discriminator",
+    "learning_rate": 1e-2,
+    "beta": 1e-2,
+    "beta_1": 1e-3,
+    "num_epoch": 500,
+    "save": true,
+    "rgb_shuffle": false,
+    "print_every": 100,
+    "discriminator_checkpoint": "checkpoints/155000_D.pth"
+  }
+}

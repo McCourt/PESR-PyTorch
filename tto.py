@@ -11,7 +11,8 @@ from models.Discriminator_VGG import Discriminator_VGG_128
 from downsample.bicubic import BicubicDownSample
 # from downsample.conv import ConvolutionDownscale
 from helper import load_checkpoint, psnr, load_parameters, ChannelGradientShuffle
-import getopt
+from dataset import SRTTODataset
+
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -27,37 +28,35 @@ if __name__ == '__main__':
             model = str(opt)
         elif arg == '--dataset':
             dataset = str(opt)
-        elif arg == '--method':
-            method = str(opt)
         elif arg == '--scale':
             scale = int(opt)
         else:
             raise UserWarning('Redundant argument {}'.format(arg))
 
     try:
-        parameters = load_parameters(method)
+        params = load_parameters('parameters.json')
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
-        for i in parameters:
-            print('{:<15s} -> {:<15s}'.format(str(i), str(parameters[i])))
-        device_name = parameters['device_name']
-        num_epoch = parameters['num_epoch']
-        beta = parameters['beta']
-        beta_1 = parameters['beta_1']
-        learning_rate = parameters['learning_rate']
-        save = parameters['save']
-        rgb_shuffle = parameters['rgb_shuffle']
+        for i in params['tto']:
+            print('{:<15s} -> {}'.format(str(i), params[i]))
+        device_name = params['tto']['device_name']
+        num_epoch = params['tto']['num_epoch']
+        beta = params['tto']['beta']
+        beta_1 = params['tto']['beta_1']
+        learning_rate = params['tto']['learning_rate']
+        save = params['tto']['save']
+        rgb_shuffle = params['tto']['rgb_shuffle']
+        print_every = params['tto']['print_every']
+        method = params['tto']['method']
     except Exception as e:
         print(e)
         raise ValueError('Parameter not found.')
 
-    root_dir = '/usr/xtmp/superresoluter/superresolution'
-    out_dir = os.path.join(root_dir, 'imgs/stage_two_image/{}-{}/{}/x{}'.format(model, method, dataset, scale))
-    lr_dir = os.path.join(root_dir, 'imgs/source_image/{}/LR_PIL/x{}'.format(dataset, scale))
-    hr_dir = os.path.join(root_dir, 'imgs/source_image/{}/HR'.format(dataset))
-    sr_dir = os.path.join(root_dir, 'imgs/stage_one_image/{}/{}/x{}/'.format(model, dataset, scale))
-    log_dir = os.path.join(root_dir, 'imgs/stage_two_image/{}-{}/{}/x{}'.format(model, method, dataset, scale))
-    device = torch.device(device_name if torch.cuda.is_available else 'cpu')
+    out_dir = os.path.join(params['common']['root_dir'], params['common']['out_dir'].format(model, method, dataset, scale))
+    lr_dir = os.path.join(params['common']['root_dir'], params['common']['lr_dir'].format(dataset, scale))
+    hr_dir = os.path.join(params['common']['root_dir'], params['common']['hr_dir'].format(dataset))
+    sr_dir = os.path.join(params['common']['root_dir'], params['common']['sr_dir'].format(model, dataset, scale))
+    log_dir = os.path.join(params['common']['root_dir'], params['common']['log_dir'].format(model, method, dataset, scale))
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -65,7 +64,6 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(out_dir, 'sr'))
     if not os.path.exists(os.path.join(out_dir, 'dsr')):
         os.makedirs(os.path.join(out_dir, 'dsr'))
-    down_sampler = BicubicDownSample()
 
     """
     down_sampler = ConvolutionDownscale()
@@ -79,43 +77,42 @@ if __name__ == '__main__':
         print(e)
         raise FileNotFoundError('Check checkpoints')
     """
+    device = torch.device(device_name if torch.cuda.is_available else 'cpu')
+    dataset = SRTTODataset(hr_dir, lr_dir, sr_dir)
+
+    down_sampler = BicubicDownSample()
     down_sampler = down_sampler.to(device)
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
 
     discriminator = Discriminator_VGG_128()
-    ckpt = torch.load("./checkpoints/155000_D.pth")
+    ckpt = torch.load(os.path.join(params['common']['root_dir'], params['tto']['discriminator_checkpoint']))
     discriminator.load_state_dict(ckpt)
     discriminator.require_grad = False
     discriminator = discriminator.to(device)
 
     print('Begin TTO on device {}'.format(device))
-    with open(os.path.join(log_dir, '{}.log'.format(model)), 'w') as f:
-        title_formatter = '{:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        title = title_formatter.format('IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
+    with open(os.path.join(log_dir, '{}_{}.log'.format(model, method)), 'w') as f:
+        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
                                        'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
         print(''.join(['-' for i in range(101)]))
         print(title)
         print(''.join(['-' for i in range(101)]))
         f.write(title + '\n')
-        report_formatter = '{:^10s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f}'
+        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} ' \
+                           '| {:^10.4f} '
 
-        for img_name in sorted(os.listdir(hr_dir)):
-            lr_img = np.array(imread(os.path.join(lr_dir, img_name)))
-            sr_img = np.array(imread(os.path.join(sr_dir, img_name)))
-            hr_img = np.array(imread(os.path.join(hr_dir, img_name)))
+        for img_dic in dataset:
+            img_name = img_dic['name']
+            lr_img = img_dic['lr']
+            sr_img = img_dic['sr']
+            hr_img = img_dic['hr']
 
-            if len(lr_img.shape) == 2:
-                lr_img = gray2rgb(lr_img)
-            if len(sr_img.shape) == 2:
-                sr_img = gray2rgb(sr_img)
-            if len(hr_img.shape) == 2:
-                hr_img = gray2rgb(hr_img)
-
-            lr_img = np.expand_dims(np.moveaxis(lr_img, -1, 0).astype(np.float32), axis=0)
-            sr_img = np.expand_dims(np.moveaxis(sr_img, -1, 0).astype(np.float32), axis=0)
-            hr_img = np.expand_dims(np.moveaxis(hr_img, -1, 0).astype(np.float32), axis=0)
+            lr_img = np.expand_dims(lr_img, axis=0)
+            sr_img = np.expand_dims(sr_img, axis=0)
+            hr_img = np.expand_dims(hr_img, axis=0)
             _, c, h, w = sr_img.shape
 
             lr_tensor = torch.from_numpy(lr_img).type('torch.cuda.FloatTensor').to(device)
@@ -157,8 +154,8 @@ if __name__ == '__main__':
                 optimizer.step()
                 scheduler.step()
                 diff = time() - begin_time
-                report = report_formatter.format(img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), diff)
-                if epoch % 100 == 0 or epoch == num_epoch - 1:
+                report = report_formatter.format(epoch, img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), diff)
+                if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
             print(''.join(['-' for i in range(101)]))

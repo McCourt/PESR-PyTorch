@@ -85,11 +85,9 @@ def report(epoch, bid, l, epoch_loss, bpsnr, epsnr, time):
                                                                                                    epsnr, time)
 
 
-def load_parameters(key, path='./parameter.json'):
+def load_parameters(path='./parameter.json'):
     with open(path, 'r') as f:
-        for pars in json.load(f):
-            if pars['method'] == key:
-                return pars
+        return json.load(f)
 
 
 class ChannelGradientShuffle(torch.autograd.Function):
