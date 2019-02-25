@@ -54,11 +54,14 @@ class BicubicDownSample(nn.Module):
         # downsampling performed by strided convolution
         x = F.pad(x, (0, 0, pad_top, pad_bottom), 'reflect')
         x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
-        x = torch.clamp(x, 0.0, 255.)
+        if clip_round:
+            x = torch.clamp(torch.round(x), 0.0, 255.)
         
         x = F.pad(x, (pad_left, pad_right, 0, 0), 'reflect')
         x = F.conv2d(input=x, weight=filters2, stride=(1, stride), groups=3)
-        x = torch.clamp(x, 0.0, 255.)
+        if clip_round:
+            x = torch.clamp(torch.round(x), 0.0, 255.)
+
         if nhwc:
             x = torch.transpose(torch.transpose(x, 1, 3), 1, 2)
         if clip_round:
