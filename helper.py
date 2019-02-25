@@ -36,24 +36,22 @@ class MSEnDSLoss(nn.Module):
         return loss
 
 
-def save_checkpoint(state_dict, save_dir, model_name='model'):
+def save_checkpoint(state_dict, save_dir):
     try:
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        torch.save(state_dict, os.path.join(save_dir, model_name + '.ckpt'))
+        torch.save(state_dict, save_dir)
         print('checkpoint saved')
     except:
         raise Exception('checkpoint saving failure')
 
 
-def load_checkpoint(load_dir, model_name='model', map_location=None):
+def load_checkpoint(load_dir, map_location=None):
     try:
         if not os.path.exists(load_dir):
             print('No checkpoint and begin new training')
             return None
         else:
             print('loading checkpoint')
-            checkpoint = torch.load(os.path.join(load_dir, model_name + '.ckpt'), map_location=map_location)
+            checkpoint = torch.load(load_dir, map_location=map_location)
             print('loading successful')
             return checkpoint
     except:

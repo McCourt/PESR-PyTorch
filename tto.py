@@ -52,11 +52,11 @@ if __name__ == '__main__':
         print(e)
         raise ValueError('Parameter not found.')
 
-    out_dir = os.path.join(params['common']['root_dir'], params['common']['out_dir'].format(model, method, dataset, scale))
+    out_dir = os.path.join(params['common']['root_dir'], params['common']['tto_dir'].format(model, method, dataset, scale))
     lr_dir = os.path.join(params['common']['root_dir'], params['common']['lr_dir'].format(dataset, scale))
     hr_dir = os.path.join(params['common']['root_dir'], params['common']['hr_dir'].format(dataset))
     sr_dir = os.path.join(params['common']['root_dir'], params['common']['sr_dir'].format(model, dataset, scale))
-    log_dir = os.path.join(params['common']['root_dir'], params['common']['log_dir'].format(model, method, dataset, scale))
+    log_dir = os.path.join(params['common']['root_dir'], params['common']['tto_log'].format(model, method, dataset, scale))
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     discriminator = discriminator.to(device)
 
     print('Begin TTO on device {}'.format(device))
-    with open(os.path.join(log_dir, '{}_{}.log'.format(model, method)), 'w') as f:
+    with open(os.path.join(log_dir), 'w') as f:
         title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
         title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
                                        'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
