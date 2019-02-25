@@ -120,6 +120,7 @@ if __name__ == '__main__':
             org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             hr_tensor = torch.from_numpy(hr_img).type('torch.cuda.FloatTensor').to(device)
             pad_h, pad_w = 128 - sr_img.shape[2] % 128, 128 - sr_img.shape[3] % 128
+            crop_h, crop_w = sr_img.shape[2] // 128 * 128, sr_img.shape[3] // 128 * 128
             sr_tensor.requires_grad = True
 
             if rgb_shuffle:
@@ -141,9 +142,9 @@ if __name__ == '__main__':
 
                 lr_l = lr_loss(ds_in_tensor, lr_tensor)
                 l2_l = l2_loss(sr_tensor, org_tensor)
-                vs_l = torch.sum(
+                vs_l = torch.mean(
                     -discriminator(
-                        F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').view((-1, 3, 128, 128))
+                        F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').permute(0, 2, 3, 1).view((-1, 128, 128, 3)).permute(0, 3, 1, 2)
                     )
                 )
 
