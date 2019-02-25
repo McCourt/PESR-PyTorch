@@ -1,6 +1,3 @@
-import torch
-from torch import nn
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 import numpy as np
 from helper import *
@@ -10,108 +7,127 @@ import getopt
 from time import time
 
 if __name__ == '__main__':
+    # Load system arguments
     args = sys.argv[1:]
-    long_opts = [
-        'model-name=', 'hr-dir=', 'lr-dir=', 'output-dir=', 'upsample=', 'learning-rate=', 'decay-rate=', 'decay-step=',
-        'batch-size=', 'num-epoch=', 'add-dsloss=', 'gpu-device=', 'log-dir=', 'ckpt-dir=', 'window='
-    ]
+    long_opts = ['model-name=', 'scale=']
 
     try:
         optlist, args = getopt.getopt(args, '', long_opts)
     except getopt.GetoptError as e:
         print(str(e))
         sys.exit(2)
+
     for arg, opt in optlist:
         if arg == '--model-name':
             model_name = str(opt)
             model = load_model(model_name)
-        elif arg == '--hr-dir':
-            HR_DIR = str(opt)
-            if not os.path.exists(HR_DIR):
-                raise FileNotFoundError('High resolution images not found.')
-        elif arg == '--lr-dir':
-            LR_DIR = str(opt)
-            if not os.path.exists(LR_DIR):
-                raise FileNotFoundError('Low resolution images not found.')
-        elif arg == '--output-dir':
-            OUT_DIR = str(opt)
-            if not os.path.exists(OUT_DIR):
-                os.mkdir(OUT_DIR)
-            OUT_DIR = os.path.join(OUT_DIR, model_name)
-            if not os.path.exists(OUT_DIR):
-                os.mkdir(OUT_DIR)
-        elif arg == '--ckpt-dir':
-            CKPT_DIR = str(opt)
-            if not os.path.exists(CKPT_DIR):
-                os.mkdir(CKPT_DIR)
-            CKPT_DIR = os.path.join(CKPT_DIR, model_name)
-            if not os.path.exists(CKPT_DIR):
-                os.mkdir(CKPT_DIR)
-        elif arg == '--log-dir':
-            LOG_DIR = str(opt)
-            if not os.path.exists(LOG_DIR):
-                os.mkdir(LOG_DIR)
-
-        elif arg == '--learning-rate':
-            LEARNING_RATE = float(opt)
-        elif arg == '--decay-rate':
-            DECAY_RATE = float(opt)
-        elif arg == '--decay-step':
-            DECAY_STEP = int(opt)
-        elif arg == '--batch-size':
-            BATCH_SIZE = int(opt)
-        elif arg == '--num-epoch':
-            NUM_EPOCH = int(opt)
-
-        elif arg == '--gpu-device':
-            if torch.cuda.is_available:
-                DEVICES = [int(i) for i in ','.split(opt)]
-            DEVICE = torch.device(str(DEVICES[0]) if torch.cuda.is_available else 'cpu')
-
-        elif arg == '--window':
-            WIN_SIZE = int(opt)
+        elif arg == '--scale':
+            scale = int(opt)
         else:
-            continue
+            raise Exception("Redundant Argument Detected")
 
-    # initialize the SRResNet model and loss function and optimizer and learning rate scheduler
-    model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
-    # model = model.to(DEVICE)
-    loss = MSEnDSLoss().to(DEVICE)
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=DECAY_RATE)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=DECAY_STEP)
-    dataset = SRTrainDataset(HR_DIR, LR_DIR, h=WIN_SIZE, w=WIN_SIZE)
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=6)
+    # Load JSON arguments
+    try:
+        params = load_parameters()
+        print('Parameters loaded')
+        print(''.join(['-' for i in range(30)]))
+        train_params = params['train']
+        common_params = params['common']
+        for i in train_params:
+            print('{:<15s} -> {}'.format(str(i), train_params[i]))
+    except Exception as e:
+        print(e)
+        raise ValueError('Parameter not found.')
+
+    # Prepare all directory and devices
+    device = torch.device('cuda:{}'.format(train_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
+    lr_dir = os.path.join(params['common']['root_dir'], params['common']['lr_dir'])
+    hr_dir = os.path.join(params['common']['root_dir'], params['common']['hr_dir'])
+    sr_dir = os.path.join(params['common']['root_dir'], params['common']['sr_dir'].format(model_name))
+    log_dir = os.path.join(params['common']['root_dir'], params['common']['train_log'].format(model_name))
+    ckpt_dir = os.path.join(params['common']['root_dir'], params['common']['ckpt_dir'].format(model_name))
+
+    # Define model and loss function
+    model = nn.DataParallel(model)
+    loss = nn.MSELoss().to(device)
+
+    # Define optimizer and learning rate scheduler
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=train_params['learning_rate'],
+        weight_decay=train_params['l2_beta']
+    )
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer,
+        gamma=train_params['decay_rate'],
+        step_size=train_params['decay_step']
+    )
+
+    # Define data source
+    dataset = SRTrainDataset(
+        hr_dir=hr_dir,
+        lr_dir=lr_dir,
+        h=train_params['window'][0],
+        w=train_params['window'][1],
+        scale=scale,
+        num_per=train_params['num_per']
+    )
+    data_loader = DataLoader(
+        dataset,
+        batch_size=train_params['batch_size'],
+        shuffle=True,
+        num_workers=train_params['num_worker']
+    )
+
+    # Load checkpoint
     begin_epoch = 0
+    ckpt = load_checkpoint(
+        load_dir=common_params['ckpt_dir'],
+        map_location=train_params['map_location']
+    )
+    try:
+        if ckpt is None:
+            print('Start new training')
+        else:
+            print('recovering from checkpoints', end='\r')
+            model.load_state_dict(ckpt['model'])
+            begin_epoch = ckpt['epoch'] + 1
+            print('resuming training from epoch {}'.format(begin_epoch))
+    except Exception as e:
+        raise ValueError('Checkpoint not found.')
 
-    # load checkpoint
-    ckpt = load_checkpoint(load_dir=CKPT_DIR, map_location=None, model_name=model_name)
-    if ckpt is not None:
-        print('recovering from checkpoints...')
-        model.load_state_dict(ckpt['model'])
-        begin_epoch = ckpt['epoch'] + 1
-        print('resuming training')
-
-    # training loop
+    # Training loop and saver as checkpoints
+    print(''.join(['-' for i in range(60)]))
     begin = time()
-    with open(os.path.join(LR_DIR, '{}.log'.format(model_name)), 'a') as f:
-        for epoch in range(begin_epoch, NUM_EPOCH):
-            epoch_loss = []
-            for bid, batch in enumerate(dataloader):
-                hr, lr = batch['hr'].to(DEVICE), batch['lr'].to(DEVICE)
+    cnt = 0
+    title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'Runtime')
+    print(title)
+    print(''.join(['-' for i in range(60)]))
+    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8f}'
+    with open(log_dir, 'w') as f:
+        for epoch in range(begin_epoch, train_params['num_epoch']):
+            epoch_loss = 0
+            for bid, batch in enumerate(data_loader):
+                hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()
-                x = model(lr)
-                batch_loss = loss(x, hr, lr)
+                sr = model(lr)
+                batch_loss = loss(sr, hr)
                 batch_loss.backward()
                 optimizer.step()
-                epoch_loss.append(batch_loss)
+                scheduler.step()
+                epoch_loss += batch_loss.detach().cpu().numpy() / len(dataset)
 
-                print('Epoch {} | Batch {} | Bpsnr {:6f} | Epsnr {:6f} | RT {:6f}'.format(epoch, bid, psnr(batch_loss),
-                                                                                          psnr(np.mean(epoch_loss)),
-                                                                                          since(begin)))
-                f.write('{},{},{},{},{}\n'.format(epoch, bid, batch_loss, np.mean(epoch_loss), since(begin)))
+                report = report_formatter.format(epoch, bid, batch_loss, epoch_loss, since(begin))
+                if cnt % train_params['print_every'] == 0:
+                    print(report)
+                    print(title, end='\r')
+
+                f.write(report + '\n')
                 f.flush()
-            state_dict = {
-                'model': model.state_dict(),
-                'epoch': epoch
-            }
-            save_checkpoint(state_dict, CKPT_DIR, model_name=model_name)
+            if epoch % train_params['save_every'] == 0 or epoch == train_params['num_epoch'] - 1:
+                state_dict = {
+                    'model': model.state_dict(),
+                    'epoch': epoch
+                }
+                save_checkpoint(state_dict, ckpt_dir)
+            print(''.join(['-' for i in range(60)]))

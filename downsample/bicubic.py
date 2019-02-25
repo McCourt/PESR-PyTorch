@@ -18,7 +18,7 @@ class BicubicDownSample(nn.Module):
         else:
             return 0.0
 
-    def __init__(self, factor=4):
+    def __init__(self, factor=4, cuda=True, padding='reflect'):
         super().__init__()
         self.factor = factor
         size = factor * 4
@@ -29,6 +29,8 @@ class BicubicDownSample(nn.Module):
         self.k1 = torch.cat([k1, k1, k1], dim=0)
         k2 = torch.reshape(k, shape=(1, 1, 1, size))
         self.k2 = torch.cat([k2, k2, k2], dim=0)
+        self.cuda = '.cuda' if cuda else ''
+        self.padding = padding
 
     def forward(self, x, nhwc=False, clip_round=False):
         # x = torch.from_numpy(x).type('torch.FloatTensor')
@@ -38,8 +40,8 @@ class BicubicDownSample(nn.Module):
 
         pad_along_height = max(filter_height - stride, 0)
         pad_along_width = max(filter_width - stride, 0)
-        filters1 = self.k1.type('torch.cuda.FloatTensor')
-        filters2 = self.k2.type('torch.cuda.FloatTensor')
+        filters1 = self.k1.type('torch{}.FloatTensor'.format(self.cuda))
+        filters2 = self.k2.type('torch{}.FloatTensor'.format(self.cuda))
 
         # compute actual padding values for each side
         pad_top = pad_along_height // 2
@@ -52,12 +54,12 @@ class BicubicDownSample(nn.Module):
             x = torch.transpose(torch.transpose(x, 2, 3), 1, 2)   # NHWC to NCHW
 
         # downsampling performed by strided convolution
-        x = F.pad(x, (0, 0, pad_top, pad_bottom), 'reflect')
+        x = F.pad(x, (0, 0, pad_top, pad_bottom), self.padding)
         x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
         if clip_round:
             x = torch.clamp(torch.round(x), 0.0, 255.)
         
-        x = F.pad(x, (pad_left, pad_right, 0, 0), 'reflect')
+        x = F.pad(x, (pad_left, pad_right, 0, 0), self.padding)
         x = F.conv2d(input=x, weight=filters2, stride=(1, stride), groups=3)
         if clip_round:
             x = torch.clamp(torch.round(x), 0.0, 255.)
@@ -65,6 +67,6 @@ class BicubicDownSample(nn.Module):
         if nhwc:
             x = torch.transpose(torch.transpose(x, 1, 3), 1, 2)
         if clip_round:
-            return x.type('torch.cuda.ByteTensor')
+            return x.type('torch.ByteTensor'.format(self.cuda))
         else:
             return x
