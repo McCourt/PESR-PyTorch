@@ -138,17 +138,14 @@ class SpatialAttentionBlock(nn.Module):
         return x * self.model(x)
 
 
-class MeanShift(nn.Module):
+class MeanShift(nn.Conv2d):
     def __init__(self, rgb_range, rgb_mean, rgb_std, sign=-1):
-        super().__init__()
+        super().__init__(3, 3, kernel_size=1)
         std = torch.Tensor(rgb_std)
-        mean = torch.Tensor(rgb_mean)
-        self.weight = (torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)).type('torch.cuda.FloatTensor')
-        self.bias = (sign * rgb_range * mean / std).type('torch.cuda.FloatTensor')
-        self.requires_grad = False
-
-    def forward(self, x):
-        return F.conv2d(x, self.weight, self.bias)
+        self.weight.data = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
+        self.bias.data = sign * rgb_range * torch.Tensor(rgb_mean) / std
+        for p in self.parameters():
+            p.requires_grad = False
 
 
 class PixelShuffleUpscale(nn.Module):
