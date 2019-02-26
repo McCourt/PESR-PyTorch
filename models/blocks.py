@@ -186,36 +186,3 @@ class TransposeUpscale(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-
-
-class GeneralBlock(nn.Module):
-    def __init__(self, channel=256, res_scale=0.8, res=True, se=True,
-                 bias=True, batch_norm=False, activation=True, num_blocks=2):
-        super().__init__()
-        blocks = []
-        for _ in range(num_blocks):
-            blocks.append(
-                nn.Conv2d(in_channels=channel, out_channels=channel, kernel_size=3, stride=1, padding=1, bias=bias))
-            if activation:
-                blocks.append(nn.LeakyReLU(inplace=True, negative_slope=0.1))
-            if batch_norm:
-                blocks.append(nn.batch_norm(channel))
-        self.block = nn.Sequential(*tuple(blocks))
-        self.se = se
-        self.res = res
-        self.res_scale = res_scale
-        if self.se:
-            self.global_avg = nn.AdaptiveAvgPool2d(1)
-            self.se = nn.Sequential(
-                nn.Linear(channel, channel),
-                nn.ReLU(inplace=True),
-                nn.Linear(channel, channel),
-                nn.Sigmoid()
-            )
-
-    def forward(self, x):
-        n, c, h, w = x.size()
-        residual = self.res_scale * self.block(x)
-        if self.se:
-            residual = residual * self.se(self.global_avg(residual).view(n, c)).view(n, c, 1, 1)
-        return x + residual if self.res else residual
