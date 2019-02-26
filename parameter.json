@@ -17,7 +17,7 @@
     "learning_rate": 1e-4,
     "decay_rate": 0.1,
     "decay_step": 80,
-    "num_per": 600,
+    "num_per": 100,
     "loss": ["MSE"],
     "metric": ["PSNR"],
     "optimizer": null,

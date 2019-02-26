@@ -5,7 +5,7 @@ from models.blocks import MeanShift, ResBlock, ConvolutionBlock
 from helper import weights_init
 
 class EDSR(nn.Module):
-    def __init__(self, num_blocks=30, num_channel=128, block=ResBlock,
+    def __init__(self, num_blocks=15, num_channel=64, block=ResBlock,
                 rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), rgb_range=255):
         super().__init__()
         self.model_0 = nn.Sequential(

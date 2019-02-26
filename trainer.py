@@ -77,7 +77,6 @@ if __name__ == '__main__':
     data_loader = DataLoader(
         dataset,
         batch_size=train_params['batch_size'],
-        shuffle=True,
         num_workers=train_params['num_worker']
     )
 
