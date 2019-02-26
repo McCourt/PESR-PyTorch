@@ -11,19 +11,16 @@ class OutputImage(nn.Module):
 
 class ConvolutionBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, bias=True,
-                 convolution=nn.Conv2d, activation=nn.ReLU, batch_norm=None, padding=nn.ConstantPad2d):
+                 convolution=nn.Conv2d, activation=nn.ReLU, batch_norm=None, padding=1):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
         model_body = []
-        if padding is not None:
-            ka = (kernel_size - 1) // 2
-            kb = (kernel_size - 1) - ka
-            model_body.append(padding((ka, kb, ka, kb), 0))
         model_body.append(
             convolution(in_channels=in_channels,
                         out_channels=out_channels,
                         kernel_size=kernel_size,
-                        bias=bias)
+                        bias=bias,
+                        padding=padding)
         )
         if batch_norm is not None:
             model_body.append(batch_norm(out_channels))
@@ -37,7 +34,7 @@ class ConvolutionBlock(nn.Module):
 
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=1,
-                 activation=nn.ReLU, padding=nn.ConstantPad2d, batch_norm=None, bias=True):
+                 activation=nn.ReLU, padding=1, batch_norm=None, bias=True):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
         model_body = [

@@ -58,8 +58,7 @@ if __name__ == '__main__':
     # Define optimizer and learning rate scheduler
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=train_params['learning_rate'],
-        weight_decay=train_params['l2_beta']
+        lr=train_params['learning_rate']
     )
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer,
