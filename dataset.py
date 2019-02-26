@@ -62,20 +62,21 @@ class SRTrainDataset(Dataset):
         :param idx: index of image patch pairs, which should be less than size of dataset
         :return: dictionary with keys of "hr", "lr" and "name"
         """
-        self.id = idx // self.num_per
-        self.name = self.img_names[self.id]
+        if self.id is None or idx // self.num_per != self.id:
+            self.id = idx // self.num_per
+            self.name = self.img_names[self.id]
 
-        hr = np.array(imread(self.hr_names[self.id], as_gray=False)).astype(np.float32)
-        lr = np.array(imread(self.lr_names[self.id], as_gray=False)).astype(np.float32)
+            hr = np.array(imread(self.hr_names[self.id], as_gray=False)).astype(np.float32)
+            lr = np.array(imread(self.lr_names[self.id], as_gray=False)).astype(np.float32)
 
-        if len(hr.shape) == 2:
-            hr = gray2rgb(hr)
-        if len(lr.shape) == 2:
-            lr = gray2rgb(lr)
+            if len(hr.shape) == 2:
+                hr = gray2rgb(hr)
+            if len(lr.shape) == 2:
+                lr = gray2rgb(lr)
 
-        self.hr, self.lr = hr, lr
-        self.lrh, self.lrw, _ = self.lr.shape
-        self.hrh, self.hrw, _ = self.hr.shape
+            self.hr, self.lr = hr, lr
+            self.lrh, self.lrw, _ = self.lr.shape
+            self.hrh, self.hrw, _ = self.hr.shape
 
         lr_h_center = np.random.randint(self.h // 2, self.lrh - self.h // 2)
         lr_w_center = np.random.randint(self.w // 2, self.lrw - self.w // 2)
