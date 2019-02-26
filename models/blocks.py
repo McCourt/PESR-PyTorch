@@ -49,7 +49,7 @@ class ResBlock(nn.Module):
                              batch_norm=batch_norm,
                              bias=bias)
         ]
-        for _ in range(num_blocks - 2):
+        for _ in range(num_blocks - 1):
             model_body.append(
                 ConvolutionBlock(in_channels=out_channels,
                                  out_channels=out_channels,
@@ -59,15 +59,6 @@ class ResBlock(nn.Module):
                                  batch_norm=batch_norm,
                                  bias=bias)
             )
-        model_body.append(
-            ConvolutionBlock(in_channels=out_channels,
-                             out_channels=out_channels,
-                             kernel_size=kernel_size,
-                             activation=None,
-                             padding=padding,
-                             batch_norm=batch_norm,
-                             bias=bias)
-        )
 
         self.model = nn.Sequential(*tuple(model_body))
         self.res_scale = res_scale

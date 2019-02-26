@@ -7,6 +7,11 @@ import os
 import json
 
 
+def weights_init(m):
+    if isinstance(m, nn.Conv2d):
+        xavier(m.weight.data)
+        xavier(m.bias.data)
+
 def since(begin):
     return time() - begin
 
@@ -39,21 +44,16 @@ class MSEnDSLoss(nn.Module):
 def save_checkpoint(state_dict, save_dir):
     try:
         torch.save(state_dict, save_dir)
-        print('checkpoint saved')
     except:
         raise Exception('checkpoint saving failure')
 
 
 def load_checkpoint(load_dir, map_location=None):
     try:
-        if not os.path.exists(load_dir):
-            print('No checkpoint and begin new training')
-            return None
-        else:
-            print('loading checkpoint')
-            checkpoint = torch.load(load_dir, map_location=map_location)
-            print('loading successful')
-            return checkpoint
+        print('loading checkpoint')
+        checkpoint = torch.load(load_dir, map_location=map_location)
+        print('loading successful')
+        return checkpoint
     except:
         print('No checkpoint and begin new training')
 

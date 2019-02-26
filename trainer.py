@@ -43,7 +43,7 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare all directory and devices
-    device = torch.device('cuda:{}'.format(train_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
+    device = torch.device('cuda:{}'.format(train_params['device_ids']) if torch.cuda.is_available else 'cpu')
     lr_dir = os.path.join(params['common']['root_dir'], params['common']['lr_dir'])
     hr_dir = os.path.join(params['common']['root_dir'], params['common']['hr_dir'])
     sr_dir = os.path.join(params['common']['root_dir'], params['common']['sr_dir'].format(model_name))
@@ -52,8 +52,9 @@ if __name__ == '__main__':
 
     # Define model and loss function
     model = nn.DataParallel(model).cuda()
-    loss = nn.MSELoss().to(device)
+    loss = nn.MSELoss(reduction='elementwise_mean').to(device)
     model = model.cuda()
+
     # Define optimizer and learning rate scheduler
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     data_loader = DataLoader(
         dataset,
         batch_size=train_params['batch_size'],
+        shuffle=True,
         num_workers=train_params['num_worker']
     )
 
@@ -100,16 +102,16 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    print(''.join(['-' for i in range(60)]))
+    print(''.join(['-' for i in range(50)]))
     begin = time()
     cnt = 0
     title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'Runtime')
     print(title)
-    print(''.join(['-' for i in range(60)]))
+    print(''.join(['-' for i in range(50)]))
     report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8f}'
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, train_params['num_epoch']):
-            epoch_loss = 0
+            epoch_loss = []
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()
@@ -117,20 +119,20 @@ if __name__ == '__main__':
                 batch_loss = loss(sr, hr)
                 batch_loss.backward()
                 optimizer.step()
-                scheduler.step()
-                epoch_loss += batch_loss.detach().cpu().numpy() / len(dataset)
+                epoch_loss.append(batch_loss)
 
-                report = report_formatter.format(epoch, bid, batch_loss, epoch_loss, since(begin))
-                if cnt % train_params['print_every'] == 0:
+                report = report_formatter.format(epoch, bid, batch_loss, sum(epoch_loss) / (bid + 1), since(begin))
+                if bid % train_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
 
                 f.write(report + '\n')
                 f.flush()
+            scheduler.step()
             if epoch % train_params['save_every'] == 0 or epoch == train_params['num_epoch'] - 1:
                 state_dict = {
                     'model': model.state_dict(),
                     'epoch': epoch
                 }
                 save_checkpoint(state_dict, ckpt_dir)
-            print(''.join(['-' for i in range(60)]))
+            print(''.join(['-' for i in range(50)]))
