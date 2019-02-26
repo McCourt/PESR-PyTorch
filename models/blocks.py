@@ -11,17 +11,18 @@ class OutputImage(nn.Module):
 
 class ConvolutionBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, bias=True,
-                 convolution=nn.Conv2d, activation=nn.ReLU, batch_norm=None, padding=1):
+                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
-        model_body = []
-        model_body.append(
-            convolution(in_channels=in_channels,
-                        out_channels=out_channels,
-                        kernel_size=kernel_size,
-                        bias=bias,
-                        padding=padding)
-        )
+        model_body = [
+            convolution(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                bias=bias,
+                padding=padding
+            )
+        ]
         if batch_norm is not None:
             model_body.append(batch_norm(out_channels))
         if activation is not None:
@@ -33,37 +34,39 @@ class ConvolutionBlock(nn.Module):
 
 
 class ResBlock(nn.Module):
-    def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=1,
-                 activation=nn.ReLU, padding=1, batch_norm=None, bias=True):
+    def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=0.1,
+                 activation=nn.LeakyReLU, padding=1, batch_norm=None, bias=True):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
         model_body = [
-            ConvolutionBlock(in_channels=in_channels,
-                             out_channels=out_channels,
-                             kernel_size=kernel_size,
-                             activation=activation,
-                             padding=padding,
-                             batch_norm=batch_norm,
-                             bias=bias)
-        ]
-        for _ in range(num_blocks - 2):
-            model_body.append(
-                ConvolutionBlock(in_channels=out_channels,
-                                 out_channels=out_channels,
-                                 kernel_size=kernel_size,
-                                 activation=activation,
-                                 padding=padding,
-                                 batch_norm=batch_norm,
-                                 bias=bias)
+            ConvolutionBlock(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=kernel_size,
+                activation=activation,
+                padding=padding,
+                batch_norm=batch_norm,
+                bias=bias
             )
+        ]
+        model_body = model_body + [
+            ConvolutionBlock(
+                in_channels=out_channels,
+                kernel_size=kernel_size,
+                activation=activation,
+                padding=padding,
+                batch_norm=batch_norm,
+                bias=bias)
+            for _ in range(num_blocks - 2)
+        ]
         model_body.append(
-            ConvolutionBlock(in_channels=out_channels,
-                             out_channels=out_channels,
-                             kernel_size=kernel_size,
-                             activation=None,
-                             padding=padding,
-                             batch_norm=batch_norm,
-                             bias=bias)
+            ConvolutionBlock(
+                in_channels=out_channels,
+                kernel_size=kernel_size,
+                padding=padding,
+                batch_norm=batch_norm,
+                bias=bias
+            )
         )
 
         self.model = nn.Sequential(*tuple(model_body))
@@ -136,7 +139,7 @@ class SpatialAttentionBlock(nn.Module):
 
 
 class MeanShift(nn.Conv2d):
-    def __init__(self, rgb_range, rgb_mean, rgb_std, sign=-1):
+    def __init__(self, rgb_mean=(0.4488, 0.4371, 0.4040), rgb_std=(1.0, 1.0, 1.0), rgb_range=255, sign=-1):
         super().__init__(3, 3, kernel_size=1)
         std = torch.Tensor(rgb_std)
         self.weight.data = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
