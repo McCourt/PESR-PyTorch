@@ -48,7 +48,21 @@ class SRTrainDataset(Dataset):
         self.rgb_shuffle, self.rotate, self.flip = rgb_shuffle, rotate, flip
         self.shuffle_rate, self.rotate_rate, self.flip_rate = shuffle_rate, rotate_rate, flip_rate
 
-        self.id = 0
+        self.id = None
+        self.hr, self.lr = None, None
+        self.lrh, self.lrw, _ = None, None, None
+        self.hrh, self.hrw, _ = None, None, None
+
+    def __len__(self):
+        return self.num_img * self.num_per
+
+    def __getitem__(self, idx):
+        """
+        Give one image patch in HR/LR/name pair.
+        :param idx: index of image patch pairs, which should be less than size of dataset
+        :return: dictionary with keys of "hr", "lr" and "name"
+        """
+        self.id = idx // self.num_per
         self.name = self.img_names[self.id]
 
         hr = np.array(imread(self.hr_names[self.id], as_gray=False)).astype(np.float32)
@@ -63,30 +77,6 @@ class SRTrainDataset(Dataset):
         self.lrh, self.lrw, _ = self.lr.shape
         self.hrh, self.hrw, _ = self.hr.shape
 
-    def __len__(self):
-        return self.num_img * self.num_per
-
-    def __getitem__(self, idx):
-        """
-        Give one image patch in HR/LR/name pair.
-        :param idx: index of image patch pairs, which should be less than size of dataset
-        :return: dictionary with keys of "hr", "lr" and "name"
-        """
-        if idx % self.num_per == 0 and self.id != 0:
-            self.id = idx // self.num_per
-            self.name = self.img_names[self.id]
-
-            hr = np.array(imread(self.hr_names[self.id], as_gray=False)).astype(np.float32)
-            lr = np.array(imread(self.lr_names[self.id], as_gray=False)).astype(np.float32)
-
-            if len(hr.shape) == 2:
-                hr = gray2rgb(hr)
-            if len(lr.shape) == 2:
-                lr = gray2rgb(lr)
-
-            self.hr, self.lr = hr, lr
-            self.lrh, self.lrw, _ = self.lr.shape
-            self.hrh, self.hrw, _ = self.hr.shape
         lr_h_center = np.random.randint(self.h // 2, self.lrh - self.h // 2)
         lr_w_center = np.random.randint(self.w // 2, self.lrw - self.w // 2)
         hr_h_center = (lr_h_center - self.lrh // 2) * self.scale + self.hrh // 2
