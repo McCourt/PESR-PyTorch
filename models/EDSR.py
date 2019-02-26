@@ -13,6 +13,7 @@ class EDSR(nn.Module):
             MeanShift(rgb_range, rgb_mean, rgb_std, sign=-1),
             ConvolutionBlock(in_channels=3, out_channels=num_channel),
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks)]),
+            ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(rgb_range, rgb_mean, rgb_std, sign=1)
         )
 

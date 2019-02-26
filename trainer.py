@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+import torch
 import numpy as np
 from helper import *
 from dataset import SRTrainDataset
@@ -7,6 +8,8 @@ import getopt
 from time import time
 
 if __name__ == '__main__':
+    print('{} GPUS Available'.format(torch.cuda.device_count()))
+
     # Load system arguments
     args = sys.argv[1:]
     long_opts = ['model-name=', 'scale=']
@@ -48,9 +51,9 @@ if __name__ == '__main__':
     ckpt_dir = os.path.join(params['common']['root_dir'], params['common']['ckpt_dir'].format(model_name))
 
     # Define model and loss function
-    model = nn.DataParallel(model)
+    model = nn.DataParallel(model).cuda()
     loss = nn.MSELoss().to(device)
-
+    model = model.cuda()
     # Define optimizer and learning rate scheduler
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -75,7 +78,6 @@ if __name__ == '__main__':
     data_loader = DataLoader(
         dataset,
         batch_size=train_params['batch_size'],
-        shuffle=True,
         num_workers=train_params['num_worker']
     )
 
@@ -97,6 +99,7 @@ if __name__ == '__main__':
         raise ValueError('Checkpoint not found.')
 
     # Training loop and saver as checkpoints
+    print('Using device {}'.format(device))
     print(''.join(['-' for i in range(60)]))
     begin = time()
     cnt = 0

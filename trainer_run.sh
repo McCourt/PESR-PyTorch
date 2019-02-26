@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
-python3 -W ignore /home/mccourt/superresolution/trainer.py \
+CUDA_VISIBLE_DEVICES=1,2,3,4
+
+python3 -W ignore trainer.py \
 	--model-name='edsr' \
 	--scale=1 \
 

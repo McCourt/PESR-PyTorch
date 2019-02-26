@@ -76,10 +76,12 @@ class SRTrainDataset(Dataset):
             self.lrh, self.lrw, _ = self.lr.shape
             self.hrh, self.hrw, _ = self.hr.shape
 
-        lr_h_from = np.random.randint(self.h // 2, self.lrh - self.h // 2)
-        lr_w_from = np.random.randint(self.w // 2, self.lrw - self.w // 2)
-        hr_h_from = (lr_h_from - self.lrh // 2) * self.scale + self.hrh // 2
-        hr_w_from = (lr_w_from - self.lrw // 2) * self.scale + self.hrw // 2
+        lr_h_center = np.random.randint(self.h // 2, self.lrh - self.h // 2)
+        lr_w_center = np.random.randint(self.w // 2, self.lrw - self.w // 2)
+        hr_h_center = (lr_h_center - self.lrh // 2) * self.scale + self.hrh // 2
+        hr_w_center = (lr_w_center - self.lrw // 2) * self.scale + self.hrw // 2
+        lr_h_from, lr_w_from = lr_h_center - self.h // 2, lr_w_center - self.w // 2
+        hr_h_from, hr_w_from = hr_h_center - self.h // 2 * self.scale, hr_w_center - self.w // 2 * self.scale
         lr_h_to, lr_w_to = lr_h_from + self.h, lr_w_from + self.w
         hr_h_to, hr_w_to = hr_h_from + self.h * self.scale, hr_w_from + self.w * self.scale
 
@@ -103,7 +105,6 @@ class SRTrainDataset(Dataset):
             hr = hr[:, :, new_order]
         else:
             pass
-
         return {'hr': np.moveaxis(hr, -1, 0), 'lr': np.moveaxis(lr, -1, 0), 'name': self.name}
 
 

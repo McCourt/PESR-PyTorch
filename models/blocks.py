@@ -18,7 +18,7 @@ class ConvolutionBlock(nn.Module):
         if padding is not None:
             ka = (kernel_size - 1) // 2
             kb = (kernel_size - 1) - ka
-            model_body.append(padding((ka, kb, ka, kb)))
+            model_body.append(padding((ka, kb, ka, kb), 0))
         model_body.append(
             convolution(in_channels=in_channels,
                         out_channels=out_channels,
@@ -73,7 +73,7 @@ class ResBlock(nn.Module):
         self.res_scale = res_scale
 
     def forward(self, x):
-        return x + self.block(x).mul(self.res_scale)
+        return x + self.model(x).mul(self.res_scale)
 
 
 class CascadingBlock(nn.Module):
@@ -143,8 +143,8 @@ class MeanShift(nn.Module):
         super().__init__()
         std = torch.Tensor(rgb_std)
         mean = torch.Tensor(rgb_mean)
-        self.weight = torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)
-        self.bias = sign * rgb_range * mean / std
+        self.weight = (torch.eye(3).view(3, 3, 1, 1) / std.view(3, 1, 1, 1)).type('torch.cuda.FloatTensor')
+        self.bias = (sign * rgb_range * mean / std).type('torch.cuda.FloatTensor')
         self.requires_grad = False
 
     def forward(self, x):
