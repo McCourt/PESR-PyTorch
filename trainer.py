@@ -43,12 +43,12 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare all directory and devices
-    device = torch.device('cuda:{}'.format(train_params['device_ids']) if torch.cuda.is_available else 'cpu')
-    lr_dir = os.path.join(params['common']['root_dir'], params['common']['lr_dir'])
-    hr_dir = os.path.join(params['common']['root_dir'], params['common']['hr_dir'])
-    sr_dir = os.path.join(params['common']['root_dir'], params['common']['sr_dir'].format(model_name))
-    log_dir = os.path.join(params['common']['root_dir'], params['common']['train_log'].format(model_name))
-    ckpt_dir = os.path.join(params['common']['root_dir'], params['common']['ckpt_dir'].format(model_name))
+    device = torch.device('cuda:{}'.format(train_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
+    lr_dir = os.path.join(common_params['root_dir'], common_params['lr_dir'])
+    hr_dir = os.path.join(common_params['root_dir'], common_params['hr_dir'])
+    sr_dir = os.path.join(common_params['root_dir'], common_params['sr_dir'].format(model_name))
+    log_dir = os.path.join(common_params['root_dir'], common_params['train_log'].format(model_name))
+    ckpt_dir = os.path.join(common_params['root_dir'], common_params['ckpt_dir'].format(model_name))
 
     # Define model and loss function
     model = nn.DataParallel(model).cuda()
@@ -61,10 +61,9 @@ if __name__ == '__main__':
         lr=train_params['learning_rate'],
         weight_decay=train_params['l2_beta']
     )
-    scheduler = torch.optim.lr_scheduler.StepLR(
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer,
-        gamma=train_params['decay_rate'],
-        step_size=train_params['decay_step']
+        gamma=train_params['decay_rate']
     )
 
     # Define data source
@@ -102,12 +101,13 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    print(''.join(['-' for i in range(50)]))
+    splitter = ''.join(['-' for i in range(50)])
+    print(splitter)
     begin = time()
     cnt = 0
     title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'Runtime')
     print(title)
-    print(''.join(['-' for i in range(50)]))
+    print(splitter)
     report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8f}'
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, train_params['num_epoch']):
@@ -135,4 +135,4 @@ if __name__ == '__main__':
                     'epoch': epoch
                 }
                 save_checkpoint(state_dict, ckpt_dir)
-            print(''.join(['-' for i in range(50)]))
+            print(splitter)
