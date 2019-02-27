@@ -50,7 +50,7 @@ def save_checkpoint(state_dict, save_dir):
 
 def load_checkpoint(load_dir, map_location=None):
     try:
-        print('loading checkpoint')
+        print('loading checkpoint from {}'.format(load_dir))
         checkpoint = torch.load(load_dir, map_location=map_location)
         print('loading successful')
         return checkpoint
