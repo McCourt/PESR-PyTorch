@@ -23,7 +23,8 @@ if __name__ == '__main__':
     for arg, opt in optlist:
         if arg == '--model-name':
             model_name = str(opt)
-            model = load_model(model_name)
+            sr_model = load_model(model_name)
+            # ds_model = load_model(model_name)
         elif arg == '--scale':
             scale = int(opt)
         else:
@@ -51,13 +52,15 @@ if __name__ == '__main__':
     ckpt_dir = os.path.join(common_params['root_dir'], common_params['ckpt_dir'].format(model_name))
 
     # Define model and loss function
-    model = nn.DataParallel(model).cuda()
-    loss = nn.MSELoss(reduction='elementwise_mean').to(device)
-    model = model.cuda()
+    sr_model = nn.DataParallel(sr_model).cuda()
+    sr_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
+    lr_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
+    lr_loss.require_grad = False
+    sr_model = sr_model.cuda()
 
     # Define optimizer and learning rate scheduler
     optimizer = torch.optim.Adam(
-        model.parameters(),
+        sr_model.parameters(),
         lr=train_params['learning_rate']
     )
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
@@ -92,7 +95,7 @@ if __name__ == '__main__':
             print('Start new training')
         else:
             print('recovering from checkpoints', end='\r')
-            model.load_state_dict(ckpt['model'])
+            sr_model.load_state_dict(ckpt['model'])
             begin_epoch = ckpt['epoch'] + 1
             print('resuming training from epoch {}'.format(begin_epoch))
     except Exception as e:
@@ -100,27 +103,30 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    splitter = ''.join(['-' for i in range(75)])
+    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^10.2f}'
+    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'BPSNR', 'EPSNR', 'RPSNR', 'Runtime')
+    splitter = ''.join(['-' for i in range(len(title))])
     print(splitter)
     begin = time()
     cnt = 0
-    title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'BPSNR', 'EPSNR', 'Runtime')
     print(title)
     print(splitter)
-    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^10.2f}'
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, train_params['num_epoch']):
             e_ls = []
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()
-                sr = model(lr)
-                b_loss = loss(sr, hr)
+                sr = sr_model(lr)
+                b_loss = sr_loss(sr, hr)
+                r_loss = lr_loss(lr, hr)
                 b_loss.backward()
                 optimizer.step()
                 e_ls.append(b_loss)
                 e_loss = sum(e_ls) / (bid + 1)
-                report = report_formatter.format(epoch, bid, b_loss, e_loss, psnr(b_loss), psnr(e_loss), since(begin))
+                report = report_formatter.format(epoch, bid, b_loss, e_loss, psnr(b_loss),
+                                                 psnr(e_loss), psnr(r_loss), since(begin))
                 if bid % train_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
@@ -130,7 +136,7 @@ if __name__ == '__main__':
             scheduler.step()
             if epoch % train_params['save_every'] == 0 or epoch == train_params['num_epoch'] - 1:
                 state_dict = {
-                    'model': model.state_dict(),
+                    'model': sr_model.state_dict(),
                     'epoch': epoch
                 }
                 save_checkpoint(state_dict, ckpt_dir)
