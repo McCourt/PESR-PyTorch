@@ -77,13 +77,14 @@ if __name__ == '__main__':
     data_loader = DataLoader(
         dataset,
         batch_size=train_params['batch_size'],
+        shuffle=True,
         num_workers=train_params['num_worker']
     )
 
     # Load checkpoint
     begin_epoch = 0
     ckpt = load_checkpoint(
-        load_dir=common_params['ckpt_dir'],
+        load_dir=ckpt_dir,
         map_location=train_params['map_location']
     )
     try:
@@ -99,27 +100,27 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    splitter = ''.join(['-' for i in range(50)])
+    splitter = ''.join(['-' for i in range(75)])
     print(splitter)
     begin = time()
     cnt = 0
-    title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'Runtime')
+    title = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s}'.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'BPSNR', 'EPSNR', 'Runtime')
     print(title)
     print(splitter)
-    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8f}'
+    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^10.2f}'
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, train_params['num_epoch']):
-            epoch_loss = []
+            e_ls = []
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()
                 sr = model(lr)
-                batch_loss = loss(sr, hr)
-                batch_loss.backward()
+                b_loss = loss(sr, hr)
+                b_loss.backward()
                 optimizer.step()
-                epoch_loss.append(batch_loss)
-
-                report = report_formatter.format(epoch, bid, batch_loss, sum(epoch_loss) / (bid + 1), since(begin))
+                e_ls.append(b_loss)
+                e_loss = sum(e_ls) / (bid + 1)
+                report = report_formatter.format(epoch, bid, b_loss, e_loss, psnr(b_loss), psnr(e_loss), since(begin))
                 if bid % train_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
