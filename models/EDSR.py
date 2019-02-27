@@ -4,6 +4,7 @@ from torch.nn import functional as F
 from models.blocks import MeanShift, ResBlock, ConvolutionBlock
 from helper import weights_init
 
+
 class EDSR(nn.Module):
     def __init__(self, num_blocks=20, num_channel=64, block=ResBlock):
         super().__init__()
