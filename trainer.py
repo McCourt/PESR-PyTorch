@@ -44,7 +44,7 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare all directory and devices
-    device = torch.device('cuda:{}'.format(train_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
+    device = torch.device('cuda:{}'.format(train_params['device_ids']) if torch.cuda.is_available else 'cpu')
     lr_dir = os.path.join(common_params['root_dir'], common_params['lr_dir'])
     hr_dir = os.path.join(common_params['root_dir'], common_params['hr_dir'])
     sr_dir = os.path.join(common_params['root_dir'], common_params['sr_dir'].format(model_name))
