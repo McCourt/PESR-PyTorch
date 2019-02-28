@@ -1,4 +1,4 @@
-from downsample.bicubic import BicubicDownSample
+from model.downscaler.bicubic import BicubicDownSample
 import torch
 from torch import nn
 from imageio import imread, imwrite
@@ -6,7 +6,6 @@ import numpy as np
 import sys, os
 import getopt
 from time import time
-from helper import psnr
 from skimage.color import gray2rgb
 from skimage.measure import compare_psnr
 

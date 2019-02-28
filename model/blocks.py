@@ -80,13 +80,13 @@ class CascadingBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, basic_block=ResBlock):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
-        self.b1 = ResBlock(in_channels, out_channels)
-        self.b2 = ResBlock(out_channels, out_channels)
-        self.b3 = ResBlock(out_channels, out_channels)
+        self.b1 = basic_block(in_channels, out_channels)
+        self.b2 = basic_block(out_channels, out_channels)
+        self.b3 = basic_block(out_channels, out_channels)
 
-        self.c1 = ResBlock(out_channels * 2, out_channels, kernel_size=1)
-        self.c2 = ResBlock(out_channels * 4, out_channels, kernel_size=1)
-        self.c3 = ResBlock(out_channels * 8, out_channels, kernel_size=1)
+        self.c1 = basic_block(out_channels * 2, out_channels, kernel_size=1)
+        self.c2 = basic_block(out_channels * 3, out_channels, kernel_size=1)
+        self.c3 = basic_block(out_channels * 4, out_channels, kernel_size=1)
 
     def forward(self, x):
         x = torch.cat([x, self.b1(x)], dim=1)

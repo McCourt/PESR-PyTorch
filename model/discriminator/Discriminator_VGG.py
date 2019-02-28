@@ -1,5 +1,5 @@
 from torch import nn
-from . import blocks_D as B
+from model import blocks_D as B
 
 
 class Discriminator_VGG_128(nn.Module):

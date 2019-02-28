@@ -1,16 +1,9 @@
 import random
-
 import torch
 from torch import nn
 from time import time
-import os
 import json
 
-
-def weights_init(m):
-    if isinstance(m, nn.Conv2d):
-        xavier(m.weight.data)
-        xavier(m.bias.data)
 
 def since(begin):
     return time() - begin
@@ -28,17 +21,23 @@ def psnr(mse_loss, r=255):
     return 10 * torch.log10(r ** 2 / mse_loss)
 
 
-class MSEnDSLoss(nn.Module):
-    def __init__(self):
+class MultiLoss(nn.Module):
+    def __init__(self, loss_lst=None):
         super().__init__()
-        self.hr_loss = nn.MSELoss(reduction='elementwise_mean')
-        self.lr_loss = nn.MSELoss(reduction='elementwise_mean')
+        if loss_lst is None:
+            self.loss_lst = {'MSE': 1}
+        else:
+            self.loss_lst = loss_lst
 
-    def forward(self, sr, hr, lr, dsr=None, lambda_lr=0.2):
-        loss = self.hr_loss(sr, hr)
-        if dsr is not None:
-            loss += lambda_lr * self.lr_loss(dsr, lr)
-        return loss
+        if 'MSE' in self.losses.keys():
+            self.loss_lst['MSE'] = nn.MSELoss(reduction='elementwise_mean')
+        if 'MAE' in self.losses.keys():
+            self.loss_lst['MAE'] = nn.L1Loss()
+        if 'SmoothMAE' in self.losses.keys():
+            self.loss_lst['SmoothMAE'] = nn.SmoothL1Loss()
+
+    def forward(self, sr, hr, lr=None, dsr=None):
+        return sum([loss(sr, hr) for loss in self.loss_lst.items()])
 
 
 def save_checkpoint(state_dict, save_dir):
@@ -60,20 +59,20 @@ def load_checkpoint(load_dir, map_location=None):
 
 def load_model(model_name):
     if model_name.lower() == 'srresnet':
-        from models.SRResNet import SRResNet
+        from model.upscaler.SRResNet import SRResNet
         model = SRResNet()
     elif model_name.lower() == 'vdsr':
-        from models.VDSR import VDSR
+        from model.upscaler.VDSR import VDSR
         model = VDSR()
     elif model_name.lower() == 'sesr':
-        from models.SESR import SESR
+        from model.upscaler.SESR import SESR
         model = SESR()
     elif model_name.lower() == 'edsr':
-        from models.EDSR import EDSR
+        from model.upscaler.EDSR import EDSR
         model = EDSR()
     elif model_name.lower() == 'edsr_pyr':
-        from models.EDSR_Pyramid import EDSR
-        model = EDSR()
+        from model.upscaler.EDSR_Pyramid import EDSRPyramid
+        model = EDSRPyramid()
     return model
 
 

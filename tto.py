@@ -1,17 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from imageio import imread, imwrite
+from imageio import imwrite
 import numpy as np
 from time import time
-from skimage.color import gray2rgb
-import os, sys, getopt, random
+import os, sys, getopt
 
-from models.Discriminator_VGG import Discriminator_VGG_128
-from downsample.bicubic import BicubicDownSample
-# from downsample.conv import ConvolutionDownscale
-from helper import load_checkpoint, psnr, load_parameters, ChannelGradientShuffle
-from dataset import SRTTODataset
+from model.discriminator.Discriminator_VGG import Discriminator_VGG_128
+from model.downscaler.bicubic import BicubicDownSample
+# from downscaler.conv import ConvolutionDownscale
+from src.helper import psnr, load_parameters, ChannelGradientShuffle
+from src.dataset import SRTTODataset
 
 
 if __name__ == '__main__':

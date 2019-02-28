@@ -1,5 +1,5 @@
 import torch
-from models.Discriminator_VGG import Discriminator_VGG_128
+from model.discriminator.Discriminator_VGG import Discriminator_VGG_128
 from imageio import imread
 import numpy as np
 
