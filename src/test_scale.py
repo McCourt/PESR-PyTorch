@@ -7,8 +7,8 @@ from imageio import imread
 for img_name in sorted(os.listdir('imgs/TrainGT/')):
     if not img_name.endswith('png'):
         continue
-    hr = imread('imgs/TrainGT/{}'.format(img_name))
-    lr = imread('imgs/TrainLR/{}'.format(img_name))
+    hr = imread('../imgs/source_image/TrainGT/{}'.format(img_name))
+    lr = imread('../imgs/source_image/TrainLR/{}'.format(img_name))
     h, w, c = hr.shape
     max_mse = None
     for scale in np.linspace(2, 4, num=5):
