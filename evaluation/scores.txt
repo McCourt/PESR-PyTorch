@@ -1,0 +1,5 @@
+PSNR:27.898570
+SSIM:0.806234
+ExtraRuntime:-1.000000
+ExtraPlatform:-1
+ExtraData:-1
