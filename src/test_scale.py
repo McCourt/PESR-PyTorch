@@ -4,7 +4,7 @@ from skimage.transform import resize
 from imageio import imread
 
 
-for img_name in sorted(os.listdir('imgs/TrainGT/')):
+for img_name in sorted(os.listdir('../imgs/TrainGT/')):
     if not img_name.endswith('png'):
         continue
     hr = imread('../imgs/source_image/TrainGT/{}'.format(img_name))
