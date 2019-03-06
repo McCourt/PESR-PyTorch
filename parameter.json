@@ -1,16 +1,20 @@
 {
   "common": {
+    "up_sampler": "EDSR",
+    "down_sampler": null,
+    "scale": 1,
+    "device_ids": 0,
+    "metric": ["PSNR"],
     "root_dir": "/usr/xtmp/superresoluter/superresolution",
     "hr_dir": "imgs/source_image/RealSR/TrainGT",
     "lr_dir": "imgs/source_image/RealSR/TrainLR",
     "sr_dir": "imgs/stage_one_image/{}/RealSR",
-    "tto_dir": "imgs/stage_two_image/{}-{}/RealSR/",
+    "tto_dir": "imgs/stage_two_image/{}-{}/RealSR/{}",
     "tto_log": "imgs/stage_two_image/{}-{}/RealSR/tto.log",
-    "train_log": "logs/{}.log",
+    "log_dir": "logs/{}_{}.log",
     "ckpt_dir": "checkpoints/{}.ckpt"
   },
   "train": {
-    "device_ids": 0,
     "batch_size": 200,
     "num_epoch": 300,
     "window": [100, 100],
@@ -19,13 +23,15 @@
     "decay_step": 50,
     "num_per": 1000,
     "loss": ["MSE"],
-    "metric": ["PSNR"],
     "optimizer": "Adam",
     "l2_beta": 1e-3,
     "num_worker": 6,
     "map_location": null,
     "save_every": 1,
     "print_every": 1
+  },
+  "test": {
+    "save": true
   },
   "tto": {
     "method": "bicubic+reg+vgg_discriminator",
