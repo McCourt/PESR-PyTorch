@@ -40,7 +40,7 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare common parameters
-    device = torch.device('cuda:{}'.format(pipeline_params['device_ids']) if torch.cuda.is_available else 'cpu')
+    device = torch.device('cuda:{}'.format(common_params['device_ids']) if torch.cuda.is_available else 'cpu')
     root_dir = common_params['root_dir']
     if common_params['up_sampler'] is not None:
         up_sampler = common_params['up_sampler']
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, pipeline_params['num_epoch']):
             epoch_ls = []
-            ds_l, ds_psnr = None, None
+            ds_l, ds_psnr = -1., -1.
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()

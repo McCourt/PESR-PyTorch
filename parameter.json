@@ -1,6 +1,6 @@
 {
   "common": {
-    "up_sampler": "EDSR",
+    "up_sampler": "edsr",
     "down_sampler": null,
     "scale": 1,
     "device_ids": 0,
