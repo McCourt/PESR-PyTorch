@@ -135,9 +135,11 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^10.2f}'
-    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SRPSNR', 'DSPSNR', 'RPSNR', 'Runtime')
+    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} ' \
+                       '| {:^10.2f} '
+    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_PSNR',
+                                   'DS_PSNR', 'AVG_PSNR', 'R_PSNR', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
     print(splitter)
     begin = time()
@@ -146,14 +148,17 @@ if __name__ == '__main__':
     print(splitter)
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, pipeline_params['num_epoch']):
-            epoch_ls = []
+            epoch_ls, epoch_sr, epoch_lr = []
             ds_l, ds_psnr = -1., -1.
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 optimizer.zero_grad()
+
                 sr = sr_model(lr)
                 sr_l = sr_loss(sr, hr)
                 sr_psnr = psnr(sr_l)
+                epoch_sr.append(sr_psnr)
+
                 if down_sampler is not None:
                     dsr = ds_model(sr)
                     ds_l = ds_loss(dsr, lr)
@@ -161,15 +166,22 @@ if __name__ == '__main__':
                     ds_psnr = psnr(ds_l)
                 else:
                     l = sr_l
+                epoch_lr.append(ds_psnr)
+
                 real_l = real_loss(lr, hr)
                 real_psnr = psnr(real_l)
 
                 l.backward()
                 optimizer.step()
-
                 epoch_ls.append(l)
+
                 ep_l = sum(epoch_ls) / (bid + 1)
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ds_psnr, real_psnr, since(begin))
+                ep_sr = sum(epoch_sr) / (bid + 1)
+                ep_lr = sum(epoch_lr) / (bid + 1)
+
+                timer = since(begin)
+
+                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr, ep_lr, real_psnr, timer)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
@@ -177,6 +189,7 @@ if __name__ == '__main__':
                 f.write(report + '\n')
                 f.flush()
             scheduler.step()
+
             if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
                 state_dict = {
                     'model': sr_model.state_dict(),
