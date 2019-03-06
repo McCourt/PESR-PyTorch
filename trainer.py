@@ -148,7 +148,7 @@ if __name__ == '__main__':
     print(splitter)
     with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, pipeline_params['num_epoch']):
-            epoch_ls, epoch_sr, epoch_lr = []
+            epoch_ls, epoch_sr, epoch_lr = [], [], []
             ds_l, ds_psnr = -1., -1.
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
