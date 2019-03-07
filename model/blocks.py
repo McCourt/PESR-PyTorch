@@ -182,7 +182,7 @@ class TransposeUpscale(nn.Module):
                 model_body.append(activation(True))
             if batch_norm is not None:
                 model_body.append(batch_norm(channels))
-        self.model = nn.Sequential(model_body)
+        self.model = nn.Sequential(*tuple(model_body))
 
     def forward(self, x):
         return self.model(x)
@@ -197,7 +197,7 @@ class ConvolutionDownscale(nn.Module):
         stride = scale
 
         pad = scale * 3 - 1
-        pad_top, pad_left = pad // 2
+        pad_top, pad_left = pad // 2, pad // 2
         pad_bottom, pad_right = pad - pad_top, pad - pad_left
 
         self.model = nn.Sequential(
