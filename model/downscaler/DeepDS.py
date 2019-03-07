@@ -32,15 +32,17 @@ class DeepDownScale(nn.Module):
         x = self.init(x)
         ds_1 = self.downscale_1(x)
         ds_2 = self.downscale_2(ds_1)
-
+        x_1 = self.model_2(ds_1)
+        x_2 = self.upscale_1(self.model_3(ds_2))
+        print(x_1.size())
+        print(x_2.size())
         x_out = torch.cat(
             [
                 self.model_1(x),
                 self.upscale_2(
                     torch.cat(
                         [
-                            self.model_2(ds_1),
-                            self.upscale_1(self.model_3(ds_2))
+                            x_1, x_2
                         ], dim=1
                     )
                 )
