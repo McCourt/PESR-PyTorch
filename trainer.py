@@ -123,14 +123,17 @@ if __name__ == '__main__':
         )
     try:
         if sr_checkpoint is None:
-            print('Start new training')
+            print('Start new training for SR model')
         else:
-            print('recovering from checkpoints', end='\r')
+            print('SR model recovering from checkpoints', end='\r')
             sr_model.load_state_dict(sr_checkpoint['model'])
-            if down_sampler is not None:
-                ds_model.load_state_dict(ds_checkpoint['model'])
             begin_epoch = sr_checkpoint['epoch'] + 1
-            print('resuming training from epoch {}'.format(begin_epoch))
+        if down_sampler is None or ds_checkpoint is None:
+            print('Start new training for DS model')
+        else:
+            print('DS model recovering from checkpoints', end='\r')
+            ds_model.load_state_dict(ds_checkpoint['model'])
+        print('resuming training from epoch {}'.format(begin_epoch))
     except Exception as e:
         raise ValueError('Checkpoint not found.')
 
