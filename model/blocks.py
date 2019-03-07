@@ -149,7 +149,7 @@ class MeanShift(nn.Conv2d):
 
 
 class PixelShuffleUpscale(nn.Module):
-    def __init__(self, channels, scale, activation=None, batch_norm=None):
+    def __init__(self, channels, scale=2, activation=None, batch_norm=None):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
@@ -166,7 +166,7 @@ class PixelShuffleUpscale(nn.Module):
 
 
 class TransposeUpscale(nn.Module):
-    def __init__(self, channels, scale, activation=nn.LeakyReLU, batch_norm=None):
+    def __init__(self, channels, scale=2, activation=nn.LeakyReLU, batch_norm=None):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
@@ -183,6 +183,32 @@ class TransposeUpscale(nn.Module):
             if batch_norm is not None:
                 model_body.append(batch_norm(channels))
         self.model = nn.Sequential(model_body)
+
+    def forward(self, x):
+        return self.model(x)
+
+
+class ConvolutionDownscale(nn.Module):
+    def __init__(self, channels, out_channels=None, scale=2):
+        super().__init__()
+        out_channels = channels if out_channels is None else out_channels
+
+        filter_size = scale * 4
+        stride = scale
+
+        pad = scale * 3 - 1
+        pad_top, pad_left = pad // 2
+        pad_bottom, pad_right = pad - pad_top, pad - pad_left
+
+        self.model = nn.Sequential(
+            nn.ReplicationPad2d((pad_left, pad_right, pad_top, pad_bottom)),
+            nn.Conv2d(in_channels=channels,
+                      out_channels=out_channels,
+                      kernel_size=filter_size,
+                      stride=stride),
+            nn.ReLU(inplace=True),
+            ConvolutionBlock(in_channels=channels)
+        )
 
     def forward(self, x):
         return self.model(x)

@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from src.dataset import ImageDataset
+from src.dataset import SRTrainDataset
 from torch.utils.data import DataLoader
-from model.downscaler.conv import ConvolutionDownscale
+from model.blocks import ConvolutionDownscale
 from src.helper import load_checkpoint, save_checkpoint, since
 import numpy as np
 from time import time
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     loss = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=.96)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000)
-    dataset = ImageDataset(hr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR/',
+    dataset = SRTrainDataset(hr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR/',
                            lr_dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_LR_bicubic/X4',
                            lr_parse=lambda x: x.replace('x4', ''))
     loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8)

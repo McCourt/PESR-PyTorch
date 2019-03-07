@@ -61,6 +61,7 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     sr_model = load_model(up_sampler)
     sr_model = nn.DataParallel(sr_model).cuda()
+    sr_model.require_grad = False
 
     # Define downscale model and data parallel
     if down_sampler is not None:
@@ -77,7 +78,7 @@ if __name__ == '__main__':
     # Define optimizer and learning rate scheduler
     params = sr_model.parameters()
     if down_sampler is not None:
-        params = list(params) + list(ds_model.parameters())
+        params = list(ds_model.parameters())# + list(params)
     optimizer = torch.optim.Adam(
         params,
         lr=pipeline_params['learning_rate']
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     print('Using device {}'.format(device))
     title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {' \
                       ':^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f}  ' \
+    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} ' \
                        '| {:^8.2f} | {:^8.2f} | {:^10.2f} '
     title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
                                    'R_PSNR', 'D_PSNR', 'AVG_DIFF', 'RunTime')
@@ -197,11 +198,11 @@ if __name__ == '__main__':
             scheduler.step()
 
             if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
-                state_dict = {
-                    'model': sr_model.state_dict(),
-                    'epoch': epoch
-                }
-                save_checkpoint(state_dict, sr_ckpt)
+                # state_dict = {
+                #     'model': sr_model.state_dict(),
+                #     'epoch': epoch
+                # }
+                # save_checkpoint(state_dict, sr_ckpt)
                 if down_sampler is not None:
                     state_dict = {
                         'model': ds_model.state_dict(),

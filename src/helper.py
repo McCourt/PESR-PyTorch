@@ -73,6 +73,9 @@ def load_model(model_name):
     elif model_name.lower() == 'edsr_pyr':
         from model.upscaler.EDSR_Pyramid import EDSRPyramid
         model = EDSRPyramid()
+    elif model_name.lower() == 'deepds':
+        from model.downscaler.DeepDS import DeepDownScale
+        model = DeepDownScale()
     return model
 
 
