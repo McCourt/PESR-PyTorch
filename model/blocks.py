@@ -196,7 +196,7 @@ class ConvolutionDownscale(nn.Module):
         filter_size = scale * 4
         stride = scale
 
-        pad = scale * 3 - 1
+        pad = scale * 3
         pad_top, pad_left = pad // 2, pad // 2
         pad_bottom, pad_right = pad - pad_top, pad - pad_left
 
