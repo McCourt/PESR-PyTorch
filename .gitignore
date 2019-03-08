@@ -7,6 +7,5 @@ __pycache__/
 .nfs*
 checkpoints/
 *.ckpt
-logs/
 info.txt
 src/scale/
