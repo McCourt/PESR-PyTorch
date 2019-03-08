@@ -141,8 +141,8 @@ if __name__ == '__main__':
     print('Using device {}'.format(device))
     title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {' \
                       ':^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} | {:^8.2f} ' \
-                       '| {:^8.2f} | {:^8.2f} | {:^10.2f} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} ' \
+                       '| {:^8.4f} | {:^8.4f} | {:^10.2f} '
     title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
                                    'R_PSNR', 'D_PSNR', 'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
