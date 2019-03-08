@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     sr_model = load_model(up_sampler)
     sr_model = nn.DataParallel(sr_model).cuda()
-    sr_model.require_grad = False
+    # sr_model.require_grad = False
 
     # Define downscale model and data parallel
     if down_sampler is not None:
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     # Define optimizer and learning rate scheduler
     params = sr_model.parameters()
     if down_sampler is not None:
-        params = list(ds_model.parameters())# + list(params)
+        params = list(ds_model.parameters()) + list(params)
     optimizer = torch.optim.Adam(
         params,
         lr=pipeline_params['learning_rate']
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                 if down_sampler is not None:
                     dsr = ds_model(sr)
                     ds_l = ds_loss(dsr, lr)
-                    l = ds_l + sr_l
+                    l = pipeline_params['lambda'] * ds_l + sr_l
                     ds_psnr = psnr(ds_l)
                 else:
                     l = sr_l
@@ -187,7 +187,6 @@ if __name__ == '__main__':
                 ep_sr = sum(epoch_sr) / (bid + 1)
                 ep_lr = sum(epoch_lr) / (bid + 1)
                 ep_df = sum(epoch_diff) / (bid + 1)
-
                 timer = since(begin)
 
                 report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr,
@@ -201,14 +200,9 @@ if __name__ == '__main__':
             scheduler.step()
 
             if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
-                # state_dict = {
-                #     'model': sr_model.state_dict(),
-                #     'epoch': epoch
-                # }
-                # save_checkpoint(state_dict, sr_ckpt)
+                state_dict = {'model': sr_model.state_dict(), 'epoch': epoch}
+                save_checkpoint(state_dict, sr_ckpt)
                 if down_sampler is not None:
-                    state_dict = {
-                        'model': ds_model.state_dict(),
-                    }
+                    state_dict = {'model': ds_model.state_dict()}
                     save_checkpoint(state_dict, ds_ckpt)
             print(splitter)
