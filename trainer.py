@@ -69,9 +69,11 @@ if __name__ == '__main__':
         ds_model = nn.DataParallel(ds_model, device_ids=common_params['device_ids']).cuda()
 
     # Define loss functions
-    sr_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
+    sr_loss = nn.L1Loss().to(device)
     if down_sampler is not None:
-        ds_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
+        ds_loss = nn.L1Loss().to(device)
+    sr_l2 = nn.MSELoss(reduction='elementwise_mean').to(device)
+    ds_l2 = nn.MSELoss(reduction='elementwise_mean').to(device)
     real_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
     real_loss.require_grad = False
 
@@ -161,14 +163,14 @@ if __name__ == '__main__':
 
                 sr = sr_model(lr)
                 sr_l = sr_loss(sr, hr)
-                sr_psnr = psnr(sr_l)
+                sr_psnr = psnr(sr_l2(dsr, lr))
                 epoch_sr.append(sr_psnr)
 
                 if down_sampler is not None:
                     dsr = ds_model(sr)
                     ds_l = ds_loss(dsr, lr)
                     l = pipeline_params['lambda'] * ds_l + sr_l
-                    ds_psnr = psnr(ds_l)
+                    ds_psnr = psnr(ds_l2(dsr, lr))
                 else:
                     l = sr_l
                 epoch_lr.append(ds_psnr)
