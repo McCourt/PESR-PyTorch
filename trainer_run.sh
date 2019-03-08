@@ -1,20 +1,4 @@
-#!/usr/bin/env bash
-python3 -W ignore /home/mccourt/superresolution/trainer.py \
-	--model-name='edsr_pyr' \
-	--hr-dir='/home/mccourt/DIV2K/DIV2K_train_HR' \
-	--lr-dir='/home/mccourt/DIV2K/DIV2K_train_LR_bicubic/X4' \
-	--output-dir='/home/mccourt/superresolution/' \
-	--ckpt-dir='/home/mccourt/superresolution/checkpoints' \
-	--log-dir='/home/mccourt/superresolution/logs' \
-	--learning-rate=.0001 \
-	--decay-rate=.96 \
-	--decay-step=5 \
-	--batch-size=15 \
-	--num-epoch=40 \
-	--add-dsloss='false' \
-	--gpu-device='cuda' \
-	--upsample='false' \
-	--window=40
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -W ignore trainer.py --mode='train'
 
 #python3 -W ignore //usr/project/xtmp/superresoluter/superresolution/trainer.py \
 #	--model-name='edsr_pyr' \

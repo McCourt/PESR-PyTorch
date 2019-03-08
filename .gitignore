@@ -2,13 +2,11 @@ imgs/
 .idea/
 .ipynb_checkpoints/
 .DS_Store
-images/
-Archive/
 *.ipynb
-models/__pycache__/
 __pycache__/
 .nfs*
 checkpoints/
-results/
+*.ckpt
+logs/
 info.txt
-source_data/
+src/scale/

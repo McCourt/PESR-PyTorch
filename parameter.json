@@ -1,0 +1,49 @@
+{
+  "common": {
+    "up_sampler": "edsr",
+    "down_sampler": "deepds",
+    "scale": 1,
+    "device_ids": [0,1,2,3,4,5,6,7],
+    "metric": ["PSNR"],
+    "root_dir": "/usr/xtmp/superresoluter/superresolution",
+    "hr_dir": "imgs/source_image/RealSR/TrainGT",
+    "lr_dir": "imgs/source_image/RealSR/TrainLR",
+    "sr_dir": "imgs/stage_one_image/{}/RealSR",
+    "tto_dir": "imgs/stage_two_image/{}-{}/RealSR/{}",
+    "tto_log": "imgs/stage_two_image/{}-{}/RealSR/tto.log",
+    "log_dir": "logs/{}_{}.log",
+    "ckpt_dir": "checkpoints/{}.ckpt"
+  },
+  "train": {
+    "batch_size": 150,
+    "num_epoch": 300,
+    "window": [100, 100],
+    "learning_rate": 1e-5,
+    "decay_rate": 0.985,
+    "decay_step": 50,
+    "num_per": 1000,
+    "loss": ["MSE"],
+    "optimizer": "Adam",
+    "l2_beta": 1e-3,
+    "lambda": 5e-1,
+    "num_worker": 6,
+    "map_location": null,
+    "save_every": 1,
+    "print_every": 1
+  },
+  "test": {
+    "save": true
+  },
+  "tto": {
+    "method": "bicubic+reg+vgg_discriminator",
+    "learning_rate": 1e-2,
+    "beta": 1e-2,
+    "beta_1": 1e-3,
+    "num_epoch": 500,
+    "save": true,
+    "rgb_shuffle": false,
+    "print_every": 100,
+    "disk_ckpt": "checkpoints/vgg_discriminator.ckpt",
+    "device_name": "cuda:0"
+  }
+}
