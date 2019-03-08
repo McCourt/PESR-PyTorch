@@ -161,14 +161,14 @@ if __name__ == '__main__':
 
                 sr = sr_model(lr)
                 sr_l = sr_loss(sr, hr)
-                sr_psnr = psnr(torch.nn.functional.mse_loss(sr, hr)).item()
+                sr_psnr = psnr(torch.nn.functional.mse_loss(sr, hr)).detach().cpu().item()
                 epoch_sr.append(sr_psnr)
 
                 if down_sampler is not None:
                     dsr = ds_model(sr)
                     ds_l = ds_loss(dsr, lr)
                     l = pipeline_params['lambda'] * ds_l + sr_l
-                    ds_psnr = psnr(torch.nn.functional.mse_loss(dsr, lr)).item()
+                    ds_psnr = psnr(torch.nn.functional.mse_loss(dsr, lr)).detach().cpu().item()
                 else:
                     l = sr_l
                 epoch_lr.append(ds_psnr)
