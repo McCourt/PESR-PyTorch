@@ -127,7 +127,7 @@ if __name__ == '__main__':
         else:
             print('SR model recovering from checkpoints', end='\r')
             sr_model.load_state_dict(sr_checkpoint['model'])
-            begin_epoch = sr_checkpoint['epoch'] + 1
+            # begin_epoch = sr_checkpoint['epoch'] + 1
         if down_sampler is None or ds_checkpoint is None:
             print('Start new training for DS model')
         else:
