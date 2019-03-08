@@ -40,7 +40,7 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare common parameters
-    device = torch.device('cuda:{}'.format(common_params['device_ids']) if torch.cuda.is_available else 'cpu')
+    device = torch.device('cuda:{}'.format(common_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
     root_dir = common_params['root_dir']
     if common_params['up_sampler'] is not None:
         up_sampler = common_params['up_sampler']
@@ -60,13 +60,13 @@ if __name__ == '__main__':
 
     # Define upscale model and data parallel
     sr_model = load_model(up_sampler)
-    sr_model = nn.DataParallel(sr_model).cuda()
+    sr_model = nn.DataParallel(sr_model, device_ids=common_params['device_ids']).cuda()
     # sr_model.require_grad = False
 
     # Define downscale model and data parallel
     if down_sampler is not None:
         ds_model = load_model(down_sampler)
-        ds_model = nn.DataParallel(ds_model).cuda()
+        ds_model = nn.DataParallel(ds_model, device_ids=common_params['device_ids']).cuda()
 
     # Define loss functions
     sr_loss = nn.MSELoss(reduction='elementwise_mean').to(device)
@@ -125,13 +125,13 @@ if __name__ == '__main__':
         if sr_checkpoint is None:
             print('Start new training for SR model')
         else:
-            print('SR model recovering from checkpoints', end='\r')
+            print('SR model recovering from checkpoints')
             sr_model.load_state_dict(sr_checkpoint['model'])
             # begin_epoch = sr_checkpoint['epoch'] + 1
         if down_sampler is None or ds_checkpoint is None:
             print('Start new training for DS model')
         else:
-            print('DS model recovering from checkpoints', end='\r')
+            print('DS model recovering from checkpoints')
             ds_model.load_state_dict(ds_checkpoint['model'])
         print('resuming training from epoch {}'.format(begin_epoch))
     except Exception as e:
