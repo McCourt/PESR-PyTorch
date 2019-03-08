@@ -21,7 +21,7 @@
     "learning_rate": 1e-5,
     "decay_rate": 0.985,
     "decay_step": 50,
-    "num_per": 1000,
+    "num_per": 600,
     "loss": ["MSE"],
     "optimizer": "Adam",
     "l2_beta": 1e-3,

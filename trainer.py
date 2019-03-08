@@ -151,7 +151,7 @@ if __name__ == '__main__':
     cnt = 0
     print(title)
     print(splitter)
-    with open(log_dir, 'w') as f:
+    with open(log_dir, 'a') as f:
         for epoch in range(begin_epoch, pipeline_params['num_epoch']):
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             ds_l, ds_psnr = -1., -1.
