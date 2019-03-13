@@ -91,14 +91,7 @@ if __name__ == '__main__':
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
-    hr_psnr = PSNR()
-
-    '''
-    discriminator = Discriminator_VGG_128()
-    ckpt = torch.load(os.path.join(params['common']['root_dir'], params['tto']['disk_ckpt']))
-    discriminator.load_state_dict(ckpt)
-    discriminator = discriminator.to(device)
-    '''
+    psnr = PSNR()
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
@@ -148,15 +141,16 @@ if __name__ == '__main__':
                 ds_l = ds_loss(sr=sr_tensor, lr=lr_tensor)
                 reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
-                # sh_l = shift_loss(sr_tensor, lr_tensor)
-                hr_p = hr_psnr(sr_tensor, hr_tensor)
+                sh_l = shift_loss(sr_tensor, lr_tensor)
+                hr_p = psnr(sr_tensor, hr_tensor)
+                ds_p = psnr(sr_tensor, lr_tensor)
 
                 l = ds_l + beta * reg_l + beta_1 * vs_l #+ beta_2 * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
                 diff = time() - begin_time
-                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, psnr(ds_l), hr_p, diff)
+                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, ds_p, hr_p, diff)
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
