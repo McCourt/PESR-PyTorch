@@ -127,9 +127,9 @@ if __name__ == '__main__':
         else:
             print('SR model recovering from checkpoints')
             sr_model.load_state_dict(sr_checkpoint['model'])
-            begin_epoch = sr_checkpoint['epoch'] + 1
-            for _ in range(begin_epoch // 3 * 2):
-                scheduler.step()
+            # begin_epoch = sr_checkpoint['epoch'] + 1
+            # for _ in range(begin_epoch // 3 * 2):
+            #     scheduler.step()
         if down_sampler is None or ds_checkpoint is None:
             print('Start new training for DS model')
         else:
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     cnt = 0
     print(title)
     print(splitter)
-    with open(log_dir, 'a') as f:
+    with open(log_dir, 'w') as f:
         for epoch in range(begin_epoch, pipeline_params['num_epoch']):
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             ds_l, ds_psnr = -1., -1.
