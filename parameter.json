@@ -6,12 +6,10 @@
     "device_ids": [0,1,2,3,4,5,6,7],
     "metric": ["PSNR"],
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",
-    "hr_dir": "imgs/source_image/Set5/HR/",
-    "lr_dir": "imgs/source_image/Set5/LR_PIL/x4/",
-    "sr_dir": "imgs/stage_one_image/EnhanceNet-E/Set5/x4",
-    "tto_dir": "imgs/stage_two_image/{}-{}/{}/{}",
-    "tto_log": "imgs/stage_two_image/{}-{}/{}/tto.log",
-    "log_dir": "logs/{}_{}.log",
+    "s0_dir": "imgs/source_image/",
+    "s1_dir": "imgs/stage_one_image/",
+    "s2_dir": "imgs/stage_two_image/",
+    "log_dir": "logs/{}.log",
     "ckpt_dir": "checkpoints/{}.ckpt"
   },
   "train": {
@@ -35,7 +33,11 @@
     "save": true
   },
   "tto": {
-    "method": "bicubic+reg+vgg_discriminator",
+    "method": "bicubic+reg+vgg_disc+shift",
+    "hr_dir": "Set5/HR/",
+    "lr_dir": "LR_PIL/x4/",
+    "sr_dir": "EnhanceNet-E/Set5/x4/",
+    "tto_dir": "EnhanceNet-E-bicubic+reg+vgg_disc+shift/Set5/x4",
     "learning_rate": 1e-2,
     "beta": 1e-2,
     "beta_1": 1e-3,
@@ -44,7 +46,8 @@
     "save": true,
     "rgb_shuffle": false,
     "print_every": 100,
-    "disk_ckpt": "checkpoints/vgg_discriminator.ckpt",
+    "shift_ckpt": "shifts",
+    "disc_ckpt": "vgg_discriminator",
     "device_name": "cuda:0"
   }
 }
