@@ -7,7 +7,7 @@
     "metric": ["PSNR"],
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",
     "hr_dir": "imgs/source_image/Set5/HR/",
-    "lr_dir": "imgs/source_image/Set5/LR_PIL/",
+    "lr_dir": "imgs/source_image/Set5/LR_PIL/x4/",
     "sr_dir": "imgs/stage_one_image/EnhanceNet-E/Set5/x4",
     "tto_dir": "imgs/stage_two_image/{}-{}/{}/{}",
     "tto_log": "imgs/stage_two_image/{}-{}/{}/tto.log",
