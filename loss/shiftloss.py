@@ -16,7 +16,7 @@ class ShiftLoss(nn.Module):
             for j in range(-2, 2):
                 kernel = self.kernel_dict[(i, j)].unsqueeze_(0).type('torch.cuda.FloatTensor')
                 x = F.conv2d(input=lr, weight=kernel, stride=1)
-                y = self.bicubic(hr.roll((0, 0, i, j)))[:, :, 10:-10, 10:-10]
+                y = self.bicubic(hr.roll((0, 0), (i, j)))[:, :, 10:-10, 10:-10]
                 loss += F.mse_loss(x, y)
         loss = loss / 16
         return loss
