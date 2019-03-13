@@ -91,7 +91,7 @@ if __name__ == '__main__':
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
-    psnr = PSNR()
+    hr_psnr = PSNR()
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
@@ -142,8 +142,8 @@ if __name__ == '__main__':
                 reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
                 sh_l = shift_loss(sr_tensor, lr_tensor)
-                hr_p = psnr(sr_tensor, hr_tensor)
-                ds_p = psnr(sr_tensor, lr_tensor)
+                hr_p = hr_psnr(sr_tensor, hr_tensor)
+                ds_p = psnr(ds_l)
 
                 l = ds_l + beta * reg_l + beta_1 * vs_l #+ beta_2 * sh_l
                 l.backward()
