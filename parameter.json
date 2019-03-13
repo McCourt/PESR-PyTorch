@@ -35,7 +35,7 @@
   "tto": {
     "method": "bicubic+reg+vgg_disc+shift",
     "hr_dir": "Set5/HR/",
-    "lr_dir": "LR_PIL/x4/",
+    "lr_dir": "Set5/LR_PIL/x4/",
     "sr_dir": "EnhanceNet-E/Set5/x4/",
     "tto_dir": "EnhanceNet-E-bicubic+reg+vgg_disc+shift/Set5/x4",
     "learning_rate": 1e-2,

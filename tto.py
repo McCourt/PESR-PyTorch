@@ -151,7 +151,6 @@ if __name__ == '__main__':
                 l2_l = l2_loss(sr_tensor, org_tensor)
                 vs_l = gan_loss(sr_tensor)
                 # sh_l = shift_loss(sr_tensor, lr_tensor)
-
                 l0_l = hr_loss(sr_tensor, hr_tensor)
 
                 l = lr_l + beta * l2_l + beta_1 * vs_l #+ beta_2 * sh_l
