@@ -6,7 +6,7 @@ import imresize as im
 class ShiftLoss(torch.nn.Module):
     def __init__(self):
         super(ShiftLoss, self).__init__()
-        self.kernel_dict = torch.load('shifts10.pt')
+        self.kernel_dict = torch.load('shifts.pt')
         self.bicubic = BicubicDownSample()
 
     def forward(self, lr, hr):
