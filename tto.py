@@ -11,7 +11,7 @@ from model.downscaler.bicubic import BicubicDownSample
 # from downscaler.conv import ConvolutionDownscale
 from src.helper import psnr, load_parameters, ChannelGradientShuffle
 from src.dataset import SRTTODataset
-
+from loss.shiftloss import ShiftLoss
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -42,6 +42,7 @@ if __name__ == '__main__':
         num_epoch = params['tto']['num_epoch']
         beta = params['tto']['beta']
         beta_1 = params['tto']['beta_1']
+        beta_2 = params['tto']['beta_2']
         learning_rate = params['tto']['learning_rate']
         save = params['tto']['save']
         rgb_shuffle = params['tto']['rgb_shuffle']
@@ -84,11 +85,11 @@ if __name__ == '__main__':
     lr_loss = nn.MSELoss()
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
+    shift_loss = ShiftLoss()
 
     discriminator = Discriminator_VGG_128()
     ckpt = torch.load(os.path.join(params['common']['root_dir'], params['tto']['disk_ckpt']))
     discriminator.load_state_dict(ckpt)
-    discriminator.require_grad = False
     discriminator = discriminator.to(device)
 
     print('Begin TTO on device {}'.format(device))
@@ -146,10 +147,11 @@ if __name__ == '__main__':
                         F.pad(sr_tensor, (0, pad_w, 0, pad_h), 'constant').permute(0, 2, 3, 1).view((-1, 128, 128, 3)).permute(0, 3, 1, 2)
                     )
                 )
+                sh_l = shift_loss(sr_tensor, lr_tensor)
 
                 l0_l = hr_loss(sr_tensor, hr_tensor)
 
-                l = lr_l + beta * l2_l + beta_1 * vs_l
+                l = lr_l + beta * l2_l + beta_1 * vs_l + beta_2 * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
