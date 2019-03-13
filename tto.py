@@ -43,7 +43,7 @@ if __name__ == '__main__':
         common, tto_params = params['common'], params['tto']
         for i in tto_params:
             print('{:<15s} -> {}'.format(str(i), tto_params[i]))
-        device_name = tto_params['device_name']
+        device_name = tto_params['device_id']
         num_epoch = tto_params['num_epoch']
         beta = tto_params['beta']
         beta_1 = tto_params['beta_1']
@@ -87,9 +87,8 @@ if __name__ == '__main__':
     device = torch.device(device_name if torch.cuda.is_available else 'cpu')
     dataset = SRTTODataset(hr_dir, lr_dir, sr_dir)
 
-    down_sampler = BicubicDownSample()
-    down_sampler = down_sampler.to(device)
-
+    # down_sampler = BicubicDownSample()
+    # down_sampler = down_sampler.to(device)
     # lr_loss = nn.MSELoss()
     # l2_loss = nn.MSELoss()
     shift_loss = ShiftLoss().to(device)
@@ -151,10 +150,11 @@ if __name__ == '__main__':
                 print(title, end='\r')
                 begin_time = time()
                 optimizer.zero_grad()
-                ds_in_tensor = down_sampler(sr_tensor)
 
+                # ds_in_tensor = down_sampler(sr_tensor)
                 # lr_l = lr_loss(ds_in_tensor, lr_tensor)
                 # l2_l = l2_loss(sr_tensor, org_tensor)
+
                 ds_l = ds_loss(sr=sr_tensor, lr=lr_tensor)
                 reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
