@@ -11,7 +11,7 @@ import MeanShift
 import imresize as im
 import torch
 
-HR = sorted(glob.glob("DIFF/TRAIN_HR/0001.png"))
+HR = sorted(glob.glob("DIFF/TRAIN_HR/000*.png"))
 
 def shift(a,i,j):
     return np.roll(a, (i, j), axis=(0, 1))
@@ -47,12 +47,12 @@ for files in HR:
 X=np.concatenate(X,1)
 X=np.transpose(X)
 Y1=np.concatenate(Y1)
-Y1=np.concatenate(Y2)
+Y2=np.concatenate(Y2)
 
 kernel0 = np.zeros((2*SIZE+1,))
 kernel0[SIZE] = 1
 kernel1 = np.linalg.lstsq(X,Y1)[0]
-kernel2 = np.linalg.lstsq(X,Y1)[0]
+kernel2 = np.linalg.lstsq(X,Y2)[0]
 kernels=[kernel0,kernel1,kernel2]
 
 dictionary={}
@@ -60,7 +60,7 @@ for i in range(0,3):
     for j in range(0,3):
         conv_kernel = torch.zeros(3,3,2*SIZE+1,2*SIZE+1)
         for k in range(3):
-            conv_kernel[k,k,:,:] = torch.DoubleTensor(np.outer(kernels[i],kernels[j]))
+            conv_kernel[k,k,:,:] = torch.DoubleTensor(np.outer(kernels[j],kernels[i]))
         dictionary[(i,j)] = conv_kernel
         if i != 0:
             dictionary[(-i, j)] = torch.flip(dictionary[(i,j)],(3,))
@@ -69,5 +69,4 @@ for i in range(0,3):
         if (i != 0 and j != 0):
             dictionary[(-i, -j)] = torch.flip(dictionary[(i, j)], (2, 3))
 
-torch.save(dictionary,'shifts10.pt')
-
+torch.save(dictionary,'shifts.pt')
