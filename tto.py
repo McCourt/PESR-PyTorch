@@ -41,7 +41,7 @@ if __name__ == '__main__':
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         common, tto_params = params['common'], params['tto']
-        for i in tto_params:
+        for i in sorted(tto_params):
             print('{:<15s} -> {}'.format(str(i), tto_params[i]))
         device_name = tto_params['device_id']
         num_epoch = tto_params['num_epoch']

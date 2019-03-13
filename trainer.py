@@ -33,7 +33,7 @@ if __name__ == '__main__':
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         pipeline_params, common_params = params[mode], params['common']
-        for i in pipeline_params:
+        for i in sorted(pipeline_params):
             print('{:<15s} -> {}'.format(str(i), pipeline_params[i]))
     except Exception as e:
         print(e)
