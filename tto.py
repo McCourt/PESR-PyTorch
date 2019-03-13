@@ -19,7 +19,7 @@ from loss.psnr import PSNR
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    long_opts = ['model-name=', 'dataset=', 'method=', 'scale=']
+    long_opts = ['model-name=', 'dataset=', 'scale=']
     try:
         optlist, args = getopt.getopt(args, '', long_opts)
     except getopt.GetoptError as e:
@@ -87,10 +87,6 @@ if __name__ == '__main__':
     device = torch.device(device_name if torch.cuda.is_available else 'cpu')
     dataset = SRTTODataset(hr_dir, lr_dir, sr_dir)
 
-    # down_sampler = BicubicDownSample()
-    # down_sampler = down_sampler.to(device)
-    # lr_loss = nn.MSELoss()
-    # l2_loss = nn.MSELoss()
     shift_loss = ShiftLoss().to(device)
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
@@ -109,9 +105,10 @@ if __name__ == '__main__':
         title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
         title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss',
                                        'DIS Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
-        print(''.join(['-' for i in range(110)]))
+        splitter = ''.join(['-' for i in range(len(title))])
+        print(splitter)
         print(title)
-        print(''.join(['-' for i in range(110)]))
+        print(splitter)
         f.write(title + '\n')
         report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
 
@@ -130,8 +127,6 @@ if __name__ == '__main__':
             sr_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             org_tensor = torch.from_numpy(sr_img).type('torch.cuda.FloatTensor').to(device)
             hr_tensor = torch.from_numpy(hr_img).type('torch.cuda.FloatTensor').to(device)
-            pad_h, pad_w = 128 - sr_img.shape[2] % 128, 128 - sr_img.shape[3] % 128
-            crop_h, crop_w = sr_img.shape[2] // 128 * 128, sr_img.shape[3] // 128 * 128
             sr_tensor.requires_grad = True
 
             if rgb_shuffle:
@@ -150,10 +145,6 @@ if __name__ == '__main__':
                 begin_time = time()
                 optimizer.zero_grad()
 
-                # ds_in_tensor = down_sampler(sr_tensor)
-                # lr_l = lr_loss(ds_in_tensor, lr_tensor)
-                # l2_l = l2_loss(sr_tensor, org_tensor)
-
                 ds_l = ds_loss(sr=sr_tensor, lr=lr_tensor)
                 reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
@@ -169,9 +160,9 @@ if __name__ == '__main__':
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
-            print(''.join(['-' for i in range(110)]))
+            print(splitter)
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                 sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
-                imwrite(os.path.join(out_dir, 'sr', img_name), sr_img, format='png', compress_level=0)
+                imwrite(os.path.join(osr_dir, img_name), sr_img, format='png', compress_level=0)

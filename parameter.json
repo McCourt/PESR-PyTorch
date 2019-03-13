@@ -13,6 +13,9 @@
     "ckpt_dir": "checkpoints/{}.ckpt"
   },
   "train": {
+    "hr_dir": "RealSR/TrainGT/",
+    "lr_dir": "RealSR/TrainLR/",
+    "sr_dir": "RealSR/",
     "batch_size": 150,
     "num_epoch": 300,
     "window": [100, 100],
