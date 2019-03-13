@@ -185,15 +185,15 @@ if __name__ == '__main__':
                     print(report)
                     print(title, end='\r')
 
-                f.write(report + '\n')
-                f.flush()
             if mode == 'train':
                 scheduler.step()
-
-            if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
-                state_dict = {'model': sr_model.state_dict(), 'epoch': epoch}
-                save_checkpoint(state_dict, sr_ckpt)
-                if down_sampler is not None:
-                    state_dict = {'model': ds_model.state_dict()}
-                    save_checkpoint(state_dict, ds_ckpt)
+                f.write(report + '\n')
+                f.flush()
+                if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
+                    if up_sampler is not None:
+                        state_dict = {'model': sr_model.state_dict()}
+                        save_checkpoint(state_dict, sr_ckpt)
+                    if down_sampler is not None:
+                        state_dict = {'model': ds_model.state_dict()}
+                        save_checkpoint(state_dict, ds_ckpt)
             print(splitter)
