@@ -96,8 +96,8 @@ if __name__ == '__main__':
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
         title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'SHI Loss',
-                                       'DIS Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
+        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
+                                       'SHI Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
         splitter = ''.join(['-' for i in range(len(title))])
         print(splitter)
         print(title)
