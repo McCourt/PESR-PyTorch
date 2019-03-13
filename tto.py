@@ -95,15 +95,15 @@ if __name__ == '__main__':
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
-        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss',
+        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'SHI Loss',
                                        'DIS Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
         splitter = ''.join(['-' for i in range(len(title))])
         print(splitter)
         print(title)
         print(splitter)
         f.write(title + '\n')
-        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
+        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
 
         for img_dic in dataset:
             img_name = img_dic['name']
@@ -145,12 +145,12 @@ if __name__ == '__main__':
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
                 ds_p = psnr(ds_l)
 
-                l = ds_l + beta * reg_l + beta_1 * vs_l #+ beta_2 * sh_l
+                l = ds_l + beta * reg_l + beta_1 * vs_l + beta_2 * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
                 diff = time() - begin_time
-                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, ds_p, hr_p, diff)
+                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, sh_l, ds_p, hr_p, diff)
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
