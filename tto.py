@@ -90,7 +90,7 @@ if __name__ == '__main__':
     l2_loss = nn.MSELoss()
     hr_loss = nn.MSELoss()
     shift_loss = ShiftLoss()
-    gan_loss = GanLoss()
+    gan_loss = GanLoss().to(device)
 
     '''
     discriminator = Discriminator_VGG_128()
