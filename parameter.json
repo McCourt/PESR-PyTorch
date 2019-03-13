@@ -48,6 +48,6 @@
     "print_every": 100,
     "shift_ckpt": "shifts",
     "disc_ckpt": "vgg_discriminator",
-    "device_name": "cuda:0"
+    "device_id": "cuda:0"
   }
 }

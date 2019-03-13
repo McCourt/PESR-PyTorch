@@ -13,6 +13,9 @@ from src.helper import psnr, load_parameters, ChannelGradientShuffle
 from src.dataset import SRTTODataset
 from loss.shiftloss import ShiftLoss
 from loss.discloss import GanLoss
+from loss.regloss import RegularizationLoss
+from loss.dsloss import DownScaleLoss
+from loss.psnr import PSNR
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -86,11 +89,14 @@ if __name__ == '__main__':
 
     down_sampler = BicubicDownSample()
     down_sampler = down_sampler.to(device)
-    lr_loss = nn.MSELoss()
-    l2_loss = nn.MSELoss()
-    hr_loss = nn.MSELoss()
-    shift_loss = ShiftLoss()
+
+    # lr_loss = nn.MSELoss()
+    # l2_loss = nn.MSELoss()
+    shift_loss = ShiftLoss().to(device)
     gan_loss = GanLoss().to(device)
+    ds_loss = DownScaleLoss().to(device)
+    reg_loss = RegularizationLoss().to(device)
+    hr_psnr = PSNR()
 
     '''
     discriminator = Discriminator_VGG_128()
@@ -101,9 +107,9 @@ if __name__ == '__main__':
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
-        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
-                                       'SR Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
+        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss',
+                                       'DIS Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
         print(''.join(['-' for i in range(110)]))
         print(title)
         print(''.join(['-' for i in range(110)]))
@@ -147,18 +153,20 @@ if __name__ == '__main__':
                 optimizer.zero_grad()
                 ds_in_tensor = down_sampler(sr_tensor)
 
-                lr_l = lr_loss(ds_in_tensor, lr_tensor)
-                l2_l = l2_loss(sr_tensor, org_tensor)
+                # lr_l = lr_loss(ds_in_tensor, lr_tensor)
+                # l2_l = l2_loss(sr_tensor, org_tensor)
+                ds_l = ds_loss(sr=sr_tensor, lr=lr_tensor)
+                reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
                 # sh_l = shift_loss(sr_tensor, lr_tensor)
-                l0_l = hr_loss(sr_tensor, hr_tensor)
+                hr_p = hr_psnr(sr_tensor, hr_tensor)
 
-                l = lr_l + beta * l2_l + beta_1 * vs_l #+ beta_2 * sh_l
+                l = ds_l + beta * reg_l + beta_1 * vs_l #+ beta_2 * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
                 diff = time() - begin_time
-                report = report_formatter.format(epoch, img_name, lr_l, l2_l, vs_l, l0_l, psnr(lr_l), psnr(l0_l), diff)
+                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, psnr(ds_l), hr_p, diff)
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
