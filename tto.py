@@ -113,8 +113,7 @@ if __name__ == '__main__':
         print(title)
         print(''.join(['-' for i in range(110)]))
         f.write(title + '\n')
-        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.2f} | {:^10.4f} | {:^10.4f} | {:^10.4f} ' \
-                           '| {:^10.4f} '
+        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
 
         for img_dic in dataset:
             img_name = img_dic['name']
