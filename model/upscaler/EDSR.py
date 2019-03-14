@@ -14,20 +14,26 @@ class EDSR(nn.Module):
         )
         self.model_1 = nn.Sequential(
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks[0])]),
-            TransposeUpscale(channels=num_channel),
-            *tuple([block(in_channels=num_channel) for _ in range(num_blocks[1])]),
-            TransposeUpscale(channels=num_channel)
+            PixelShuffleUpscale(channels=num_channel)
         )
-        self.model_2 = TransposeUpscale(channels=3, scale=4)
+        self.upscale_1 = TransposeUpscale(channels=num_channel)
+
+        self.model_2 = nn.Sequential(
+            *tuple([block(in_channels=num_channel) for _ in range(num_blocks[1])]),
+            PixelShuffleUpscale(channels=num_channel)
+        )
+        self.upscale_2 = TransposeUpscale(channels=num_channel)
+
         self.model_3 = nn.Sequential(
-            ConvolutionBlock(in_channels=2 * num_channel, out_channels=3),
+            ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(sign=1)
         )
 
     def forward(self, x, clip_bound=False):
-        up_x = self.model_2(x)
-        init_x = self.model_0(x)
-        output = self.model_3(init_x + self.model_1(init_x)) + up_x
+        x = self.model_0(x)
+        up_1 = self.model_1(x) + self.upscale_1(x)
+        up_2 = self.model_2(up_1) + self.upscale_2(up_1)
+        output = self.model_3(x + up_2)
         if clip_bound:
             return torch.clamp(torch.round(output), 0., 255.).type('torch.cuda.ByteTensor')
         else:
