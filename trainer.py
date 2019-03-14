@@ -156,10 +156,10 @@ if __name__ == '__main__':
                     ls.append(sr_l)
 
                 if down_sampler is not None:
-                    dsr = ds_model(hr)
-                    ds_l = ds_loss(dsr, lr)
+                    dsr = ds_model(torch.cat([hr, sr], dim=0))
+                    ds_l = ds_loss(dsr, torch.cat([lr, lr], dim=0))
                     l = pipeline_params['lambda'] * ds_l + sr_l
-                    ds_psnr = psnr(dsr, lr).detach().cpu().item()
+                    ds_psnr = psnr(dsr, torch.cat([lr, lr], dim=0)).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
                     ls.append(ds_l)
 
