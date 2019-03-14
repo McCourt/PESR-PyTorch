@@ -156,7 +156,7 @@ if __name__ == '__main__':
                     ls.append(sr_l)
 
                 if down_sampler is not None:
-                    dsr = ds_model(sr)
+                    dsr = ds_model(hr)
                     ds_l = ds_loss(dsr, lr)
                     l = pipeline_params['lambda'] * ds_l + sr_l
                     ds_psnr = psnr(dsr, lr).detach().cpu().item()

@@ -7,7 +7,7 @@ class DeepDownScale(nn.Module):
     def __init__(self, num_blocks=None, num_channel=64, block=ResBlock):
         super().__init__()
         if num_blocks is None:
-            num_blocks = [10, 10, 10]
+            num_blocks = [5, 10, 15]
         assert len(num_blocks) == 3
         self.init = nn.Sequential(
             MeanShift(sign=-1),
