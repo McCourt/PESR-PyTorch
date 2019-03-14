@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 in_tensor = sr_tensor
 
             optimizer = torch.optim.Adam([sr_tensor], lr=learning_rate)
-            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=tto_params['gamma'])
 
             psnrs = []
             channel = [0, 1, 2]
