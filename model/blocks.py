@@ -159,7 +159,7 @@ class PixelShuffleUpscale(nn.Module):
                 model_body.append(activation(True))
             if batch_norm is not None:
                 model_body.append(batch_norm(channels))
-        self.model = nn.Sequential(model_body)
+        self.model = nn.Sequential(*tuple(model_body))
 
     def forward(self, x):
         return self.model(x)
