@@ -4,8 +4,10 @@ from model.blocks import MeanShift, ResBlock, ConvolutionBlock, PixelShuffleUpsc
 
 
 class EDSR(nn.Module):
-    def __init__(self, num_blocks=[20, 12], num_channel=128, block=ResBlock):
+    def __init__(self, num_blocks=None, num_channel=128, block=ResBlock):
         super().__init__()
+        if num_blocks is None:
+            num_blocks = [20, 12]
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
             ConvolutionBlock(in_channels=3, out_channels=num_channel) 
@@ -16,10 +18,7 @@ class EDSR(nn.Module):
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks[1])]),
             TransposeUpscale(channels=num_channel)
         )
-        self.model_2 = nn.Sequential(
-            TransposeUpscale(channels=num_channel),
-            TransposeUpscale(channels=num_channel)
-        )
+        self.model_2 = TransposeUpscale(channels=num_channel, scale=4)
         self.model_3 = nn.Sequential(
             ConvolutionBlock(in_channels=2 * num_channel, out_channels=3),
             MeanShift(sign=1)
