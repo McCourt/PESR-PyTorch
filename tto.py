@@ -45,9 +45,9 @@ if __name__ == '__main__':
             print('{:<15s} -> {}'.format(str(i), tto_params[i]))
         device_name = tto_params['device_id']
         num_epoch = tto_params['num_epoch']
-        beta = tto_params['beta']
-        beta_1 = tto_params['beta_1']
-        beta_2 = tto_params['beta_2']
+        beta_reg = tto_params['beta_reg']
+        beta_disc = tto_params['beta_disc']
+        beta_shift = tto_params['beta_shift']
         learning_rate = tto_params['learning_rate']
         save = tto_params['save']
         rgb_shuffle = tto_params['rgb_shuffle']
@@ -145,7 +145,7 @@ if __name__ == '__main__':
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
                 ds_p = psnr(ds_l)
 
-                l = ds_l + beta * reg_l + beta_1 * vs_l + beta_2 * sh_l
+                l = ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
