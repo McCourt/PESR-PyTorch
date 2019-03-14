@@ -27,7 +27,7 @@ class EDSR(nn.Module):
 
     def forward(self, x, clip_bound=False):
         x = self.model_0(x)
-        output = self.model_2(torch.cat([self.model_2(x), self.model_1(x)], dim=1))
+        output = self.model_3(torch.cat([self.model_2(x), self.model_1(x)], dim=1))
         if clip_bound:
             return torch.clamp(torch.round(output), 0., 255.).type('torch.cuda.ByteTensor')
         else:
