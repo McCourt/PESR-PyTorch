@@ -153,7 +153,7 @@ class PixelShuffleUpscale(nn.Module):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
-            model_body.append(ConvolutionBlock(channels, channels * 2))
+            model_body.append(ConvolutionBlock(channels, channels * 4))
             model_body.append(nn.PixelShuffle(2))
             if activation is not None:
                 model_body.append(activation(True))
