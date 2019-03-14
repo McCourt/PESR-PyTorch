@@ -11,7 +11,7 @@ import MeanShift
 import imresize as im
 import torch
 
-HR = sorted(glob.glob("DIFF/TRAIN_HR/000*.png"))
+HR = sorted(glob.glob("DIFF/TRAIN_HR/00**.png"))
 
 def shift(a,i,j):
     return np.roll(a, (i, j), axis=(0, 1))
@@ -60,12 +60,12 @@ for i in range(0,3):
     for j in range(0,3):
         conv_kernel = torch.zeros(3,3,2*SIZE+1,2*SIZE+1)
         for k in range(3):
-            conv_kernel[k,k,:,:] = torch.DoubleTensor(np.outer(kernels[j],kernels[i]))
+            conv_kernel[k,k,:,:] = torch.DoubleTensor(np.outer(kernels[i],kernels[j]))
         dictionary[(i,j)] = conv_kernel
         if i != 0:
-            dictionary[(-i, j)] = torch.flip(dictionary[(i,j)],(3,))
+            dictionary[(-i, j)] = torch.flip(dictionary[(i,j)],(2,))
         if (j != 0):
-            dictionary[(i, -j)] = torch.flip(dictionary[(i, j)], (2,))
+            dictionary[(i, -j)] = torch.flip(dictionary[(i, j)], (3,))
         if (i != 0 and j != 0):
             dictionary[(-i, -j)] = torch.flip(dictionary[(i, j)], (2, 3))
 
