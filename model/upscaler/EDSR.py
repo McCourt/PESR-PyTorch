@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from model.blocks import MeanShift, ResBlock, ConvolutionBlock
+from model.blocks import MeanShift, ResBlock, ConvolutionBlock, PixelShuffleUpscale, TransposeUpscale
 
 
 class EDSR(nn.Module):
@@ -15,6 +15,8 @@ class EDSR(nn.Module):
         )
 
         self.model_2 = nn.Sequential(
+            PixelShuffleUpscale(channels=num_channel),
+            PixelShuffleUpscale(channels=num_channel),
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(sign=1)
         )
