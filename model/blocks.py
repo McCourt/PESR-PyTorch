@@ -84,16 +84,15 @@ class CascadingBlock(nn.Module):
         self.b2 = basic_block(out_channels, out_channels)
         self.b3 = basic_block(out_channels, out_channels)
 
-        self.c1 = basic_block(out_channels * 2, out_channels, kernel_size=1, padding=0)
-        self.c2 = basic_block(out_channels * 3, out_channels, kernel_size=1, padding=0)
-        self.c3 = basic_block(out_channels * 4, out_channels, kernel_size=1, padding=0)
+        self.c1 = ConvolutionBlock(out_channels * 2, out_channels, kernel_size=1, padding=0)
+        self.c2 = ConvolutionBlock(out_channels * 3, out_channels, kernel_size=1, padding=0)
+        self.c3 = ConvolutionBlock(out_channels * 4, out_channels, kernel_size=1, padding=0)
 
     def forward(self, x):
         x = torch.cat([x, self.b1(x)], dim=1)
         x = torch.cat([x, self.b2(self.c1(x))], dim=1)
         x = torch.cat([x, self.b3(self.c2(x))], dim=1)
         x = self.c3(x)
-        print(x.size())
         return x
 
 
