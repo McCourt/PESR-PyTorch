@@ -23,6 +23,7 @@ class EDSR(nn.Module):
             PixelShuffleUpscale(channels=num_channel)
         )
         self.upscale_2 = TransposeUpscale(channels=num_channel)
+        self.upscale_3 = TransposeUpscale(channels=3)
 
         self.model_3 = nn.Sequential(
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
@@ -30,10 +31,11 @@ class EDSR(nn.Module):
         )
 
     def forward(self, x, clip_bound=False):
+        up_x = self.upscale_3(x)
         x = self.model_0(x)
         up_1 = self.model_1(x) + self.upscale_1(x)
         up_2 = self.model_2(up_1) + self.upscale_2(up_1)
-        output = self.model_3(x + up_2)
+        output = self.model_3(up_2) + up_x
         if clip_bound:
             return torch.clamp(torch.round(output), 0., 255.).type('torch.cuda.ByteTensor')
         else:
