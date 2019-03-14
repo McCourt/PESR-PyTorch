@@ -23,7 +23,7 @@ class EDSR(nn.Module):
             PixelShuffleUpscale(channels=num_channel)
         )
         self.upscale_2 = TransposeUpscale(channels=num_channel)
-        self.upscale_3 = TransposeUpscale(channels=3)
+        self.upscale_3 = TransposeUpscale(channels=3, scale=4)
 
         self.model_3 = nn.Sequential(
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
