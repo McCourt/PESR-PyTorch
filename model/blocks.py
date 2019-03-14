@@ -105,7 +105,7 @@ class ChannelPool(nn.Module):
     def forward(self, x):
         return torch.cat([torch.max(x, dim=1, keepdim=True)[0],
                           torch.mean(x, dim=1, keepdim=True),
-                          torch.min(x, dim=1, keepdim=True)][0], dim=1)
+                          torch.min(x, dim=1, keepdim=True)[0]], dim=1)
 
 
 class ChannelAttentionBlock(nn.Module):
