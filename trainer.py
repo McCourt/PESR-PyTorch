@@ -128,12 +128,10 @@ if __name__ == '__main__':
     # Training loop and saver as checkpoints
     num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
     print('Using device {}'.format(device))
-    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {' \
-                      ':^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} ' \
-                       '| {:^8.4f} | {:^8.4f} | {:^10.2f} '
+    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^10.2f} '
     title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
-                                   'R_PSNR', 'D_PSNR', 'AVG_DIFF', 'RunTime')
+                                   'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
     print(splitter)
     begin = time()
@@ -146,7 +144,7 @@ if __name__ == '__main__':
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
-                real_psnr, ls = psnr(lr, hr), list()
+                ls = list()
                 if mode == 'train':
                     optimizer.zero_grad()
 
@@ -171,8 +169,6 @@ if __name__ == '__main__':
                     optimizer.step()
 
                 epoch_ls.append(l)
-                diff = sr_psnr - real_psnr
-                epoch_diff.append(diff)
                 ep_l = sum(epoch_ls) / (bid + 1)
                 ep_sr = sum(epoch_sr) / (bid + 1)
                 ep_lr = sum(epoch_lr) / (bid + 1)
@@ -180,7 +176,7 @@ if __name__ == '__main__':
                 timer = since(begin)
 
                 report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr,
-                                                 ep_lr, real_psnr, diff, ep_df, timer)
+                                                 ep_lr, ep_df, timer)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
