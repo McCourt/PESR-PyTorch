@@ -103,9 +103,9 @@ class Flatten(nn.Module):
 
 class ChannelPool(nn.Module):
     def forward(self, x):
-        return torch.concat([torch.max(x, dim=1, keepdim=True),
-                             torch.mean(x, dim=1, keepdim=True),
-                             torch.min(x, dim=1, keepdim=True)], dim=1)
+        return torch.cat([torch.max(x, dim=1, keepdim=True),
+                          torch.mean(x, dim=1, keepdim=True),
+                          torch.min(x, dim=1, keepdim=True)], dim=1)
 
 
 class ChannelAttentionBlock(nn.Module):
