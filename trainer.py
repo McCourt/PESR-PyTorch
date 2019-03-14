@@ -114,7 +114,8 @@ if __name__ == '__main__':
             h=pipeline_params['window'][0],
             w=pipeline_params['window'][1],
             scale=scale,
-            num_per=pipeline_params['num_per']
+            num_per=pipeline_params['num_per'],
+            lr_formatter=lambda x: x.replace('x4', '')
         )
     else:
         dataset = SRTestDataset(hr_dir=hr_dir, lr_dir=lr_dir)
