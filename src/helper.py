@@ -68,8 +68,8 @@ def load_model(model_name):
         from model.upscaler.SESR import SESR
         model = SESR()
     elif model_name.lower() == 'edsr':
-        from model.upscaler.EDSR import EDSR
-        model = EDSR()
+        from model.upscaler.DeepSR import DeepSR
+        model = DeepSR()
     elif model_name.lower() == 'edsr_pyr':
         from model.upscaler.EDSR_Pyramid import EDSRPyramid
         model = EDSRPyramid()
