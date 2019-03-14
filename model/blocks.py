@@ -92,7 +92,9 @@ class CascadingBlock(nn.Module):
         x = torch.cat([x, self.b1(x)], dim=1)
         x = torch.cat([x, self.b2(self.c1(x))], dim=1)
         x = torch.cat([x, self.b3(self.c2(x))], dim=1)
-        return self.c3(x)
+        x = self.c3(x)
+        print(x.size())
+        return x
 
 
 class Flatten(nn.Module):
