@@ -18,15 +18,16 @@ class EDSR(nn.Module):
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks[1])]),
             TransposeUpscale(channels=num_channel)
         )
-        self.model_2 = TransposeUpscale(channels=num_channel, scale=4)
+        self.model_2 = TransposeUpscale(channels=3, scale=4)
         self.model_3 = nn.Sequential(
             ConvolutionBlock(in_channels=2 * num_channel, out_channels=3),
             MeanShift(sign=1)
         )
 
     def forward(self, x, clip_bound=False):
-        x = self.model_0(x)
-        output = self.model_3(torch.cat([self.model_2(x), self.model_1(x)], dim=1))
+        up_x = self.model_2(x)
+        init_x = self.model_0(x)
+        output = self.model_3(init_x + self.model_1(init_x)) + up_x
         if clip_bound:
             return torch.clamp(torch.round(output), 0., 255.).type('torch.cuda.ByteTensor')
         else:
