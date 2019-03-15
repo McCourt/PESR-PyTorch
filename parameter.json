@@ -36,22 +36,22 @@
     "save": true
   },
   "tto": {
-    "method": "bicubic+reg+vgg_disc+shift",
-    "hr_dir": "Set5/HR/",
-    "lr_dir": "Set5/LR_PIL/x4/",
-    "sr_dir": "EnhanceNet-E/Set5/x4/",
-    "tto_dir": "EnhanceNet-E-bicubic+reg+vgg_disc+shift/Set5/x4",
+    "method": "bicubic",
+    "hr_dir": "Urban100/HR/",
+    "lr_dir": "Urban100/LR_PIL/x4/",
+    "sr_dir": "RCAN/Urban100/x4",
+    "tto_dir": "RCAN-bicubic/Urban100/x4",
     "learning_rate": 1e-2,
-    "beta_reg": 1e-2,
+    "beta_reg": 0.0,
     "beta_disc": 0.0,
-    "beta_shift": 1.5,
-    "num_epoch": 500,
-    "save": true,
+    "beta_shift": 0.0,
+    "num_epoch": 300,
+    "save": false,
     "rgb_shuffle": false,
-    "print_every": 100,
+    "print_every": 50,
     "shift_ckpt": "shifts",
     "disc_ckpt": "vgg_discriminator",
-    "gamma": 0.99,
+    "gamma": 0.98,
     "device_id": "cuda:0"
   }
 }
