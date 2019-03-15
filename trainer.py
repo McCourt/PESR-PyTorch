@@ -98,13 +98,13 @@ if __name__ == '__main__':
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
         params = list()
-        if up_sampler is not None:
-            params += list(sr_model.parameters())
-        if down_sampler is not None:
-            params += list(ds_model.parameters())
-        if len(params) > 0:
-            optimizer = torch.optim.Adam(params, lr=pipeline_params['learning_rate'])
-            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer,gamma=pipeline_params['decay_rate'])
+        if up_sampler or down_sampler:
+            if up_sampler is not None:
+                sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=pipeline_params['learning_rate'])
+                sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer, gamma=pipeline_params['decay_rate'])
+            if down_sampler is not None:
+                ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=pipeline_params['learning_rate'])
+                ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer, gamma=pipeline_params['decay_rate'])
         else:
             raise Exception('No trainable parameters in training mode')
 
@@ -129,7 +129,8 @@ if __name__ == '__main__':
     num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
     print('Using device {}'.format(device))
     title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^10.2f} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} ' \
+                       '| {:^10.2f} '
     title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
                                    'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
@@ -146,11 +147,18 @@ if __name__ == '__main__':
                 hr, lr = batch['hr'].to(device), batch['lr'].to(device)
                 ls = list()
                 if mode == 'train':
-                    optimizer.zero_grad()
+                    if up_sampler is not None:
+                        sr_optimizer.zero_grad()
+                    if down_sampler is not None:
+                        ds_optimizer.zero_grad()
 
                 if up_sampler is not None:
                     sr = sr_model(lr)
-                    sr_l = sr_loss(sr, hr)
+                    dsr = ds_model(sr)
+                    if down_sampler is not None:
+                        sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
+                    else:
+                        sr_l = sr_loss(sr, hr)
                     sr_psnr = psnr(sr, hr).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
                     ls.append(sr_l)
@@ -165,7 +173,10 @@ if __name__ == '__main__':
                 l = sum(ls)
                 if mode == 'train':
                     l.backward()
-                    optimizer.step()
+                    if up_sampler is not None:
+                        sr_optimizer.step()
+                    if down_sampler is not None:
+                        ds_optimizer.step()
 
                 epoch_ls.append(l)
                 ep_l = sum(epoch_ls) / (bid + 1)
@@ -181,7 +192,10 @@ if __name__ == '__main__':
                     print(title, end='\r')
 
             if mode == 'train':
-                scheduler.step()
+                if up_sampler is not None:
+                    sr_scheduler.step()
+                if down_sampler is not None:
+                    ds_scheduler.step()
                 f.write(report + '\n')
                 f.flush()
                 if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:

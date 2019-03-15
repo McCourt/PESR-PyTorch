@@ -67,7 +67,7 @@ def load_model(model_name):
     elif model_name.lower() == 'sesr':
         from model.upscaler.SESR import SESR
         model = SESR()
-    elif model_name.lower() == 'edsr':
+    elif model_name.lower() == 'deepsr':
         from model.upscaler.DeepSR import DeepSR
         model = DeepSR()
     elif model_name.lower() == 'edsr_pyr':
