@@ -17,7 +17,7 @@ class Timer(object):
         return since(self.begin)
 
 
-def psnr(mse_loss, r=255):
+def mse_psnr(mse_loss, r=255):
     return 10 * torch.log10(r ** 2 / mse_loss)
 
 

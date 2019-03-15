@@ -63,6 +63,6 @@ if __name__ == '__main__':
             output = img_tensor.detach().cpu().numpy().astype(np.uint8)
             output = output.reshape(output.shape[1:])
             imwrite(os.path.join(OUT_DIR, model_name, IMG_NAME), np.moveaxis(output, 0, -1), format='png', compress_level=0)
-            print('Image {} | PSNR {:.6f}'.format(IMG_NAME, psnr(nn.MSELoss()(img_tensor, hr_tensor))))
+            print('Image {} | PSNR {:.6f}'.format(IMG_NAME, mse_psnr(nn.MSELoss()(img_tensor, hr_tensor))))
         except:
             continue

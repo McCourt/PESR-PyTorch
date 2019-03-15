@@ -115,8 +115,8 @@ if __name__ == '__main__':
                     optimizer.step()
                     epoch_loss += l
 
-                    bpsnr = psnr(l)
-                    epsnr = psnr(epoch_loss / (1 + bid))
+                    bpsnr = mse_psnr(l)
+                    epsnr = mse_psnr(epoch_loss / (1 + bid))
                     r = report(epoch, bid, l, epoch_loss, bpsnr, epsnr, timer.report())
                     if bid % PRINT_EVERY == 0:
                         print(r)

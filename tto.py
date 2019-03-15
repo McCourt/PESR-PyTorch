@@ -9,7 +9,7 @@ import os, sys, getopt
 from model.discriminator.Discriminator_VGG import Discriminator_VGG_128
 from model.downscaler.bicubic import BicubicDownSample
 # from downscaler.conv import ConvolutionDownscale
-from src.helper import psnr, load_parameters, ChannelGradientShuffle
+from src.helper import mse_psnr, load_parameters, ChannelGradientShuffle
 from src.dataset import SRTTODataset
 from loss.shiftloss import ShiftLoss
 from loss.discloss import GanLoss
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                 vs_l = gan_loss(sr_tensor)
                 sh_l = shift_loss(sr_tensor, lr_tensor)
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
-                ds_p = psnr(ds_l)
+                ds_p = mse_psnr(ds_l)
 
                 l = ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l
                 l.backward()
