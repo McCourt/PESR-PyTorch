@@ -31,12 +31,12 @@ class SRTrainDataset(Dataset):
         :param flip_rate: probability to flip images
         """
         self.hr_formatter = lambda x: x if hr_formatter is None else hr_formatter
-        self.lr_formatter = lambda x: x if lr_formatter is None else lr_formatter
+        self.lr_formatter = lambda x: x.replace('x4', '') if lr_formatter is None else lr_formatter
 
-        hr_names = sorted([self.hr_formatter(i) for i in os.listdir(hr_dir) if img_format in i])
-        lr_names = sorted([self.lr_formatter(i) for i in os.listdir(lr_dir) if img_format in i])
+        hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
+        lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
         assert len(hr_names) == len(lr_names)
-        assert all(i == j for i, j in zip(hr_names, lr_names))
+        assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
         self.img_names = hr_names
 
         self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]

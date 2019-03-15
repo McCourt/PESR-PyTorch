@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from src.helper import mse_psnr
 
 
 class PSNR(nn.Module):
@@ -9,5 +10,8 @@ class PSNR(nn.Module):
         self.mse = nn.MSELoss()
         self.require_grad = False
 
-    def forward(self, hr, sr):
-        return 10 * torch.log10(self.r ** 2 / (self.mse(hr, sr)))
+    def forward(self, hr, sr, round_clip=True):
+        if round_clip:
+            hr = torch.clamp(torch.round(hr), 0., 255.)
+            sr = torch.clamp(torch.round(sr), 0., 255.)
+        return mse_psnr(self.mse(hr, sr))

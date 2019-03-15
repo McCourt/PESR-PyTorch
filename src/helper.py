@@ -17,7 +17,7 @@ class Timer(object):
         return since(self.begin)
 
 
-def psnr(mse_loss, r=255):
+def mse_psnr(mse_loss, r=255):
     return 10 * torch.log10(r ** 2 / mse_loss)
 
 
@@ -67,9 +67,9 @@ def load_model(model_name):
     elif model_name.lower() == 'sesr':
         from model.upscaler.SESR import SESR
         model = SESR()
-    elif model_name.lower() == 'edsr':
-        from model.upscaler.EDSR import EDSR
-        model = EDSR()
+    elif model_name.lower() == 'deepsr':
+        from model.upscaler.DeepSR import DeepSR
+        model = DeepSR()
     elif model_name.lower() == 'edsr_pyr':
         from model.upscaler.EDSR_Pyramid import EDSRPyramid
         model = EDSRPyramid()

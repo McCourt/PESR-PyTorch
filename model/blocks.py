@@ -84,15 +84,16 @@ class CascadingBlock(nn.Module):
         self.b2 = basic_block(out_channels, out_channels)
         self.b3 = basic_block(out_channels, out_channels)
 
-        self.c1 = basic_block(out_channels * 2, out_channels, kernel_size=1)
-        self.c2 = basic_block(out_channels * 3, out_channels, kernel_size=1)
-        self.c3 = basic_block(out_channels * 4, out_channels, kernel_size=1)
+        self.c1 = ConvolutionBlock(out_channels * 2, out_channels, kernel_size=1, padding=0)
+        self.c2 = ConvolutionBlock(out_channels * 3, out_channels, kernel_size=1, padding=0)
+        self.c3 = ConvolutionBlock(out_channels * 4, out_channels, kernel_size=1, padding=0)
 
     def forward(self, x):
         x = torch.cat([x, self.b1(x)], dim=1)
         x = torch.cat([x, self.b2(self.c1(x))], dim=1)
         x = torch.cat([x, self.b3(self.c2(x))], dim=1)
-        return self.c3(x)
+        x = self.c3(x)
+        return x
 
 
 class Flatten(nn.Module):
@@ -102,9 +103,9 @@ class Flatten(nn.Module):
 
 class ChannelPool(nn.Module):
     def forward(self, x):
-        return torch.concat([torch.max(x, dim=1, keepdim=True),
-                             torch.mean(x, dim=1, keepdim=True),
-                             torch.min(x, dim=1, keepdim=True)], dim=1)
+        return torch.cat([torch.max(x, dim=1, keepdim=True)[0],
+                          torch.mean(x, dim=1, keepdim=True),
+                          torch.min(x, dim=1, keepdim=True)[0]], dim=1)
 
 
 class ChannelAttentionBlock(nn.Module):
@@ -153,13 +154,13 @@ class PixelShuffleUpscale(nn.Module):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
-            model_body.append(ConvolutionBlock(channels, channels * 2))
+            model_body.append(ConvolutionBlock(channels, channels * 4))
             model_body.append(nn.PixelShuffle(2))
             if activation is not None:
                 model_body.append(activation(True))
             if batch_norm is not None:
                 model_body.append(batch_norm(channels))
-        self.model = nn.Sequential(model_body)
+        self.model = nn.Sequential(*tuple(model_body))
 
     def forward(self, x):
         return self.model(x)

@@ -9,7 +9,7 @@ import os, sys, getopt
 from model.discriminator.Discriminator_VGG import Discriminator_VGG_128
 from model.downscaler.bicubic import BicubicDownSample
 # from downscaler.conv import ConvolutionDownscale
-from src.helper import psnr, load_parameters, ChannelGradientShuffle
+from src.helper import mse_psnr, load_parameters, ChannelGradientShuffle
 from src.dataset import SRTTODataset
 from loss.shiftloss import ShiftLoss
 from loss.discloss import GanLoss
@@ -41,13 +41,13 @@ if __name__ == '__main__':
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         common, tto_params = params['common'], params['tto']
-        for i in tto_params:
+        for i in sorted(tto_params):
             print('{:<15s} -> {}'.format(str(i), tto_params[i]))
         device_name = tto_params['device_id']
         num_epoch = tto_params['num_epoch']
-        beta = tto_params['beta']
-        beta_1 = tto_params['beta_1']
-        beta_2 = tto_params['beta_2']
+        beta_reg = tto_params['beta_reg']
+        beta_disc = tto_params['beta_disc']
+        beta_shift = tto_params['beta_shift']
         learning_rate = tto_params['learning_rate']
         save = tto_params['save']
         rgb_shuffle = tto_params['rgb_shuffle']
@@ -92,18 +92,20 @@ if __name__ == '__main__':
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
     hr_psnr = PSNR()
+    if save:
+        ds = BicubicDownSample()
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
-        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
-        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss',
-                                       'DIS Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
+        title_formatter = '{:^5s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s} | {:^10s}'
+        title = title_formatter.format('Epoch', 'IMG Name', 'DS Loss', 'REG Loss', 'DIS Loss',
+                                       'SHI Loss', 'LR PSNR', 'SR PSNR', 'Runtime')
         splitter = ''.join(['-' for i in range(len(title))])
         print(splitter)
         print(title)
         print(splitter)
         f.write(title + '\n')
-        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
+        report_formatter = '{:^5d} | {:^10s} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} | {:^10.4f} '
 
         for img_dic in dataset:
             img_name = img_dic['name']
@@ -129,7 +131,7 @@ if __name__ == '__main__':
                 in_tensor = sr_tensor
 
             optimizer = torch.optim.Adam([sr_tensor], lr=learning_rate)
-            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=tto_params['gamma'])
 
             psnrs = []
             channel = [0, 1, 2]
@@ -143,14 +145,14 @@ if __name__ == '__main__':
                 vs_l = gan_loss(sr_tensor)
                 sh_l = shift_loss(sr_tensor, lr_tensor)
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
-                ds_p = psnr(ds_l)
+                ds_p = mse_psnr(ds_l)
 
-                l = ds_l + beta * reg_l + beta_1 * vs_l #+ beta_2 * sh_l
+                l = ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()
                 diff = time() - begin_time
-                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, ds_p, hr_p, diff)
+                report = report_formatter.format(epoch, img_name, ds_l, reg_l, vs_l, sh_l, ds_p, hr_p, diff)
                 if epoch % print_every == 0 or epoch == num_epoch - 1:
                     print(report)
                 f.write(report + '\n')
@@ -158,5 +160,9 @@ if __name__ == '__main__':
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
+                sr_img = np.squeeze(np.moveaxis(sr_img, 1, -1), axis=0).astype(np.uint8)
                 imwrite(os.path.join(osr_dir, img_name), sr_img, format='png', compress_level=0)
+                dsr_img = ds(sr_tensor, clip_round=True).detach().cpu().numpy().astype(np.uint8)
+                dsr_img = np.squeeze(np.moveaxis(dsr_img, 1, -1), axis=0).astype(np.uint8)
+                imwrite(os.path.join(dsr_dir, img_name), dsr_img, format='png', compress_level=0)
+
