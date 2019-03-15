@@ -92,6 +92,8 @@ if __name__ == '__main__':
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
     hr_psnr = PSNR()
+    if save:
+        ds = BicubicDownSample()
 
     print('Begin TTO on device {}'.format(device))
     with open(os.path.join(log_dir), 'w') as f:
@@ -158,5 +160,9 @@ if __name__ == '__main__':
 
             if save:
                 sr_img = torch.clamp(torch.round(sr_tensor), 0., 255.).detach().cpu().numpy().astype(np.uint8)
-                sr_img = np.moveaxis(sr_img, 1, -1).reshape((h, w, c)).astype(np.uint8)
+                sr_img = np.squeeze(np.moveaxis(sr_img, 1, -1), axis=0).astype(np.uint8)
                 imwrite(os.path.join(osr_dir, img_name), sr_img, format='png', compress_level=0)
+                dsr_img = ds(sr_tensor, clip_round=True).detach().cpu().numpy().astype(np.uint8)
+                dsr_img = np.squeeze(np.moveaxis(dsr_img, 1, -1), axis=0).astype(np.uint8)
+                imwrite(os.path.join(dsr_dir, img_name), dsr_img, format='png', compress_level=0)
+
