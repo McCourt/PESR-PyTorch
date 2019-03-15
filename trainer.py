@@ -151,8 +151,8 @@ if __name__ == '__main__':
 
                 if up_sampler is not None:
                     sr = sr_model(lr)
-                    dsr = ds_model(sr)
                     if down_sampler is not None:
+                        dsr = ds_model(sr)
                         sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
                     else:
                         sr_l = sr_loss(sr, hr)
@@ -161,9 +161,9 @@ if __name__ == '__main__':
                     ls.append(sr_l)
 
                 if down_sampler is not None:
-                    dsr = ds_model(hr)
-                    ds_l = ds_loss(dsr, lr)
-                    ds_psnr = psnr(dsr, lr).detach().cpu().item()
+                    dhr = ds_model(hr)
+                    ds_l = ds_loss(dhr, lr)
+                    ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
                     ls.append(ds_l)
 
