@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
-    scale, begin_epoch = common_params['scale'], 0
+    scale, begin_epoch, psnr = common_params['scale'], 0, PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
     sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
 
-    # Define downscale model and data parallel
+    # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
         ds_model = load_model(down_sampler)
         ds_model = nn.DataParallel(ds_model, device_ids=common_params['device_ids']).cuda()
@@ -91,9 +91,6 @@ if __name__ == '__main__':
 
         ds_model.require_grad = False if mode == 'test' else True
         ds_loss = nn.L1Loss().to(device)
-
-    # Define loss functions
-    psnr = PSNR()
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
