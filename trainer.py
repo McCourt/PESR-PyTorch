@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         sr_model.require_grad = False if mode == 'test' else True
-        sr_loss = nn.L1Loss().to(device)
+        sr_loss = nn.MSELoss().to(device)
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         ds_model.require_grad = False if mode == 'test' else True
-        ds_loss = nn.L1Loss().to(device)
+        ds_loss = nn.MSELoss().to(device)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
