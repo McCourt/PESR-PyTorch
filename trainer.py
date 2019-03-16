@@ -151,50 +151,52 @@ if __name__ == '__main__':
 
                 if up_sampler is not None:
                     sr = sr_model(lr)
-                    if down_sampler is not None:
-                        dsr = ds_model(sr)
-                        sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
-                    else:
-                        sr_l = sr_loss(sr, hr)
+                    if mode == 'train':
+                        if down_sampler is not None:
+                            dsr = ds_model(sr)
+                            sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
+                        else:
+                            sr_l = sr_loss(sr, hr)
+                        ls.append(sr_l)
                     sr_psnr = psnr(sr, hr).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
-                    ls.append(sr_l)
 
                 if down_sampler is not None:
                     dhr = ds_model(hr)
-                    ds_l = ds_loss(dhr, lr)
+                    if mode == 'train':
+                        ds_l = ds_loss(dhr, lr)
+                        ls.append(ds_l)
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
-                    ls.append(ds_l)
 
-                l = sum(ls)
                 if mode == 'train':
+                    l = sum(ls)
                     l.backward()
                     if up_sampler is not None:
                         sr_optimizer.step()
                     if down_sampler is not None:
                         ds_optimizer.step()
+                    epoch_ls.append(l)
 
-                epoch_ls.append(l)
                 ep_l = sum(epoch_ls) / (bid + 1)
                 ep_sr = sum(epoch_sr) / (bid + 1)
                 ep_lr = sum(epoch_lr) / (bid + 1)
                 ep_df = sum(epoch_diff) / (bid + 1)
                 timer = since(begin)
 
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr,
-                                                 ep_lr, ep_df, timer)
+                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr, ep_lr, ep_df, timer)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
+
+            f.write(report + '\n')
+            f.flush()
 
             if mode == 'train':
                 if up_sampler is not None:
                     sr_scheduler.step()
                 if down_sampler is not None:
                     ds_scheduler.step()
-                f.write(report + '\n')
-                f.flush()
                 if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
                     if up_sampler is not None:
                         state_dict = {'model': sr_model.state_dict()}
@@ -202,4 +204,6 @@ if __name__ == '__main__':
                     if down_sampler is not None:
                         state_dict = {'model': ds_model.state_dict()}
                         save_checkpoint(state_dict, ds_ckpt)
+            elif mode == 'test':
+                pass
             print(splitter)

@@ -7,6 +7,7 @@ path1='/usr/xtmp/superresoluter/superresolution'
 python3 -W ignore /usr/xtmp/superresoluter/superresolution/tester_withhermite.py \
   --model-name="${model}" \
   --method-name="${method}" \
+  --dataset-name="${dataset}" \
   --image-list="${path1}/imgs/stage_one_image/${model}/${dataset}/x${scale}/" \
   --lr-dir="${path1}/imgs/source_image/${dataset}/LR_PIL/x${scale}/" \
   --hr-dir="${path1}/imgs/source_image/${dataset}/HR/" \
