@@ -13,7 +13,7 @@ class PSNR(nn.Module):
     def forward(self, hr, sr, round_clip=True):
         if round_clip:
             hr = torch.clamp(torch.round(hr), 0., 255.)
-            hr = hr[:, 0, :, :] * 65.481 + hr[:, 1, :, :] * 128.553 + hr[:, 2, :, :] * 24.966 + 16
+            hr = torch.round(hr[:, 0, :, :] * 65.481 + hr[:, 1, :, :] * 128.553 + hr[:, 2, :, :] * 24.966 + 16)
             sr = torch.clamp(torch.round(sr), 0., 255.)
-            sr = sr[:, 0, :, :] * 65.481 + sr[:, 1, :, :] * 128.553 + sr[:, 2, :, :] * 24.966 + 16
+            sr = torch.round(sr[:, 0, :, :] * 65.481 + sr[:, 1, :, :] * 128.553 + sr[:, 2, :, :] * 24.966 + 16)
         return mse_psnr(self.mse(hr, sr))
