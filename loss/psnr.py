@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 from src.helper import mse_psnr
-from skimage.color
 
 
 class PSNR(nn.Module):
