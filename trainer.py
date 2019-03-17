@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         ds_model.require_grad = False if mode == 'test' else True
-        ds_loss = nn.L1Loss().to(device)
+        ds_loss = nn.MSELoss().to(device)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
@@ -126,8 +126,7 @@ if __name__ == '__main__':
     num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
     print('Using device {}'.format(device))
     title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} ' \
-                       '| {:^10.2f} '
+    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^10.4f} '
     title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
                                    'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])

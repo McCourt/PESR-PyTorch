@@ -26,19 +26,19 @@ for files in HR:
     hr = np.array(hr) / 255
     lr = im.imresize(hr, output_shape=(hr.shape[0] // 4, hr.shape[1] // 4))
 
-    lrshift1 = shift(hr, 1, 0)
-    lrshift1 = im.imresize(lrshift1, output_shape=(lrshift1.shape[0] // 4, lrshift1.shape[1] // 4))
-    lrshift1 = crop(lrshift1)
+    lr_shift1 = shift(hr, 1, 0)
+    lr_shift1 = im.imresize(lr_shift1, output_shape=(lr_shift1.shape[0] // 4, lr_shift1.shape[1] // 4))
+    lr_shift1 = crop(lr_shift1)
 
-    lrshift2 = shift(hr, 2, 0)
-    lrshift2 = im.imresize(lrshift2, output_shape=(lrshift2.shape[0] // 4, lrshift2.shape[1] // 4))
-    lrshift2 = crop(lrshift2)
+    lr_shift2 = shift(hr, 2, 0)
+    lr_shift2 = im.imresize(lr_shift2, output_shape=(lr_shift2.shape[0] // 4, lr_shift2.shape[1] // 4))
+    lr_shift2 = crop(lr_shift2)
 
     kernelRange = range(-SIZE, SIZE + 1)
     A = np.asarray([crop(shift(lr, i, 0)).flatten() for i in kernelRange])
     X += [A]
-    Y1 += [lrshift1.flatten()]
-    Y2 += [lrshift2.flatten()]
+    Y1 += [lr_shift1.flatten()]
+    Y2 += [lr_shift2.flatten()]
 
 X = np.concatenate(X, 1)
 X = np.transpose(X)
@@ -54,10 +54,10 @@ kernels = [kernel0, kernel1, kernel2]
 dictionary = {}
 for i in range(0, 3):
     for j in range(0, 3):
-        conv_kernel = torch.zeros(3, 3, 2 * SIZE + 1, 2 * SIZE + 1)
+        kernel = torch.zeros(3, 3, 2 * SIZE + 1, 2 * SIZE + 1)
         for k in range(3):
-            conv_kernel[k, k, :, :] = torch.DoubleTensor(np.outer(kernels[i], kernels[j]))
-        dictionary[(i, j)] = conv_kernel
+            kernel[k, k, :, :] = torch.DoubleTensor(np.outer(kernels[i], kernels[j]))
+        dictionary[(i, j)] = kernel
         if i != 0:
             dictionary[(-i, j)] = torch.flip(dictionary[(i, j)], (2,))
         if j != 0:
