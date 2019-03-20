@@ -135,7 +135,7 @@ if __name__ == '__main__':
     cnt = 0
     print(title)
     print(splitter)
-    with open(log_dir, 'w') as f:
+    with open(log_dir, 'a') as f:
         for epoch in range(begin_epoch, num_epoch):
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
