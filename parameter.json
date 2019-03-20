@@ -44,6 +44,7 @@
     "beta_reg": 0.1,
     "beta_disc": 0.0,
     "beta_shift": 0.0,
+    "beta_tds": 0.0,
     "num_epoch": 100,
     "save": false,
     "rgb_shuffle": false,
