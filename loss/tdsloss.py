@@ -7,7 +7,7 @@ class TrainedDownScaleLoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.down_sampler = DownSampler()
-        self.down_sampler.load_state_dict(torch.load('./checkpoint/downsamper.pth'))
+        self.down_sampler.load_state_dict(torch.load('/usr/project/xtmp/superresoluter/superresolution/checkpoints/downsampler.pth'))
         self.down_sampler.require_grad = False
         self.require_grad = False
         self.mse = nn.MSELoss()

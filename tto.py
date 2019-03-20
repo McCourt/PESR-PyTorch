@@ -50,6 +50,7 @@ if __name__ == '__main__':
         beta_disc = tto_params['beta_disc']
         beta_shift = tto_params['beta_shift']
         beta_tds = tto_params['beta_tds']
+        beta_bds = tto_params['beta_bds']
         learning_rate = tto_params['learning_rate']
         save = tto_params['save']
         rgb_shuffle = tto_params['rgb_shuffle']
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
-    tds_loss = TrainedDownScaleLoss.to(device)
+    tds_loss = TrainedDownScaleLoss().to(device)
     hr_psnr = PSNR()
     if save:
         ds = BicubicDownSample()
@@ -151,7 +152,7 @@ if __name__ == '__main__':
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
                 ds_p = mse_psnr(ds_l)
 
-                l = ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l + beta_tds * tds_l
+                l = beta_bds * ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l + beta_tds * tds_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()

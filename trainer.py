@@ -157,7 +157,7 @@ if __name__ == '__main__':
                             dsr = ds_model(sr)
                             sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
                         else:
-                            sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * bds(sr, lr)
+                            sr_l = sr_loss(sr, hr)
                         ls.append(sr_l)
                     sr_psnr = psnr(sr, hr).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
@@ -169,6 +169,9 @@ if __name__ == '__main__':
                         ls.append(ds_l)
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
+
+                dsl = bds(sr, lr)
+                ls.append(pipeline_params['ds_beta'] * dsl)
 
                 if mode == 'train':
                     l = sum(ls)
