@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from src.helper import *
 from src.dataset import SRTrainDataset, SRTestDataset
 from loss.psnr import PSNR
+from loss.dsloss import DownScaleLoss
 import os, sys
 import getopt
 from time import time
@@ -72,6 +73,7 @@ if __name__ == '__main__':
 
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
+        bds = DownScaleLoss()
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
@@ -155,7 +157,7 @@ if __name__ == '__main__':
                             dsr = ds_model(sr)
                             sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
                         else:
-                            sr_l = sr_loss(sr, hr)
+                            sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * bds(sr, lr)
                         ls.append(sr_l)
                     sr_psnr = psnr(sr, hr).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
