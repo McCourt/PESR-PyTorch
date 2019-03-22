@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from src.helper import *
 from src.dataset import SRTrainDataset, SRTestDataset
 from loss.psnr import PSNR
+from loss.dsloss import DownScaleLoss
 import os, sys
 import getopt
 from time import time
@@ -72,6 +73,7 @@ if __name__ == '__main__':
 
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
+        bds = DownScaleLoss()
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
@@ -135,7 +137,7 @@ if __name__ == '__main__':
     cnt = 0
     print(title)
     print(splitter)
-    with open(log_dir, 'w') as f:
+    with open(log_dir, 'a') as f:
         for epoch in range(begin_epoch, num_epoch):
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
@@ -168,6 +170,9 @@ if __name__ == '__main__':
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
 
+                dsl = bds(sr, lr)
+                ls.append(pipeline_params['ds_beta'] * dsl)
+
                 if mode == 'train':
                     l = sum(ls)
                     l.backward()
@@ -183,7 +188,7 @@ if __name__ == '__main__':
                 ep_df = sum(epoch_diff) / (bid + 1)
                 timer = since(begin)
 
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr, ep_lr, ep_df, timer)
+                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, timer)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')

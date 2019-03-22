@@ -15,6 +15,7 @@ from loss.shiftloss import ShiftLoss
 from loss.discloss import GanLoss
 from loss.regloss import RegularizationLoss
 from loss.dsloss import DownScaleLoss
+from loss.tdsloss import TrainedDownScaleLoss
 from loss.psnr import PSNR
 
 if __name__ == '__main__':
@@ -48,6 +49,8 @@ if __name__ == '__main__':
         beta_reg = tto_params['beta_reg']
         beta_disc = tto_params['beta_disc']
         beta_shift = tto_params['beta_shift']
+        beta_tds = tto_params['beta_tds']
+        beta_bds = tto_params['beta_bds']
         learning_rate = tto_params['learning_rate']
         save = tto_params['save']
         rgb_shuffle = tto_params['rgb_shuffle']
@@ -91,6 +94,7 @@ if __name__ == '__main__':
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
+    tds_loss = TrainedDownScaleLoss().to(device)
     hr_psnr = PSNR()
     if save:
         ds = BicubicDownSample()
@@ -144,10 +148,11 @@ if __name__ == '__main__':
                 reg_l = reg_loss(sr=org_tensor, sr_tto=sr_tensor)
                 vs_l = gan_loss(sr_tensor)
                 sh_l = shift_loss(sr_tensor, lr_tensor)
+                tds_l = tds_loss(sr_tensor, lr_tensor)
                 hr_p = hr_psnr(sr_tensor, hr_tensor)
                 ds_p = mse_psnr(ds_l)
 
-                l = ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l
+                l = beta_bds * ds_l + beta_reg * reg_l + beta_disc * vs_l + beta_shift * sh_l + beta_tds * tds_l
                 l.backward()
                 optimizer.step()
                 scheduler.step()

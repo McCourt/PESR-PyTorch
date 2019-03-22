@@ -6,7 +6,8 @@ class DownScaleLoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.down_sampler = BicubicDownSample()
-        self.mse = nn.MSELoss()
+        self.mse = nn.L1Loss()
+        self.requires_grad = False
 
     def forward(self, sr, lr):
         return self.mse(self.down_sampler(sr), lr)
