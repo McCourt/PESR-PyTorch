@@ -71,6 +71,7 @@ if __name__ == '__main__':
         except Exception as e:
                 raise ValueError('Checkpoint not found.')
 
+        print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters())))
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
         bds = DownScaleLoss()
@@ -91,6 +92,7 @@ if __name__ == '__main__':
         except Exception as e:
                 raise ValueError('Checkpoint not found.')
 
+        print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
         ds_model.require_grad = False if mode == 'test' else True
         ds_loss = nn.MSELoss().to(device)
 
