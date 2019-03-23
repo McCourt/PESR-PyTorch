@@ -188,7 +188,7 @@ if __name__ == '__main__':
                 ep_df = sum(epoch_diff) / (bid + 1)
                 timer = since(begin)
 
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, ds_psnr, ep_lr, ep_df, timer)
+                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, timer)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
