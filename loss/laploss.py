@@ -8,6 +8,7 @@ class LapLoss(nn.Module):
     def __init__(self):
         super().__init__()
         self.lap_kernel = torch.Tensor([[-1., -1., -1.], [-1., 8., -1.], [-1., -1., -1.]]).unsqueeze(0)
+        # self.lap_kernel = torch.Tensor([[0., -1., 0.], [-1., 4., -1.], [0., -1., 0.]]).unsqueeze(0)
         self.loss = nn.L1Loss()
         self.requires_grad = False
 
