@@ -11,7 +11,7 @@ from model.downscaler.bicubic import BicubicDownSample
 # from downscaler.conv import ConvolutionDownscale
 from src.helper import mse_psnr, load_parameters, ChannelGradientShuffle
 from src.dataset import SRTTODataset
-from loss.shiftloss import ShiftLoss
+from loss.shiftloss import ShiftLoss, TrainedShiftLoss
 from loss.discloss import GanLoss
 from loss.regloss import RegularizationLoss
 from loss.dsloss import DownScaleLoss
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     device = torch.device(device_name if torch.cuda.is_available else 'cpu')
     dataset = SRTTODataset(hr_dir, lr_dir, sr_dir)
 
-    shift_loss = ShiftLoss().to(device)
+    shift_loss = TrainedShiftLoss().to(device)
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)
