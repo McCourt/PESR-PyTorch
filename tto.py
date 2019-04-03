@@ -90,7 +90,7 @@ if __name__ == '__main__':
     device = torch.device(device_name if torch.cuda.is_available else 'cpu')
     dataset = SRTTODataset(hr_dir, lr_dir, sr_dir)
 
-    shift_loss = TrainedShiftLoss().to(device)
+    shift_loss = ShiftLoss().to(device)
     gan_loss = GanLoss().to(device)
     ds_loss = DownScaleLoss().to(device)
     reg_loss = RegularizationLoss().to(device)

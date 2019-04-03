@@ -48,6 +48,7 @@ if __name__ == '__main__':
 
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
+    trim = pipeline_params['trim']
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
     scale, begin_epoch, psnr = common_params['scale'], 0, PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters())))
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
-        bds = DownScaleLoss()
+        bds = DownScaleLoss(clip_round=False)
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
@@ -157,11 +158,16 @@ if __name__ == '__main__':
                     if mode == 'train':
                         if down_sampler is not None:
                             dsr = ds_model(sr)
-                            sr_l = sr_loss(sr, hr) + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
+                            sr_l = sr_loss(sr[:, :, trim:-trim, trim:-trim], hr[:, :, trim:-trim,
+trim:-trim])
+                            sr_l = sr_l + pipeline_params['ds_beta'] * ds_loss(dsr[:, :, trim:-trim,
+trim:-trim],
+lr[:, :, trim:-trim, trim:-trim])
                         else:
-                            sr_l = sr_loss(sr, hr)
+                            sr_l = sr_loss(sr[:, :, trim:-trim, trim:-trim], hr[:, :, trim:-trim,
+trim:-trim])
                         ls.append(sr_l)
-                    sr_psnr = psnr(sr, hr).detach().cpu().item()
+                    sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
 
                 if down_sampler is not None:
