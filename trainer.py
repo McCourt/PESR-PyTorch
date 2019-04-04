@@ -41,7 +41,7 @@ if __name__ == '__main__':
         raise ValueError('Parameter not found.')
 
     # Prepare common parameters
-    device = torch.device('cuda:{}'.format(common_params['device_ids'][0]) if torch.cuda.is_available else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
     up_sampler, down_sampler = common_params['up_sampler'], common_params['down_sampler']
     if up_sampler is None and down_sampler is None:
         raise Exception('You must define either an upscale model or a downscale model for super resolution')
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     if up_sampler is not None:
         sr_model = load_model(up_sampler)
-        sr_model = nn.DataParallel(sr_model, device_ids=common_params['device_ids']).cuda()
+        sr_model = nn.DataParallel(sr_model).cuda()
 
         try:
             sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
@@ -74,13 +74,13 @@ if __name__ == '__main__':
 
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
         sr_model.requires_grad = False if mode == 'test' else True
-        sr_loss = nn.L1Loss().to(device)
+        sr_loss = nn.L1Loss().cuda()
         bds = DownScaleLoss(clip_round=False)
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
         ds_model = load_model(down_sampler)
-        ds_model = nn.DataParallel(ds_model, device_ids=common_params['device_ids']).cuda()
+        ds_model = nn.DataParallel(ds_model).cuda()
 
         try:
             ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
         ds_model.requires_grad = False if mode == 'test' else True
-        ds_loss = nn.MSELoss().to(device)
+        ds_loss = nn.MSELoss().cuda()
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
             for bid, batch in enumerate(data_loader):
-                hr, lr = batch['hr'].to(device), batch['lr'].to(device)
+                hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 ls = list()
                 if mode == 'train':
                     if up_sampler is not None:
