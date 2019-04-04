@@ -8,7 +8,7 @@ import getopt
 from time import time
 
 if __name__ == '__main__':
-    print('{} GPUS Available'.format(torch.cuda.device_count()))
+    print('{} GPUs Available'.format(torch.cuda.device_count()))
 
     # Load system arguments
     args = sys.argv[1:]
@@ -202,7 +202,6 @@ if __name__ == '__main__':
                     del lr
                     del sr
                     torch.cuda.empty_cache()
-
 
             if mode == 'train':
                 f.write(report + '\n')
