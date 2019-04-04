@@ -33,7 +33,7 @@ class DeepSR(nn.Module):
     def __init__(self, num_groups=None, num_channel=128):
         super().__init__()
         if num_groups is None:
-            num_groups = [7, 3]
+            num_groups = [6, 3]
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
             ConvolutionBlock(in_channels=3, out_channels=num_channel)
