@@ -55,6 +55,7 @@ if __name__ == '__main__':
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
     sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
     log_dir = os.path.join(root_dir, common_params['log_dir'].format(model_name))
+    num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
 
     # Define upscale model and data parallel
     if up_sampler is not None:
@@ -75,7 +76,6 @@ if __name__ == '__main__':
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
         sr_model.requires_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().cuda()
-        bds = DownScaleLoss(clip_round=False)
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
@@ -96,6 +96,8 @@ if __name__ == '__main__':
         print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
         ds_model.requires_grad = False if mode == 'test' else True
         ds_loss = nn.MSELoss().cuda()
+    else:
+        bds = DownScaleLoss(clip_round=False)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
@@ -103,10 +105,14 @@ if __name__ == '__main__':
         if up_sampler or down_sampler:
             if up_sampler is not None:
                 sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=pipeline_params['learning_rate'])
-                sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer, gamma=pipeline_params['decay_rate'])
+                sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
+                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      last_epoch=begin_epoch - 1)
             if down_sampler is not None:
                 ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=pipeline_params['learning_rate'])
-                ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer, gamma=pipeline_params['decay_rate'])
+                ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer,
+                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      last_epoch=begin_epoch - 1)
         else:
             raise Exception('No trainable parameters in training mode')
 
@@ -128,12 +134,11 @@ if __name__ == '__main__':
     )
 
     # Training loop and saver as checkpoints
-    num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
     print('Using device {}'.format(device))
     title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
     report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^10.4f} '
-    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR', 'DS_PSNR', 'AVG_DS',
-                                   'AVG_DIFF', 'RunTime')
+    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR',
+                                   'DS_PSNR', 'AVG_DS', 'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
     print(splitter)
     begin = time()
@@ -156,12 +161,7 @@ if __name__ == '__main__':
                 if up_sampler is not None:
                     sr = sr_model(lr)
                     if mode == 'train':
-                        if down_sampler is not None:
-                            dsr = ds_model(sr)
-                            sr_l = sr_loss(sr, hr)
-                            sr_l = sr_l + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
-                        else:
-                            sr_l = sr_loss(sr, hr)
+                        sr_l = sr_loss(sr, hr)
                         ls.append(sr_l)
                     sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
@@ -173,9 +173,12 @@ if __name__ == '__main__':
                         ls.append(pipeline_params['ds_beta'] * ds_l)
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
-
-                dsl = bds(sr, lr).detach().cpu().item()
-                ls.append(pipeline_params['ds_beta'] * dsl)
+                else:
+                    if mode == 'train':
+                        dsl = bds(sr, lr).detach().cpu().item()
+                        ls.append(pipeline_params['ds_beta'] * dsl)
+                    else:
+                        pass
 
                 l = sum(ls)
                 epoch_ls.append(l)
