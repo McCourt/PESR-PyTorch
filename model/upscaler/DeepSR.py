@@ -4,10 +4,10 @@ from model.blocks import ChannelAttentionBlock, MeanShift, CascadingBlock, Convo
 
 
 class DeepSR(nn.Module):
-    def __init__(self, num_blocks=None, num_channel=256, block=CascadingBlock):
+    def __init__(self, num_blocks=None, num_channel=128, block=CascadingBlock):
         super().__init__()
         if num_blocks is None:
-            num_blocks = [15, 5]
+            num_blocks = [30, 15]
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
             ConvolutionBlock(in_channels=3, out_channels=num_channel)
