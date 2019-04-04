@@ -3,8 +3,8 @@
     "up_sampler": "deepsr",
     "down_sampler": null,
     "scale": 4,
-    "device_ids": [0,1,2,3,4,5,6,7],
     "metric": ["PSNR"],
+    "trim": 6,
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",
     "s0_dir": "imgs/source_image/",
     "s1_dir": "imgs/stage_one_image/",
@@ -16,11 +16,10 @@
     "hr_dir": "div2k/HR/DIV2K_train_HR",
     "lr_dir": "div2k/LR/X4",
     "sr_dir": "div2k/",
-    "batch_size": 40,
-    "num_epoch": 300,
+    "batch_size": 32,
+    "num_epoch": 600,
     "window": [48, 48],
-    "learning_rate": 5e-5,
-    "trim": 6,
+    "learning_rate": 1e-4,
     "decay_rate": 0.99654026283,
     "decay_step": null,
     "num_per": 20,
@@ -33,7 +32,14 @@
     "print_every": 1
   },
   "test": {
-    "save": true
+    "hr_dir": "Set5/HR/",
+    "lr_dir": "Set5/LR_matlab/",
+    "sr_dir": "Set5/",
+    "save": true,
+    "map_location": null,
+    "num_worker": 8,
+    "save_every": 1,
+    "print_every": 1
   },
   "tto": {
     "method": "bicubic+reg",

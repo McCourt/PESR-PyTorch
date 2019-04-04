@@ -31,7 +31,7 @@ class BicubicDownSample(nn.Module):
         self.cuda = '.cuda' if cuda else ''
         self.padding = padding
 
-    def forward(self, x, nhwc=False, clip_round=False):
+    def forward(self, x, nhwc=False, clip_round=False, byte_output=False):
         # x = torch.from_numpy(x).type('torch.FloatTensor')
         filter_height = self.factor * 4
         filter_width = self.factor * 4
@@ -52,7 +52,7 @@ class BicubicDownSample(nn.Module):
         if nhwc:
             x = torch.transpose(torch.transpose(x, 2, 3), 1, 2)   # NHWC to NCHW
 
-        # downsampling performed by strided convolution
+        # downscaling performed by 1-d convolution
         x = F.pad(x, (0, 0, pad_top, pad_bottom), self.padding)
         x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
         if clip_round:
@@ -65,7 +65,7 @@ class BicubicDownSample(nn.Module):
 
         if nhwc:
             x = torch.transpose(torch.transpose(x, 1, 3), 1, 2)
-        if clip_round:
+        if byte_output:
             return x.type('torch.ByteTensor'.format(self.cuda))
         else:
             return x
