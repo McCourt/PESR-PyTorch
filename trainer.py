@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     if up_sampler is not None:
         sr_model = load_model(up_sampler)
-        sr_model = nn.DataParallel(sr_model, device_ids=common_params['device_ids']).cuda()
+        sr_model = nn.DataParallel(sr_model).cuda()
 
         try:
             sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
         ds_model = load_model(down_sampler)
-        ds_model = nn.DataParallel(ds_model, device_ids=common_params['device_ids']).cuda()
+        ds_model = nn.DataParallel(ds_model).cuda()
 
         try:
             ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
