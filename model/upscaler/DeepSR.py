@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from model.blocks import MeanShift, CascadingBlock, ConvolutionBlock, PixelShuffleUpscale, TransposeUpscale, SpatialAttentionBlock
+from model.blocks import ChannelAttentionBlock, MeanShift, CascadingBlock, ConvolutionBlock, PixelShuffleUpscale, TransposeUpscale, SpatialAttentionBlock
 
 
 class DeepSR(nn.Module):
@@ -8,19 +8,24 @@ class DeepSR(nn.Module):
         super().__init__()
         if num_blocks is None:
             num_blocks = [10, 5]
-        self.model_0 = nn.Sequential(MeanShift(sign=-1), ConvolutionBlock(in_channels=3, out_channels=num_channel))
+        self.model_0 = nn.Sequential(
+            MeanShift(sign=-1), 
+            ConvolutionBlock(in_channels=3, out_channels=num_channel)
+        )
         self.model_1 = nn.Sequential(
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks[0])]),
-            SpatialAttentionBlock()
+            ChannelAttentionBlock(channel=num_channel)
         )
         self.upscale_1 = PixelShuffleUpscale(channels=num_channel)
-
         self.model_2 = nn.Sequential(
             *tuple([block(in_channels=num_channel) for _ in range(num_blocks[1])]),
-            SpatialAttentionBlock()
+            ChannelAttentionBlock(channel=num_channel)
         )
         self.upscale_2 = PixelShuffleUpscale(channels=num_channel)
-        self.model_3 = nn.Sequential(ConvolutionBlock(in_channels=num_channel, out_channels=3), MeanShift(sign=1))
+        self.model_3 = nn.Sequential(
+            ConvolutionBlock(in_channels=num_channel, out_channels=3), 
+            MeanShift(sign=1)
+        )
 
     def forward(self, x, clip_bound=False):
         x = self.model_0(x)

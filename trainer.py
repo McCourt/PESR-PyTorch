@@ -73,7 +73,7 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
-        sr_model.require_grad = False if mode == 'test' else True
+        sr_model.requires_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
         bds = DownScaleLoss(clip_round=False)
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
-        ds_model.require_grad = False if mode == 'test' else True
+        ds_model.requires_grad = False if mode == 'test' else True
         ds_loss = nn.MSELoss().to(device)
 
     # Define optimizer, learning rate scheduler, data source and data loader
