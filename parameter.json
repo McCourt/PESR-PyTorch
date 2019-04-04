@@ -3,8 +3,8 @@
     "up_sampler": "deepsr",
     "down_sampler": null,
     "scale": 4,
-    "device_ids": [0,1,2,3,4,5,6,7],
     "metric": ["PSNR"],
+    "trim": 6,
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",
     "s0_dir": "imgs/source_image/",
     "s1_dir": "imgs/stage_one_image/",
@@ -20,7 +20,6 @@
     "num_epoch": 600,
     "window": [48, 48],
     "learning_rate": 1e-4,
-    "trim": 6,
     "decay_rate": 0.99654026283,
     "decay_step": null,
     "num_per": 20,
@@ -39,9 +38,8 @@
     "save": true,
     "map_location": null,
     "num_worker": 8,
-    "ds_beta": 0.0,
-    "print_every": 1,
-    "trim": 6
+    "save_every": 1,
+    "print_every": 1
   },
   "tto": {
     "method": "bicubic+reg",

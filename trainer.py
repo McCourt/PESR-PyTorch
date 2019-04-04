@@ -48,9 +48,8 @@ if __name__ == '__main__':
 
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
-    trim = pipeline_params['trim']
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
-    scale, begin_epoch, psnr = common_params['scale'], 0, PSNR()
+    trim, scale, begin_epoch, psnr = common_params['trim'], common_params['scale'], 0, PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
     sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
