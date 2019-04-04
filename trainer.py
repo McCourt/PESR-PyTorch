@@ -96,7 +96,7 @@ if __name__ == '__main__':
         ds_model.requires_grad = False if mode == 'test' else True
         ds_loss = nn.MSELoss().cuda()
     else:
-        bds = DownScaleLoss(clip_round=False)
+        bds = DownScaleLoss(clip_round=True)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
