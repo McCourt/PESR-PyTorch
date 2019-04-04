@@ -52,7 +52,7 @@ class BicubicDownSample(nn.Module):
         if nhwc:
             x = torch.transpose(torch.transpose(x, 2, 3), 1, 2)   # NHWC to NCHW
 
-        # downsampling performed by strided convolution
+        # downscaling performed by 1-d convolution
         x = F.pad(x, (0, 0, pad_top, pad_bottom), self.padding)
         x = F.conv2d(input=x, weight=filters1, stride=(stride, 1), groups=3)
         if clip_round:
