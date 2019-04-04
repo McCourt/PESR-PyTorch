@@ -72,7 +72,7 @@ if __name__ == '__main__':
         except Exception as e:
                 raise ValueError('Checkpoint not found.')
 
-        print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters())))
+        print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
         sr_model.require_grad = False if mode == 'test' else True
         sr_loss = nn.L1Loss().to(device)
         bds = DownScaleLoss(clip_round=False)
@@ -158,14 +158,10 @@ if __name__ == '__main__':
                     if mode == 'train':
                         if down_sampler is not None:
                             dsr = ds_model(sr)
-                            sr_l = sr_loss(sr[:, :, trim:-trim, trim:-trim], hr[:, :, trim:-trim,
-trim:-trim])
-                            sr_l = sr_l + pipeline_params['ds_beta'] * ds_loss(dsr[:, :, trim:-trim,
-trim:-trim],
-lr[:, :, trim:-trim, trim:-trim])
+                            sr_l = sr_loss(sr, hr)
+                            sr_l = sr_l + pipeline_params['ds_beta'] * ds_loss(dsr, lr)
                         else:
-                            sr_l = sr_loss(sr[:, :, trim:-trim, trim:-trim], hr[:, :, trim:-trim,
-trim:-trim])
+                            sr_l = sr_loss(sr, hr)
                         ls.append(sr_l)
                     sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
@@ -174,21 +170,21 @@ trim:-trim])
                     dhr = ds_model(hr)
                     if mode == 'train':
                         ds_l = ds_loss(dhr, lr)
-                        ls.append(ds_l)
+                        ls.append(pipeline_params['ds_beta'] * ds_l)
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
 
-                dsl = bds(sr, lr)
+                dsl = bds(sr, lr).detach().cpu().item()
                 ls.append(pipeline_params['ds_beta'] * dsl)
 
+                l = sum(ls)
+                epoch_ls.append(l)
                 if mode == 'train':
-                    l = sum(ls)
                     l.backward()
                     if up_sampler is not None:
                         sr_optimizer.step()
                     if down_sampler is not None:
                         ds_optimizer.step()
-                    epoch_ls.append(l)
 
                 ep_l = sum(epoch_ls) / (bid + 1)
                 ep_sr = sum(epoch_sr) / (bid + 1)
@@ -201,10 +197,16 @@ trim:-trim])
                     print(report)
                     print(title, end='\r')
 
-            f.write(report + '\n')
-            f.flush()
+                if mode == 'test':
+                    del hr
+                    del lr
+                    del sr
+                    torch.cuda.empty_cache()
+
 
             if mode == 'train':
+                f.write(report + '\n')
+                f.flush()
                 if up_sampler is not None:
                     sr_scheduler.step()
                 if down_sampler is not None:

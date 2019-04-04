@@ -78,8 +78,8 @@ class SRTrainDataset(Dataset):
             self.lrh, self.lrw, _ = self.lr.shape
             self.hrh, self.hrw, _ = self.hr.shape
 
-        lr_h_center = np.random.randint(self.h // 2, self.lrh - self.h // 2)
-        lr_w_center = np.random.randint(self.w // 2, self.lrw - self.w // 2)
+        lr_h_center = np.random.randint(0, self.lrh - self.h) // self.h * self.h + self.h // 2
+        lr_w_center = np.random.randint(0, self.lrw - self.w) // self.w * self.w + self.w // 2
         hr_h_center = (lr_h_center - self.lrh // 2) * self.scale + self.hrh // 2
         hr_w_center = (lr_w_center - self.lrw // 2) * self.scale + self.hrw // 2
         lr_h_from, lr_w_from = lr_h_center - self.h // 2, lr_w_center - self.w // 2
