@@ -59,6 +59,9 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     if up_sampler is not None:
         sr_model = load_model(up_sampler)
+        if mode == 'test':
+            for param in sr_model.parameters():
+                param.requires_grad = False
         sr_model = nn.DataParallel(sr_model).cuda()
 
         try:
@@ -156,7 +159,9 @@ if __name__ == '__main__':
                         sr_optimizer.zero_grad()
                     if down_sampler is not None:
                         ds_optimizer.zero_grad()
-
+                else:
+                    torch.cuda.empty_cache()
+                    
                 if up_sampler is not None:
                     sr = sr_model(lr)
                     if mode == 'train':
@@ -177,7 +182,7 @@ if __name__ == '__main__':
                         dsl = bds(sr, lr).detach().cpu().item()
                         ls.append(pipeline_params['ds_beta'] * dsl)
                     else:
-                        pass
+                        dsl = 0.0
 
                 l = sum(ls)
                 epoch_ls.append(l)
