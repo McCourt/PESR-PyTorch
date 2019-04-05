@@ -59,9 +59,6 @@ if __name__ == '__main__':
     # Define upscale model and data parallel
     if up_sampler is not None:
         sr_model = load_model(up_sampler)
-        if mode == 'test':
-            for param in sr_model.parameters():
-                param.requires_grad = False
         sr_model = nn.DataParallel(sr_model).cuda()
 
         try:
@@ -76,7 +73,8 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
-        sr_model.requires_grad = False if mode == 'test' else True
+        for param in sr_model.parameters():
+            param.requires_grad = False if mode == 'test' else param.requires_grad
         sr_loss = nn.L1Loss().cuda()
 
     # Define downscale model and data parallel and loss functions
@@ -96,7 +94,8 @@ if __name__ == '__main__':
                 raise ValueError('Checkpoint not found.')
 
         print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
-        ds_model.requires_grad = False if mode == 'test' else True
+        for param in ds_model.parameters():
+            param.requires_grad = False if mode == 'test' else param.requires_grad
         ds_loss = nn.MSELoss().cuda()
     else:
         bds = DownScaleLoss(clip_round=True)
