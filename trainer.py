@@ -204,9 +204,6 @@ if __name__ == '__main__':
                     print(title, end='\r')
 
                 if mode == 'test':
-                    del hr
-                    del lr
-                    del sr
                     torch.cuda.empty_cache()
 
             if mode == 'train':
