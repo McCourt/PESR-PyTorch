@@ -177,11 +177,9 @@ if __name__ == '__main__':
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
                 else:
+                    dsl = bds(sr, lr).detach().cpu().item()
                     if mode == 'train':
-                        dsl = bds(sr, lr).detach().cpu().item()
                         ls.append(pipeline_params['ds_beta'] * dsl)
-                    else:
-                        dsl = 0.0
 
                 l = sum(ls)
                 epoch_ls.append(l)
