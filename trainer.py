@@ -48,8 +48,9 @@ if __name__ == '__main__':
 
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
+    begin_epoch = pipeline_params['begin_epoch'] if mode == 'train' else 0
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
-    trim, scale, begin_epoch, psnr = common_params['trim'], common_params['scale'], 0, PSNR()
+    trim, scale, psnr = common_params['trim'], common_params['scale'], PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
     sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
@@ -102,18 +103,17 @@ if __name__ == '__main__':
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
+        lr = pipeline_params['learning_rate'] * pipeline_params['decay_rate'] ** begin_epoch
         params = list()
         if up_sampler or down_sampler:
             if up_sampler is not None:
-                sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=pipeline_params['learning_rate'])
+                sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=lr)
                 sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'],
-                                                                      last_epoch=begin_epoch - 1)
+                                                                      gamma=pipeline_params['decay_rate'])
             if down_sampler is not None:
-                ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=pipeline_params['learning_rate'])
+                ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=lr)
                 ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'],
-                                                                      last_epoch=begin_epoch - 1)
+                                                                      gamma=pipeline_params['decay_rate'])
         else:
             raise Exception('No trainable parameters in training mode')
 
