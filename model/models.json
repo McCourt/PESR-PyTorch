@@ -8,11 +8,11 @@
     "vdsr": "VDSR"
   },
   "downscaler": {
-    "bicubic": ["bicubic","BicubicDownSample"],
-    "encode_decode": ["EDDS", "DeepDownScale"],
-    "trained": ["TDS", "DownSampler"]
+    "bicubic": "BicubicDownSample",
+    "encode_decode": "DeepDownScale",
+    "trained": "DownSampler"
   },
   "discriminator": {
-    "vgg": ["Discriminator_VGG", "Discriminator_VGG"]
+    "vgg": "Discriminator_VGG_128"
   }
 }

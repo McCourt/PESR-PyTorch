@@ -174,11 +174,11 @@ class ResNetBlock(nn.Module):
 
 
 class ResidualDenseBlock_5C(nn.Module):
-    '''
+    """
     Residual Dense Block
     style: 5 convs
     The core module of paper: (Residual Dense Network for Image Super-Resolution, CVPR 18)
-    '''
+    """
 
     def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', \
             norm_type=None, act_type='leakyrelu', mode='CNA'):
