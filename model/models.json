@@ -1,6 +1,6 @@
 {
   "upscaler": {
-    "pyramid_attention": "PASR",
+    "pyramid_attention": ["PASR", "PSAR"],
     "pyramid_edsr": "PEDSR",
     "res2net": "Res2NetSR",
     "srresnet": "SRResNet",
@@ -11,6 +11,6 @@
 
   },
   "discriminator": {
-    "vgg": "Discriminator_VGG.Discriminator_VGG_128"
+    "vgg": "Discriminator_VGG"
   }
 }

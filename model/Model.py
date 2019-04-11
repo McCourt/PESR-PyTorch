@@ -27,8 +27,8 @@ class Model(nn.Module):
             raise ValueError('Wrong mode. Try {}'.format(', '.join(params.keys())))
         elif name not in params[mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
-        path = '.'.join(['model', mode, params[mode][name.lower()]])
-        module = getattr(import_module(path), 'Model')
+        path = '.'.join(['model', mode, params[mode][name.lower()][0]])
+        module = getattr(import_module(path), params[mode][name.lower()][1])
         self.model = module(**kwargs)
         self.model = nn.DataParallel(self.model).cuda()
         report_num_params(self.model)
