@@ -15,7 +15,7 @@ class Model(nn.Module):
         elif name not in params[mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
         path = '.'.join(['model', mode, params[mode][name.lower()]])
-        module = import_module(path)
+        module = getattr(import_module(path), 'Model')
         self.model = module(**kwargs)
 
     def forward(self, x):
