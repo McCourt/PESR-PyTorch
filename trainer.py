@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from src.helper import Timer, load_parameters
 from dataset import SRTrainDataset, SRTestDataset
