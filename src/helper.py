@@ -68,14 +68,17 @@ def load_model(model_name):
         from model.upscaler.SESR import SESR
         model = SESR()
     elif model_name.lower() == 'deepsr':
-        from model.upscaler.DeepSR import DeepSR
-        model = DeepSR()
+        from model.upscaler.PASR import PASR
+        model = PASR()
     elif model_name.lower() == 'edsr_pyr':
-        from model.upscaler.EDSR_Pyramid import EDSRPyramid
+        from model.upscaler.PEDSR import EDSRPyramid
         model = EDSRPyramid()
     elif model_name.lower() == 'deepds':
-        from model.downscaler.DeepDS import DeepDownScale
+        from model.downscaler.vgg_ds import DeepDownScale
         model = DeepDownScale()
+    elif model_name.lower() == 'res2sr':
+        from model.upscaler.Res2NetSR import Res2NetSR
+        model = Res2NetSR()
     return model
 
 

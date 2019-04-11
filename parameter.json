@@ -1,6 +1,6 @@
 {
   "common": {
-    "up_sampler": "deepsr",
+    "up_sampler": "pasr",
     "down_sampler": null,
     "scale": 4,
     "metric": ["PSNR"],

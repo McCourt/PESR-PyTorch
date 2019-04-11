@@ -6,6 +6,7 @@ from loss.dsloss import DownScaleLoss
 import os, sys
 import getopt
 from time import time
+from model import Model
 
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
@@ -59,7 +60,8 @@ if __name__ == '__main__':
 
     # Define upscale model and data parallel
     if up_sampler is not None:
-        sr_model = load_model(up_sampler)
+        # sr_model = load_model(up_sampler)
+        sr_model = Model(name=up_sampler, mode='upscaler')
         sr_model = nn.DataParallel(sr_model).cuda()
 
         try:

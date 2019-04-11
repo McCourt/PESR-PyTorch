@@ -76,6 +76,33 @@ class ResBlock(nn.Module):
         return x + self.model(x).mul(self.res_scale)
 
 
+class Res2Block(nn.Module):
+    def __init__(self, in_channels=64, up_channels=64, out_channels=64, residual_weight=0.1):
+        super().__init__()
+        self.residual_weight = residual_weight
+        self.conv_1x1_in = ConvolutionBlock(in_channels=in_channels, out_channels=up_channels, kernel_size=1, padding=0, activation=None)
+        sub_in, sub_out = in_channels // 4, up_channels // 4
+        self.conv_chunk_1 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
+        self.conv_chunk_2 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
+        self.conv_chunk_3 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
+        self.conv_chunk_4 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
+        self.conv_1x1_out = ConvolutionBlock(in_channels=up_channels+in_channels,
+                                             out_channels=out_channels,
+                                             activation=nn.LeakyReLU)
+
+    def forward(self, x):
+        in_tensor = self.conv_1x1_in(x)
+        chunks = torch.chunk(in_tensor, chunks=4, dim=1)
+        x1 = self.conv_chunk_1(chunks[0])
+        x2 = self.conv_chunk_2(chunks[1] + x1 * self.residual_weight)
+        x3 = self.conv_chunk_3(chunks[2] + x2 * self.residual_weight)
+        x4 = self.conv_chunk_4(chunks[3] + x3 * self.residual_weight)
+        concat = torch.cat([x, x1, x2, x3, x4], dim=1)
+        # Maybe add a decay rate to deal with potential numerical stability
+        out = self.conv_1x1_out(concat)
+        return out
+
+
 class CascadingBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, basic_block=ResBlock):
         super().__init__()
@@ -167,16 +194,22 @@ class PixelShuffleUpscale(nn.Module):
 
 
 class TransposeUpscale(nn.Module):
-    def __init__(self, channels, scale=2, activation=nn.LeakyReLU, batch_norm=None):
+    def __init__(self, channels, scale=2, activation=nn.LeakyReLU, batch_norm=None, mode=1):
         super().__init__()
+        if mode == 1:
+            k_size, p_size = 4, 1
+        elif mode == 2:
+            k_size, p_size = 6, 2
+        else:
+            raise ValueError('wrong mode parameters')
         model_body = []
         for _ in range(int(log2(scale))):
             model_body.append(ConvolutionBlock(channels))
             model_body.append(
                 nn.ConvTranspose2d(in_channels=channels,
                                    out_channels=channels,
-                                   kernel_size=4,
-                                   padding=1,
+                                   kernel_size=k_size,
+                                   padding=p_size,
                                    stride=2)
             )
             if activation is not None:

@@ -1,0 +1,16 @@
+{
+  "sr": {
+    "pyramid_attention": "PASR.PASR",
+    "pyramid_edsr": "PEDSR.EDSRPyramid",
+    "res2net": "Res2NetSR.Res2NetSR",
+    "srresnet": "SRResNet.SRResNet",
+    "squeeze_excitation": "SESR.SESR",
+    "vdsr": "VDSR.VDSR"
+  },
+  "ds": {
+
+  },
+  "discriminator": {
+    "vgg": "Discriminator_VGG.Discriminator_VGG_128"
+  }
+}
