@@ -63,8 +63,9 @@ if __name__ == '__main__':
         # sr_model = load_model(up_sampler)
         sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
         sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=True if mode == 'train' else False)
-        # sr_model = nn.DataParallel(sr_model).cuda()
+        sr_loss = nn.L1Loss().cuda()
 
+        # sr_model = nn.DataParallel(sr_model).cuda()
         # try:
         #     sr_checkpoint = load_checkpoint(load_dir=sr_ckpt, map_location=pipeline_params['map_location'])
         #     if sr_checkpoint is None:
@@ -78,7 +79,6 @@ if __name__ == '__main__':
         # print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in sr_model.parameters() if p.requires_grad)))
         # for param in sr_model.parameters():
         #     param.requires_grad = False if mode == 'test' else param.requires_grad
-        sr_loss = nn.L1Loss().cuda()
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:

@@ -1,11 +1,11 @@
 {
   "upscaler": {
     "deepsr": "PASR",
-    "pyramid_edsr": "PEDSR.EDSRPyramid",
-    "res2net": "Res2NetSR.Res2NetSR",
-    "srresnet": "SRResNet.SRResNet",
-    "squeeze_excitation": "SESR.SESR",
-    "vdsr": "VDSR.VDSR"
+    "pyramid_edsr": "PEDSR",
+    "res2net": "Res2NetSR",
+    "srresnet": "SRResNet",
+    "squeeze_excitation": "SESR",
+    "vdsr": "VDSR"
   },
   "ds": {
 

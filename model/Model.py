@@ -8,10 +8,13 @@ def load_checkpoint(load_dir, map_location=None):
     try:
         print('loading checkpoint from {}'.format(load_dir))
         checkpoint = torch.load(load_dir, map_location=map_location)
-        print('loading successful')
         return checkpoint
     except:
-        print('No checkpoint and begin new training')
+        print('begin new training')
+
+
+def report_num_params(model):
+    print('Number of parameters of model: {:.2E}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
 
 class Model(nn.Module):
@@ -19,7 +22,6 @@ class Model(nn.Module):
         super().__init__()
         with open('model/models.json', 'r') as f:
             params = json.load(f)
-        print(params)
 
         if mode not in params.keys():
             raise ValueError('Wrong mode. Try {}'.format(', '.join(params.keys())))
@@ -29,20 +31,24 @@ class Model(nn.Module):
         module = getattr(import_module(path), 'Model')
         self.model = module(**kwargs)
         self.model = nn.DataParallel(self.model).cuda()
-        print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
+        report_num_params(self.model)
 
         try:
-            sr_checkpoint = load_checkpoint(load_dir=checkpoint, map_location=map_location)
-            if sr_checkpoint is None:
-                print('Start new training for {} model'.format(mode))
+            print('loading checkpoint from {}'.format(checkpoint))
+            ckpt = torch.load(checkpoint, map_location=map_location)
+            if ckpt is None:
+                print('No checkpoint and start new training for {} model'.format(mode))
             else:
-                print('{} model recovering from checkpoints'.format(mode))
-                self.model.load_state_dict(sr_checkpoint['model'])
+                print('loading successful and recovering checkpoints for {} model'.format(mode))
+                self.model.load_state_dict(ckpt['model'])
+                print('Checkpoint loaded successfully')
         except:
-            raise ValueError('Checkpoint not found.')
+            raise ValueError('Wrong Checkpoint path or loaded erroneously')
 
-        for param in self.model.parameters():
-            param.requires_grad = False if not train else param.requires_grad
+        if not train:
+            print('Disabling auto gradient and switching to TEST mode')
+            for param in self.model.parameters():
+                param.requires_grad = False
 
     def forward(self, x):
         return self.model(x)
