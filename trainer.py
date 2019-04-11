@@ -63,7 +63,7 @@ if __name__ == '__main__':
         # sr_model = load_model(up_sampler)
         sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
         sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt)
-        sr_model = nn.DataParallel(sr_model).cuda()
+        # sr_model = nn.DataParallel(sr_model).cuda()
 
         # try:
         #     sr_checkpoint = load_checkpoint(load_dir=sr_ckpt, map_location=pipeline_params['map_location'])

@@ -28,6 +28,7 @@ class Model(nn.Module):
         path = '.'.join(['model', mode, params[mode][name.lower()]])
         module = getattr(import_module(path), 'Model')
         self.model = module(**kwargs)
+        self.model = nn.DataParallel(self.model).cuda()
         print('Number of parameters of SR model: {:.2E}'.format(sum(p.numel() for p in self.model.parameters() if p.requires_grad)))
 
         try:
