@@ -1,11 +1,12 @@
+import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
-from src.helper import *
+from src.helper import Timer, load_parameters
 from dataset import SRTrainDataset, SRTestDataset
 from loss import PSNR, DownScaleLoss
 from model import Model
 import os, sys
 import getopt
-from time import time
 
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 
     # Load JSON arguments
     try:
-        params = load_parameters()
+        params = load_parameters(path='parameter.json')
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         pipeline_params, common_params = params[mode], params['common']
