@@ -158,7 +158,7 @@ if __name__ == '__main__':
                         ls.append(pipeline_params['ds_beta'] * dsl)
 
                 l = sum(ls)
-                epoch_ls.append(l.detach().cpu().item())
+                epoch_ls.append(l)
                 if is_train:
                     l.backward()
                     if up_sampler is not None:
