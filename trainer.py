@@ -62,7 +62,7 @@ if __name__ == '__main__':
     if up_sampler is not None:
         # sr_model = load_model(up_sampler)
         sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
-        sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt)
+        sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=True if mode == 'train' else False)
         # sr_model = nn.DataParallel(sr_model).cuda()
 
         # try:
