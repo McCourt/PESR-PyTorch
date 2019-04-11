@@ -31,7 +31,7 @@ if __name__ == '__main__':
             raise UserWarning('Redundant argument {}'.format(arg))
 
     try:
-        params = load_parameters()
+        params = load_parameters(path='parameter.json')
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
         common, tto_params = params['common'], params['tto']

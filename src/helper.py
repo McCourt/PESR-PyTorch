@@ -19,6 +19,6 @@ class Timer(object):
         self.begin = time()
 
 
-def load_parameters(path='./parameter.json'):
+def load_parameters(path):
     with open(path, 'r') as f:
         return json.load(f)
