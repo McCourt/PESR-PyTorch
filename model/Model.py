@@ -71,7 +71,7 @@ class Model(nn.Module):
         try:
             torch.save(self.state_dict(), self.checkpoint)
         except:
-            raise Exception('checkpoint saving failure')
+            raise Exception('checkpoint saving failed')
 
     def forward(self, x):
         output = self.model(x)

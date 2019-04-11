@@ -22,7 +22,3 @@ class Timer(object):
 def load_parameters(path='./parameter.json'):
     with open(path, 'r') as f:
         return json.load(f)
-
-
-
-

@@ -1,7 +1,7 @@
-from loss.losses.laploss import LapLoss
-from loss.losses.dsloss import DownScaleLoss
-from loss.losses.discloss import GanLoss
-from loss.losses.tdsloss import TrainedDownScaleLoss
-from loss.losses.regloss import RegularizationLoss
-from loss.losses.shiftloss import ShiftLoss, TrainedShiftLoss
+from loss.laploss import LapLoss
+from loss.dsloss import DownScaleLoss
+from loss.discloss import GanLoss
+from loss.tdsloss import TrainedDownScaleLoss
+from loss.shiftloss import ShiftLoss, TrainedShiftLoss
+from loss.regloss import RegularizationLoss
 from loss.psnr import PSNR, mse_psnr

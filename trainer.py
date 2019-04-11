@@ -48,31 +48,32 @@ if __name__ == '__main__':
 
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
-    begin_epoch = pipeline_params['begin_epoch'] if mode == 'train' else 0
+    is_train = True if mode == 'train' else False
+    begin_epoch = pipeline_params['begin_epoch'] if is_train else 0
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
     trim, scale, psnr = common_params['trim'], common_params['scale'], PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
     sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
     log_dir = os.path.join(root_dir, common_params['log_dir'].format(model_name))
-    num_epoch = pipeline_params['num_epoch'] if mode == 'train' else 1 + begin_epoch
+    num_epoch = pipeline_params['num_epoch'] if is_train else 1
 
     # Define upscale model and data parallel
     if up_sampler is not None:
         sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
-        sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=True if mode == 'train' else False)
+        sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=is_train)
         sr_loss = nn.L1Loss().cuda()
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
         ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
-        ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=True if mode == 'train' else False)
+        ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=is_train)
         ds_loss = nn.MSELoss().cuda()
     else:
         bds = DownScaleLoss(clip_round=True)
 
     # Define optimizer, learning rate scheduler, data source and data loader
-    if mode == 'train':
+    if is_train:
         lr = pipeline_params['learning_rate'] * pipeline_params['decay_rate'] ** begin_epoch
         params = list()
         if up_sampler or down_sampler:
@@ -99,8 +100,8 @@ if __name__ == '__main__':
         dataset = SRTestDataset(hr_dir=hr_dir, lr_dir=lr_dir)
     data_loader = DataLoader(
         dataset,
-        batch_size=pipeline_params['batch_size'] if mode == 'train' else 1,
-        shuffle=True if mode == 'train' else False,
+        batch_size=pipeline_params['batch_size'] if is_train else 1,
+        shuffle=True if is_train else False,
         num_workers=pipeline_params['num_worker']
     )
 
@@ -112,7 +113,7 @@ if __name__ == '__main__':
                                    'DS_PSNR', 'AVG_DS', 'AVG_DIFF', 'RunTime')
     splitter = ''.join(['-' for i in range(len(title))])
     print(splitter)
-    begin = time()
+    timer = Timer()
     cnt = 0
     print(title)
     print(splitter)
@@ -121,9 +122,10 @@ if __name__ == '__main__':
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
             for bid, batch in enumerate(data_loader):
-                hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
-                ls = list()
-                if mode == 'train':
+                hr, lr, ls = batch['hr'].cuda(), batch['lr'].cuda(), list()
+                timer.refresh()
+
+                if is_train:
                     if up_sampler is not None:
                         sr_optimizer.zero_grad()
                     if down_sampler is not None:
@@ -133,27 +135,31 @@ if __name__ == '__main__':
                     
                 if up_sampler is not None:
                     sr = sr_model(lr)
-                    if mode == 'train':
+                    if is_train:
                         sr_l = sr_loss(sr, hr)
                         ls.append(sr_l)
+                    else:
+                        pass
                     sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
 
                 if down_sampler is not None:
                     dhr = ds_model(hr)
-                    if mode == 'train':
+                    if is_train:
                         ds_l = ds_loss(dhr, lr)
                         ls.append(pipeline_params['ds_beta'] * ds_l)
+                    else:
+                        pass
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
                 else:
                     dsl = bds(sr, lr).detach().cpu().item()
-                    if mode == 'train':
+                    if is_train:
                         ls.append(pipeline_params['ds_beta'] * dsl)
 
                 l = sum(ls)
-                epoch_ls.append(l)
-                if mode == 'train':
+                epoch_ls.append(l.detach().cpu().item())
+                if is_train:
                     l.backward()
                     if up_sampler is not None:
                         sr_optimizer.step()
@@ -164,17 +170,14 @@ if __name__ == '__main__':
                 ep_sr = sum(epoch_sr) / (bid + 1)
                 ep_lr = sum(epoch_lr) / (bid + 1)
                 ep_df = sum(epoch_diff) / (bid + 1)
-                timer = since(begin)
+                duration = timer.report()
 
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, timer)
+                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, duration)
                 if bid % pipeline_params['print_every'] == 0:
                     print(report)
                     print(title, end='\r')
 
-                if mode == 'test':
-                    torch.cuda.empty_cache()
-
-            if mode == 'train':
+            if is_train:
                 f.write(report + '\n')
                 f.flush()
                 if up_sampler is not None:
@@ -186,6 +189,6 @@ if __name__ == '__main__':
                         sr_model.save_checkpoint()
                     if down_sampler is not None:
                         ds_model.save_checkpoint()
-            elif mode == 'test':
+            else:
                 pass
             print(splitter)

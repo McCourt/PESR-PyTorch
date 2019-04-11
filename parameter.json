@@ -21,7 +21,7 @@
     "window": [48, 48],
     "learning_rate": 1e-4,
     "decay_rate": 0.99654026282,
-    "decay_step": null,
+    "decay_step": 200,
     "num_per": 20,
     "loss": ["MSE"],
     "optimizer": "Adam",
