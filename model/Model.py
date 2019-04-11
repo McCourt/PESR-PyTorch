@@ -41,7 +41,7 @@ class Model(nn.Module):
                     print('No checkpoint and start new training for {} model'.format(mode))
                 else:
                     print('loading successful and recovering checkpoints for {} model'.format(mode))
-                    self.model.load_state_dict(ckpt['model'])
+                    self.load_state_dict(ckpt['model'])
                     print('Checkpoint loaded successfully')
             except:
                 raise ValueError('Wrong Checkpoint path or loaded erroneously')
