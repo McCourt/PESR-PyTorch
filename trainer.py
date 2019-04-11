@@ -80,11 +80,13 @@ if __name__ == '__main__':
             if up_sampler is not None:
                 sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=lr)
                 sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'])
+                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      last_epoch=begin_epoch - 1)
             if down_sampler is not None:
                 ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=lr)
                 ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'])
+                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      last_epoch=begin_epoch - 1)
         else:
             raise Exception('No trainable parameters in training mode')
 
