@@ -1,6 +1,6 @@
 {
   "common": {
-    "up_sampler": "deepsr",
+    "up_sampler": "pyramid_attention",
     "down_sampler": null,
     "scale": 4,
     "metric": ["PSNR"],

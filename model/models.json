@@ -1,6 +1,6 @@
 {
   "upscaler": {
-    "deepsr": "PASR",
+    "pyramid_attention": "PASR",
     "pyramid_edsr": "PEDSR",
     "res2net": "Res2NetSR",
     "srresnet": "SRResNet",
