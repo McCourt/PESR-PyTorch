@@ -8,6 +8,7 @@ __pycache__/
 checkpoints/
 *.ckpt
 info.txt
+permission.sh
 src/scale/
 logs/
 sr/
