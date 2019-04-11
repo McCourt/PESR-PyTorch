@@ -49,12 +49,9 @@ class Model(nn.Module):
             MeanShift(sign=1)
         )
 
-    def forward(self, x, clip_bound=False):
+    def forward(self, x):
         x = self.model_0(x)
         up_1 = self.upscale_1(self.model_1(x) + x)
         up_2 = self.upscale_2(self.model_2(up_1) + up_1)
         output = self.model_3(up_2)
-        if clip_bound:
-            return torch.clamp(torch.round(output), 0., 255.).type('torch.cuda.ByteTensor')
-        else:
-            return output
+        return output

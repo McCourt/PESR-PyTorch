@@ -45,10 +45,16 @@ class Model(nn.Module):
         except:
             raise ValueError('Wrong Checkpoint path or loaded erroneously')
 
-        if not train:
+        self.is_train = train
+        if not self.is_train:
             print('Disabling auto gradient and switching to TEST mode')
             for param in self.model.parameters():
                 param.requires_grad = False
+        else:
+            print('{} model is ready for training'.format(mode))
 
     def forward(self, x):
-        return self.model(x)
+        output = self.model(x)
+        if not self.is_train:
+            output = torch.clamp(torch.round(output), 0., 255.)
+        return output
