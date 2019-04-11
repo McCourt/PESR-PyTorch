@@ -1,12 +1,11 @@
 from torch.utils.data import DataLoader
 from src.helper import *
-from src.dataset import SRTrainDataset, SRTestDataset
-from loss.psnr import PSNR
-from loss.dsloss import DownScaleLoss
+from dataset import SRTrainDataset, SRTestDataset
+from loss import PSNR, DownScaleLoss
+from model import Model
 import os, sys
 import getopt
 from time import time
-from model import Model
 
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
@@ -184,11 +183,9 @@ if __name__ == '__main__':
                     ds_scheduler.step()
                 if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
                     if up_sampler is not None:
-                        state_dict = {'model': sr_model.state_dict()}
-                        save_checkpoint(state_dict, sr_ckpt)
+                        sr_model.save_checkpoint()
                     if down_sampler is not None:
-                        state_dict = {'model': ds_model.state_dict()}
-                        save_checkpoint(state_dict, ds_ckpt)
+                        ds_model.save_checkpoint()
             elif mode == 'test':
                 pass
             print(splitter)

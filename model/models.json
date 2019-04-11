@@ -1,11 +1,11 @@
 {
   "upscaler": {
-    "pyramid_attention": ["PASR", "PyramidAttentionSR"],
-    "pyramid_edsr": ["PEDSR", "PyramidEDSR"],
-    "res2net": ["R2SR", "Res2NetSR"],
-    "srresnet": ["SRRN", "SRResNet"],
-    "squeeze_excitation": ["SESR", "SqueezeExcitationSR"],
-    "vdsr": ["VDSR", "VDSR"]
+    "pyramid_attention": "PyramidAttentionSR",
+    "pyramid_edsr": "PyramidEDSR",
+    "res2net": "Res2NetSR",
+    "srresnet": "SRResNet",
+    "squeeze_excitation": "SqueezeExcitationSR",
+    "vdsr": "VDSR"
   },
   "downscaler": {
     "bicubic": ["bicubic","BicubicDownSample"],

@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from math import log2
+import random
 
 
 class OutputImage(nn.Module):
@@ -246,3 +247,17 @@ class ConvolutionDownscale(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+
+class ChannelGradientShuffle(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input):
+        return input
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = grad_output.clone()
+        channels = [0, 1, 2]
+        random.shuffle(channels)
+        grad_input = grad_input[:, channels, :, :]
+        return grad_input

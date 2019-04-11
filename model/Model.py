@@ -1,16 +1,24 @@
 import torch
 import torch.nn as nn
 from importlib import import_module
-import json
+from src.helper import load_parameters
+
+
+def save_checkpoint(state_dict, save_dir):
+    try:
+        torch.save(state_dict, save_dir)
+    except:
+        raise Exception('checkpoint saving failure')
 
 
 def load_checkpoint(load_dir, map_location=None):
     try:
         print('loading checkpoint from {}'.format(load_dir))
         checkpoint = torch.load(load_dir, map_location=map_location)
+        print('loading successful')
         return checkpoint
     except:
-        print('begin new training')
+        print('No checkpoint and begin new training')
 
 
 def report_num_params(model):
@@ -20,33 +28,20 @@ def report_num_params(model):
 class Model(nn.Module):
     def __init__(self, name, mode, checkpoint=None, train=True, map_location=None, **kwargs):
         super().__init__()
-        with open('model/models.json', 'r') as f:
-            params = json.load(f)
+        params = load_parameters('model/models.json')
 
         if mode not in params.keys():
             raise ValueError('Wrong mode. Try {}'.format(', '.join(params.keys())))
         elif name not in params[mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
-        path = '.'.join(['model', mode, params[mode][name.lower()][0]])
-        module = getattr(import_module(path), params[mode][name.lower()][1])
+        path = '.'.join(['model', mode, params[mode][name.lower()]])
+        module = import_module(path)
         self.model = module(**kwargs)
         self.model = nn.DataParallel(self.model).cuda()
         report_num_params(self.model)
 
-        if checkpoint is not None:
-            try:
-                print('loading checkpoint from {}'.format(checkpoint))
-                ckpt = torch.load(checkpoint, map_location=map_location)
-                if ckpt is None:
-                    print('No checkpoint and start new training for {} model'.format(mode))
-                else:
-                    print('loading successful and recovering checkpoints for {} model'.format(mode))
-                    self.load_state_dict(ckpt['model'])
-                    print('Checkpoint loaded successfully')
-            except:
-                raise ValueError('Wrong Checkpoint path or loaded erroneously')
-        else:
-            print('No checkpoint and start new training for {} model'.format(mode))
+        self.checkpoint, self.mode, self.map_location = checkpoint, mode, map_location
+        self.load_checkpoint()
 
         self.is_train = train
         if not self.is_train:
@@ -55,6 +50,28 @@ class Model(nn.Module):
                 param.requires_grad = False
         else:
             print('{} model is ready for training'.format(mode))
+
+    def load_checkpoint(self):
+        if self.checkpoint is not None:
+            try:
+                print('loading checkpoint from {}'.format(self.checkpoint))
+                ckpt = torch.load(self.checkpoint, map_location=self.map_location)
+                if ckpt is None:
+                    print('No checkpoint and start new training for {} model'.format(self.mode))
+                else:
+                    print('loading successful and recovering checkpoints for {} model'.format(self.mode))
+                    self.load_state_dict(ckpt['model'])
+                    print('Checkpoint loaded successfully')
+            except:
+                raise ValueError('Wrong Checkpoint path or loaded erroneously')
+        else:
+            print('No checkpoint and start new training for {} model'.format(self.mode))
+
+    def save_checkpoint(self):
+        try:
+            torch.save(self.state_dict(), self.checkpoint)
+        except:
+            raise Exception('checkpoint saving failure')
 
     def forward(self, x):
         output = self.model(x)

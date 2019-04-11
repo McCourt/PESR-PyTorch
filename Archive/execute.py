@@ -2,7 +2,7 @@ import getopt
 import sys
 from imageio import imread, imwrite
 from torch.utils.data import DataLoader
-from src.dataset import ResolutionDataset
+from dataset import ResolutionDataset
 from src.helper import *
 
 if __name__ == '__main__':
