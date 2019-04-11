@@ -70,7 +70,7 @@ if __name__ == '__main__':
         ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=True if mode == 'train' else False)
         ds_loss = nn.MSELoss().cuda()
     else:
-        bds = Model(name='bicubic', mode='downscaler', train=False)
+        bds = DownScaleLoss(clip_round=True)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':
