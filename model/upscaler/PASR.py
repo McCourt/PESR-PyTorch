@@ -29,7 +29,7 @@ class BasicGroup(nn.Module):
         return self.model_body(x) * self.res_scale + x
 
 
-class Model(nn.Module):
+class PyramidAttentionSR(nn.Module):
     def __init__(self, num_groups=None, num_channel=128):
         super().__init__()
         if num_groups is None:

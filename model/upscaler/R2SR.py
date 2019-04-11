@@ -3,7 +3,7 @@ import torch.nn as nn
 from model.blocks import ConvolutionBlock, Res2Block, TransposeUpscale
 
 
-class Model(nn.Module):
+class Res2NetSR(nn.Module):
     def __init__(self, num_blocks=32, num_channels=64):
         super().__init__()
         self.conv_in = ConvolutionBlock(in_channels=3, out_channels=num_channels, kernel_size=1, padding=0)

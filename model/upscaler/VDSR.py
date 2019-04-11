@@ -3,7 +3,7 @@ import torch.nn as nn
 from model.blocks import ResBlock, ConvolutionBlock
 
 
-class Model(nn.Module):
+class VDSR(nn.Module):
     def __init__(self, num_blocks=50, channel=128):
         super().__init__()
         self.model = nn.Sequential(

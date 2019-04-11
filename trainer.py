@@ -66,26 +66,11 @@ if __name__ == '__main__':
 
     # Define downscale model and data parallel and loss functions
     if down_sampler is not None:
-        ds_model = load_model(down_sampler)
-        ds_model = nn.DataParallel(ds_model).cuda()
-
-        try:
-            ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
-            ds_checkpoint = load_checkpoint(load_dir=ds_ckpt, map_location=pipeline_params['map_location'])
-            if down_sampler is None or ds_checkpoint is None:
-                print('Start new training for DS model')
-            else:
-                print('DS model recovering from checkpoints')
-                ds_model.load_state_dict(ds_checkpoint['model'])
-        except Exception as e:
-                raise ValueError('Checkpoint not found.')
-
-        print('Number of parameters of DS model: {:.2E}'.format(sum(p.numel() for p in ds_model.parameters())))
-        for param in ds_model.parameters():
-            param.requires_grad = False if mode == 'test' else param.requires_grad
+        ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
+        ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=True if mode == 'train' else False)
         ds_loss = nn.MSELoss().cuda()
     else:
-        bds = DownScaleLoss(clip_round=True)
+        bds = Model(name='bicubic', mode='downscaler', train=False)
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if mode == 'train':

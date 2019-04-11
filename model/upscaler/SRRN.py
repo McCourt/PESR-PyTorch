@@ -2,7 +2,7 @@ from torch import nn
 from model.blocks import ResBlock, PixelShuffleUpscale, ConvolutionBlock
 
 
-class Model(nn.Module):
+class SRResNet(nn.Module):
     def __init__(self, num_res=30, channel=128):
         super().__init__()
         self.model = nn.Sequential(

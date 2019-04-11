@@ -59,7 +59,7 @@ def load_checkpoint(load_dir, map_location=None):
 
 def load_model(model_name):
     if model_name.lower() == 'srresnet':
-        from model.upscaler.SRResNet import Model
+        from model.upscaler.SRRN import Model
         model = Model()
     elif model_name.lower() == 'vdsr':
         from model.upscaler.VDSR import Model
@@ -74,10 +74,10 @@ def load_model(model_name):
         from model.upscaler.PEDSR import Model
         model = Model()
     elif model_name.lower() == 'deepds':
-        from model.downscaler.vgg_ds import DeepDownScale
+        from model.downscaler.EDDS import DeepDownScale
         model = DeepDownScale()
     elif model_name.lower() == 'res2sr':
-        from model.upscaler.Res2NetSR import Model
+        from model.upscaler.R2SR import Model
         model = Model()
     return model
 

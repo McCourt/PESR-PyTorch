@@ -18,7 +18,7 @@ def report_num_params(model):
 
 
 class Model(nn.Module):
-    def __init__(self, name, mode, checkpoint, train=True, map_location=None, **kwargs):
+    def __init__(self, name, mode, checkpoint=None, train=True, map_location=None, **kwargs):
         super().__init__()
         with open('model/models.json', 'r') as f:
             params = json.load(f)
@@ -33,17 +33,20 @@ class Model(nn.Module):
         self.model = nn.DataParallel(self.model).cuda()
         report_num_params(self.model)
 
-        try:
-            print('loading checkpoint from {}'.format(checkpoint))
-            ckpt = torch.load(checkpoint, map_location=map_location)
-            if ckpt is None:
-                print('No checkpoint and start new training for {} model'.format(mode))
-            else:
-                print('loading successful and recovering checkpoints for {} model'.format(mode))
-                self.model.load_state_dict(ckpt['model'])
-                print('Checkpoint loaded successfully')
-        except:
-            raise ValueError('Wrong Checkpoint path or loaded erroneously')
+        if checkpoint is not None:
+            try:
+                print('loading checkpoint from {}'.format(checkpoint))
+                ckpt = torch.load(checkpoint, map_location=map_location)
+                if ckpt is None:
+                    print('No checkpoint and start new training for {} model'.format(mode))
+                else:
+                    print('loading successful and recovering checkpoints for {} model'.format(mode))
+                    self.model.load_state_dict(ckpt['model'])
+                    print('Checkpoint loaded successfully')
+            except:
+                raise ValueError('Wrong Checkpoint path or loaded erroneously')
+        else:
+            print('No checkpoint and start new training for {} model'.format(mode))
 
         self.is_train = train
         if not self.is_train:

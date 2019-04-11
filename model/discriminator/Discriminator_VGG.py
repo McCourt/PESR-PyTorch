@@ -2,7 +2,7 @@ from torch import nn
 from model import blocks_D as B
 
 
-class Model(nn.Module):
+class Discriminator_VGG(nn.Module):
     def __init__(self, in_nc=3, base_nf=64, norm_type='batch', act_type='leakyrelu', mode='CNA'):
         super().__init__()
         # features
