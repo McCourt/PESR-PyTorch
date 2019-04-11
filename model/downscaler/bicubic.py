@@ -30,6 +30,8 @@ class BicubicDownSample(nn.Module):
         self.k2 = torch.cat([k2, k2, k2], dim=0)
         self.cuda = '.cuda' if cuda else ''
         self.padding = padding
+        for param in self.parameters():
+            param.requires_grad = False
 
     def forward(self, x, nhwc=False, clip_round=False, byte_output=False):
         # x = torch.from_numpy(x).type('torch.FloatTensor')

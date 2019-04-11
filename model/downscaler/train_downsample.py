@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
-from src.dataset import SRTrainDataset
+from dataset import SRTrainDataset
 from torch.utils.data import DataLoader
 from model.blocks import ConvolutionDownscale
-from src.helper import load_checkpoint, save_checkpoint, since
+from model.Model import load_checkpoint, save_checkpoint
+from src.helper import since
 import numpy as np
 from time import time
 import os

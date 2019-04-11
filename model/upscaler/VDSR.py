@@ -5,7 +5,7 @@ from model.blocks import ResBlock, ConvolutionBlock
 
 class VDSR(nn.Module):
     def __init__(self, num_blocks=50, channel=128):
-        super(VDSR, self).__init__()
+        super().__init__()
         self.model = nn.Sequential(
             ConvolutionBlock(in_channels=3, out_channels=channel),
             *tuple([ResBlock(in_channels=channel) for _ in range(num_blocks)]),

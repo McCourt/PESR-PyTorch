@@ -2,7 +2,7 @@ from torch import nn
 from model.blocks import ResBlock, ChannelAttentionBlock, PixelShuffleUpscale, ConvolutionBlock
 
 
-class SESR(nn.Module):
+class SqueezeExcitationSR(nn.Module):
     def __init__(self, num_se=30, channel=128, bias=True):
         super().__init__()
         self.model = nn.Sequential(

@@ -1,22 +1,15 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from imageio import imwrite
 import numpy as np
 from time import time
 import os, sys, getopt
 
-from model.discriminator.Discriminator_VGG import Discriminator_VGG_128
-from model.downscaler.bicubic import BicubicDownSample
+from model.downscaler import BicubicDownSample
+from model.blocks import ChannelGradientShuffle
 # from downscaler.conv import ConvolutionDownscale
-from src.helper import mse_psnr, load_parameters, ChannelGradientShuffle
-from src.dataset import SRTTODataset
-from loss.shiftloss import ShiftLoss, TrainedShiftLoss
-from loss.discloss import GanLoss
-from loss.regloss import RegularizationLoss
-from loss.dsloss import DownScaleLoss
-from loss.tdsloss import TrainedDownScaleLoss
-from loss.psnr import PSNR
+from src.helper import load_parameters
+from dataset import SRTTODataset
+from loss import ShiftLoss, GanLoss, RegularizationLoss, DownScaleLoss, TrainedDownScaleLoss, PSNR, mse_psnr
 
 if __name__ == '__main__':
     args = sys.argv[1:]

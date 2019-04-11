@@ -21,25 +21,27 @@ class ShiftLoss(nn.Module):
         loss = loss / 16
         return loss
 
+
 class TTOShift(torch.nn.Module):
     def __init__(self, num_channels=(64, 128, 256, 512, 48), activation=F.relu):
         super(TTOShift, self).__init__()
-        self.activation=activation
-        self.conv1 = nn.Conv2d(3, num_channels[0], (1,1), stride=1, padding=0)
-        self.conv2 = nn.Conv2d(num_channels[0], num_channels[1], (3,3), stride=1, padding=1)
-        self.conv3 = nn.Conv2d(num_channels[1], num_channels[2], (5,5), stride=1, padding=2)
-        self.conv4 = nn.Conv2d(num_channels[2], num_channels[3], (3,3), stride=1, padding=1)
-        self.conv5 = nn.Conv2d(num_channels[3], num_channels[4], (5,5), stride=1, padding=2)
-        
+        self.activation = activation
+        self.conv1 = nn.Conv2d(3, num_channels[0], (1, 1), stride=1, padding=0)
+        self.conv2 = nn.Conv2d(num_channels[0], num_channels[1], (3, 3), stride=1, padding=1)
+        self.conv3 = nn.Conv2d(num_channels[1], num_channels[2], (5, 5), stride=1, padding=2)
+        self.conv4 = nn.Conv2d(num_channels[2], num_channels[3], (3, 3), stride=1, padding=1)
+        self.conv5 = nn.Conv2d(num_channels[3], num_channels[4], (5, 5), stride=1, padding=2)
+
     def forward(self, x):
         out1 = self.activation(self.conv1(x))
         out2 = self.activation(self.conv2(out1))
         out3 = self.activation(self.conv3(out2))
         out4 = self.activation(self.conv4(out3))
         out5 = self.activation(self.conv5(out4))
-        
+
         return out5
-    
+
+
 class TrainedShiftLoss(nn.Module):
     def __init__(self, checkpoint='checkpoints/TTOShift.pth'):
         super(TrainedShiftLoss, self).__init__()

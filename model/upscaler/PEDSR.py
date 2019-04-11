@@ -2,7 +2,7 @@ from torch import nn
 from model.blocks import MeanShift, ResBlock, PixelShuffleUpscale, TransposeUpscale, ConvolutionBlock
 
 
-class EDSRPyramid(nn.Module):
+class PyramidEDSR(nn.Module):
     def __init__(self, block_sequence=None, num_channel=256,
                  rgb_mean=(0.4488, 0.4371, 0.4040),
                  rgb_std=(1.0, 1.0, 1.0), rgb_range=255):
