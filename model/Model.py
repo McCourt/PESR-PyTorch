@@ -6,8 +6,9 @@ import json
 class Model(nn.Module):
     def __init__(self, name, mode, **kwargs):
         super().__init__()
-        with open('models.json', 'r') as f:
+        with open('model/models.json', 'r') as f:
             params = json.load(f)
+        print(params)
 
         if mode not in params.keys():
             raise ValueError('Wrong mode. Try {}'.format(', '.join(params.keys())))

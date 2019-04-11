@@ -1,6 +1,6 @@
 {
-  "sr": {
-    "pyramid_attention": "PASR.PASR",
+  "upscaler": {
+    "deepsr": "PASR.PASR",
     "pyramid_edsr": "PEDSR.EDSRPyramid",
     "res2net": "Res2NetSR.Res2NetSR",
     "srresnet": "SRResNet.SRResNet",
