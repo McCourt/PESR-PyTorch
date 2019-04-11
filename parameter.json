@@ -33,9 +33,9 @@
     "print_every": 1
   },
   "test": {
-    "hr_dir": "Urban100/HR/",
-    "lr_dir": "Urban100/LR_matlab/",
-    "sr_dir": "Urban100/",
+    "hr_dir": "Set5/HR/",
+    "lr_dir": "Set5/LR_matlab/",
+    "sr_dir": "Set5/",
     "save": true,
     "map_location": null,
     "num_worker": 8,
