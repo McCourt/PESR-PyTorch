@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from importlib import import_module
 from src.helper import load_parameters
+import os
 
 
 def save_checkpoint(state_dict, save_dir):
@@ -53,7 +54,7 @@ class Model(nn.Module):
             print('{} model is ready for training'.format(mode))
 
     def load_checkpoint(self):
-        if self.checkpoint is not None:
+        if self.checkpoint is not None and os.path.isfile(self.checkpoint):
             try:
                 print('loading checkpoint from {}'.format(self.checkpoint))
                 ckpt = torch.load(self.checkpoint, map_location=self.map_location)
@@ -69,7 +70,7 @@ class Model(nn.Module):
         else:
             print('No checkpoint and start new training for {} model'.format(self.mode))
 
-    def save_checkpoint(self):
+    def save_checkpoint(self, add_time=False):
         try:
             torch.save(self.state_dict(), self.checkpoint)
         except:
