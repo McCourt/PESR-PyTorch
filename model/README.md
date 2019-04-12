@@ -17,5 +17,5 @@ model = Model(name='model_name',
   "...": "..."
 }
 ```
-* Parameter mode must be either 'upscaler', 'downscaler' or 'discriminator'
-* kwargs are place holder for the parameters passed into the model
+* Parameter **mode** must be either *'upscaler'*, *'downscaler'* or *'discriminator'*
+* **kwargs** are placeholders for the parameters passed into the model defined in customized script
