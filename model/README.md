@@ -14,7 +14,7 @@ model = Model(name='model_name',
 "mode": {
   "model_name_1": "file_name_1",
   "model_name_2": "file_name_2",
-  ......
+  "...": "..."
 }
 ```
 * Parameter mode must be either 'upscaler', 'downscaler' or 'discriminator'
