@@ -12,3 +12,4 @@ permission.sh
 src/scale/
 logs/
 sr/
+venv.sh
