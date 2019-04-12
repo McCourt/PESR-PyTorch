@@ -35,6 +35,7 @@ class Model(nn.Module):
         elif name not in params[mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
         path = '.'.join(['model', mode])
+        print(path)
         module = getattr(import_module(path), params[mode][name.lower()])
         self.model = module(**kwargs)
         self.model = nn.DataParallel(self.model).cuda()
@@ -63,7 +64,8 @@ class Model(nn.Module):
                     self.load_state_dict(ckpt)
                     print('Checkpoint loaded successfully')
             except:
-                raise ValueError('Wrong Checkpoint path or loaded erroneously')
+                print('Checkpoint failed to load, continuing without pretrained checkpoint')
+                #raise ValueError('Wrong Checkpoint path or loaded erroneously')
         else:
             print('No checkpoint and start new training for {} model'.format(self.mode))
 

@@ -70,7 +70,7 @@ class ResBlock(nn.Module):
 
 
 class Res2Block(nn.Module):
-    def __init__(self, in_channels=64, up_channels=64, out_channels=64, residual_weight=0.1):
+    def __init__(self, in_channels=64, up_channels=64, out_channels=64, residual_weight=0.5):
         super().__init__()
         self.residual_weight = residual_weight
         self.conv_1x1_in = ConvolutionBlock(in_channels=in_channels, out_channels=up_channels, kernel_size=1, padding=0, activation=None)
@@ -79,7 +79,7 @@ class Res2Block(nn.Module):
         self.conv_chunk_2 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
         self.conv_chunk_3 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
         self.conv_chunk_4 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
-        self.conv_1x1_out = ConvolutionBlock(in_channels=up_channels+in_channels,
+        self.conv_1x1_out = ConvolutionBlock(in_channels=up_channels,
                                              out_channels=out_channels,
                                              activation=nn.LeakyReLU)
 
@@ -90,9 +90,9 @@ class Res2Block(nn.Module):
         x2 = self.conv_chunk_2(chunks[1] + x1 * self.residual_weight)
         x3 = self.conv_chunk_3(chunks[2] + x2 * self.residual_weight)
         x4 = self.conv_chunk_4(chunks[3] + x3 * self.residual_weight)
-        concat = torch.cat([x, x1, x2, x3, x4], dim=1)
+        concat = torch.cat([x1, x2, x3, x4], dim=1)
         # Maybe add a decay rate to deal with potential numerical stability
-        out = self.conv_1x1_out(concat)
+        out = self.conv_1x1_out(concat) + in_tensor
         return out
 
 
