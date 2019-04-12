@@ -9,13 +9,22 @@ model = Model(name='model_name',
               **kwargs)
 ```
 **Please Note:**
-* Make sure that the model name and file name correponds well in **models.json** in format of
+* Make sure that the model name and class name must correpond in **models.json** in format of
 ```json
-"mode": {
-  "model_name_1": "file_name_1",
-  "model_name_2": "file_name_2",
-  "...": "..."
+{
+  "upscaler": {
+    "pyramid_attention": "PyramidAttentionSR",
+    "pyramid_edsr": "PyramidEDSR"
+  },
+  "downscaler": {
+    "bicubic": "BicubicDownSample",
+    "encode_decode": "DeepDownScale"
+  },
+  "discriminator": {
+    "vgg": "Discriminator_VGG_128"
+  }
 }
+
 ```
 * Parameter **mode** must be either *'upscaler'*, *'downscaler'* or *'discriminator'*
 * **kwargs** are placeholders for the parameters passed into the model defined in customized script
