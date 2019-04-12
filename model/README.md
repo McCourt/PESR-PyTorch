@@ -9,6 +9,13 @@ model = Model(name='model_name',
               **kwargs)
 ```
 **Please Note:**
-* Make sure that the model name and file name correponds well in models.json
+* Make sure that the model name and file name correponds well in **models.json** in format of
+```json
+mode: {
+  model_name_1: file_name_1,
+  model_name_2: file_name_2,
+  ......
+}
+```
 * Parameter mode must be either 'upscaler', 'downscaler' or 'discriminator'
 * kwargs are place holder for the parameters passed into the model
