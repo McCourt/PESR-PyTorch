@@ -11,9 +11,9 @@ model = Model(name='model_name',
 **Please Note:**
 * Make sure that the model name and file name correponds well in **models.json** in format of
 ```json
-mode: {
-  model_name_1: file_name_1,
-  model_name_2: file_name_2,
+"mode": {
+  "model_name_1": "file_name_1",
+  "model_name_2": "file_name_2",
   ......
 }
 ```
