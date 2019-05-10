@@ -36,7 +36,6 @@ class Model(nn.Module):
         elif name not in params[mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
         path = '.'.join(['model', mode])
-        print(path)
         module = getattr(import_module(path), params[mode][name.lower()])
         self.model = module(**kwargs)
         self.model = nn.DataParallel(self.model).cuda()

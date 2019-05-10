@@ -8,7 +8,6 @@ class DownScaleLoss(nn.Module):
         self.down_sampler = BicubicDownSample()
         self.clip_round = clip_round
         self.mse = nn.L1Loss()
-        self.requires_grad = False
 
     def forward(self, sr, lr):
         return self.mse(self.down_sampler(sr, clip_round=self.clip_round), lr)

@@ -71,7 +71,7 @@ if __name__ == '__main__':
         ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=is_train)
         ds_loss = nn.MSELoss().cuda()
     else:
-        bds = DownScaleLoss(clip_round=True)
+        ds_loss = DownScaleLoss(clip_round=False).cuda()
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if is_train:
@@ -156,7 +156,7 @@ if __name__ == '__main__':
                     ds_psnr = psnr(dhr, lr).detach().cpu().item()
                     epoch_lr.append(ds_psnr)
                 else:
-                    dsl = bds(sr, lr).detach().cpu().item()
+                    dsl = ds_loss(sr, lr)
                     if is_train:
                         ls.append(pipeline_params['ds_beta'] * dsl)
 
