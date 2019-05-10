@@ -48,5 +48,5 @@ class DSSR(nn.Module):
     def forward(self, x):
         o = self.model_0(x)
         o = self.model_1(o) + o
-        o = self.model_2(o) + x
+        o = self.model_2(o)
         return o
