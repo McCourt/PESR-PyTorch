@@ -29,7 +29,7 @@ class BasicGroup(nn.Module):
         return self.model_body(x) * self.res_scale + x
 
 
-class PyramidAttentionSR(nn.Module):
+class DSSR(nn.Module):
     def __init__(self, num_groups=10, num_channel=64):
         super().__init__()
         self.model_0 = nn.Sequential(
