@@ -13,6 +13,6 @@
     "trained": "DownSampler"
   },
   "discriminator": {
-    "vgg": "Discriminator_VGG_128"
+    "vgg_enhance_net": "Discriminator_VGG_128"
   }
 }
