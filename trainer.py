@@ -7,6 +7,8 @@ from loss import PSNR, DownScaleLoss
 from model import Model
 import os, sys
 import getopt
+import numpy as np
+from imageio import imwrite
 
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
@@ -55,7 +57,9 @@ if __name__ == '__main__':
     trim, scale, psnr = common_params['trim'], common_params['scale'], PSNR()
     hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
     lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
-    sr_dir = os.path.join(root_dir, common_params['s1_dir'], pipeline_params['sr_dir'])
+    sr_dir = os.path.join(root_dir, common_params['s1_dir'], up_sampler, pipeline_params['sr_dir'])
+    if not os.path.isdir(sr_dir):
+        os.makedirs(sr_dir)
     log_dir = os.path.join(root_dir, common_params['log_dir'].format(model_name))
     num_epoch = pipeline_params['num_epoch'] if is_train else 1
 
@@ -142,7 +146,8 @@ if __name__ == '__main__':
                         sr_l = sr_loss(sr, hr)
                         ls.append(sr_l)
                     else:
-                        pass
+                        sr_ot = np.moveaxis(sr.detach().cpu().numpy().squeeze(0), 0, -1).astype(np.uint8)
+                        imwrite(os.path.join(sr_dir, batch['name'][0]), sr_ot)
                     sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
                     epoch_sr.append(sr_psnr)
 

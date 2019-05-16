@@ -1,6 +1,6 @@
 {
   "common": {
-    "up_sampler": "dssr",
+    "up_sampler": "pyramid_attention",
     "down_sampler": null,
     "scale": 4,
     "metric": ["PSNR"],
@@ -17,7 +17,7 @@
     "lr_dir": "div2k/LR/X4",
     "sr_dir": "div2k/",
     "batch_size": 16,
-    "num_epoch": 600,
+    "num_epoch": 1000,
     "window": [48, 48],
     "learning_rate": 1e-4,
     "decay_rate": 0.99769217652,
@@ -25,7 +25,7 @@
     "num_per": 20,
     "loss": ["MSE"],
     "optimizer": "Adam",
-    "ds_beta": 0.0,
+    "ds_beta": 1.0,
     "begin_epoch": 0,
     "num_worker": 8,
     "map_location": null,
@@ -33,8 +33,8 @@
     "print_every": 1
   },
   "test": {
-    "hr_dir": "div2k_valid/HR/",
-    "lr_dir": "div2k_valid/LR/x4_bicubic/",
+    "hr_dir": "Set5/HR/",
+    "lr_dir": "Set5/LR_matlab/",
     "sr_dir": "Set5/",
     "save": true,
     "map_location": null,
