@@ -44,6 +44,7 @@ class Model(nn.Module):
         report_num_params(self.model)
 
         self.checkpoint, self.mode, self.map_location, self.log = checkpoint, mode, map_location, log
+        self.epoch = 0
         self.load_checkpoint()
         self.timer = Timer()
 
@@ -55,9 +56,9 @@ class Model(nn.Module):
             self.eval()
             print('{} model is ready for training'.format(mode))
         self.metric = PSNR()
-        self.t_format = '{:^6s} | {:^6s} | {:^6s} | {:^6s} '
-        self.r_format = '{:^6d} | {:^3.4f} | {:^3.4f} | {:^3.4f} '
-        self.t = self.t_format.format('Batch', 'BLoss', 'ELoss', 'SR_PSNR')
+        self.t_format = '{:^6s} | {:^6s} | {:^6s} | {:^6s} | {:^6s} | {:^8s} '
+        self.r_format = '{:^6d} | {:^6d} | {:^3.4f} | {:^3.4f} | {:^3.4f} | {:^.4E} '
+        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'Runtime')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
 
     def load_checkpoint(self):
@@ -101,11 +102,12 @@ class Model(nn.Module):
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
-            print(self.r_format.format(bid, l, sum(ls) / len(ls), sum(ps) / len(ps)))
+            print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls), sum(ps) / len(ps)), self.timer.report())
             print(self.t, end='\r')
 
             l.backward()
             optimizer.step()
+            self.timer.refresh()
 
         scheduler.step()
         with open(self.log, 'a') as f:

@@ -128,87 +128,84 @@ if __name__ == '__main__':
     print(sr_model.splitter)
     best_val = None
     for epoch in range(begin_epoch, num_epoch):
-        # sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
-        torch.cuda.empty_cache()
+        sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
         val_l = sr_model.test_step(val_loader, sr_loss)
         if best_val is None or best_val > val_l:
             sr_model.save_checkpoint()
 
-    '''
-    with open(log_dir, 'a') as f:
-        for epoch in range(begin_epoch, num_epoch):
-            epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
-            sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
-            for bid, batch in enumerate(train_loader):
-                hr, lr, ls = batch['hr'].cuda(), batch['lr'].cuda(), list()
-                timer.refresh()
-
-                if is_train:
-                    if up_sampler is not None:
-                        sr_optimizer.zero_grad()
-                    if down_sampler is not None:
-                        ds_optimizer.zero_grad()
-                else:
-                    torch.cuda.empty_cache()
-                    
-                if up_sampler is not None:
-                    sr = sr_model(lr)
-                    if is_train:
-                        sr_l = sr_loss(sr, hr)
-                        ls.append(sr_l)
-                    else:
-                        sr_ot = np.moveaxis(sr.detach().cpu().numpy().squeeze(0), 0, -1).astype(np.uint8)
-                        imwrite(os.path.join(sr_dir, batch['name'][0]), sr_ot)
-                    sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
-                    epoch_sr.append(sr_psnr)
-
-                if down_sampler is not None:
-                    dhr = ds_model(hr)
-                    if is_train:
-                        ds_l = ds_loss(dhr, lr)
-                        ls.append(pipeline_params['ds_beta'] * ds_l)
-                    else:
-                        pass
-                    ds_psnr = psnr(dhr, lr).detach().cpu().item()
-                    epoch_lr.append(ds_psnr)
-                else:
-                    dsl = ds_loss(sr, lr)
-                    if is_train:
-                        ls.append(pipeline_params['ds_beta'] * dsl)
-
-                l = sum(ls)
-                epoch_ls.append(l)
-                if is_train:
-                    l.backward()
-                    if up_sampler is not None:
-                        sr_optimizer.step()
-                    if down_sampler is not None:
-                        ds_optimizer.step()
-
-                ep_l = sum(epoch_ls) / (bid + 1)
-                ep_sr = sum(epoch_sr) / (bid + 1)
-                ep_lr = sum(epoch_lr) / (bid + 1)
-                ep_df = sum(epoch_diff) / (bid + 1)
-                duration = timer.report()
-
-                report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, duration)
-                if bid % pipeline_params['print_every'] == 0:
-                    print(report)
-                    print(title, end='\r')
-
-            if is_train:
-                f.write(report + '\n')
-                f.flush()
-                if up_sampler is not None:
-                    sr_scheduler.step()
-                if down_sampler is not None:
-                    ds_scheduler.step()
-                if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
-                    if up_sampler is not None:
-                        sr_model.save_checkpoint()
-                    if down_sampler is not None:
-                        ds_model.save_checkpoint()
-            else:
-                pass
-            print(splitter)
-    '''
+    # with open(log_dir, 'a') as f:
+    #     for epoch in range(begin_epoch, num_epoch):
+    #         epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
+    #         sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
+    #         for bid, batch in enumerate(train_loader):
+    #             hr, lr, ls = batch['hr'].cuda(), batch['lr'].cuda(), list()
+    #             timer.refresh()
+    #
+    #             if is_train:
+    #                 if up_sampler is not None:
+    #                     sr_optimizer.zero_grad()
+    #                 if down_sampler is not None:
+    #                     ds_optimizer.zero_grad()
+    #             else:
+    #                 torch.cuda.empty_cache()
+    #
+    #             if up_sampler is not None:
+    #                 sr = sr_model(lr)
+    #                 if is_train:
+    #                     sr_l = sr_loss(sr, hr)
+    #                     ls.append(sr_l)
+    #                 else:
+    #                     sr_ot = np.moveaxis(sr.detach().cpu().numpy().squeeze(0), 0, -1).astype(np.uint8)
+    #                     imwrite(os.path.join(sr_dir, batch['name'][0]), sr_ot)
+    #                 sr_psnr = psnr(sr, hr, trim=trim).detach().cpu().item()
+    #                 epoch_sr.append(sr_psnr)
+    #
+    #             if down_sampler is not None:
+    #                 dhr = ds_model(hr)
+    #                 if is_train:
+    #                     ds_l = ds_loss(dhr, lr)
+    #                     ls.append(pipeline_params['ds_beta'] * ds_l)
+    #                 else:
+    #                     pass
+    #                 ds_psnr = psnr(dhr, lr).detach().cpu().item()
+    #                 epoch_lr.append(ds_psnr)
+    #             else:
+    #                 dsl = ds_loss(sr, lr)
+    #                 if is_train:
+    #                     ls.append(pipeline_params['ds_beta'] * dsl)
+    #
+    #             l = sum(ls)
+    #             epoch_ls.append(l)
+    #             if is_train:
+    #                 l.backward()
+    #                 if up_sampler is not None:
+    #                     sr_optimizer.step()
+    #                 if down_sampler is not None:
+    #                     ds_optimizer.step()
+    #
+    #             ep_l = sum(epoch_ls) / (bid + 1)
+    #             ep_sr = sum(epoch_sr) / (bid + 1)
+    #             ep_lr = sum(epoch_lr) / (bid + 1)
+    #             ep_df = sum(epoch_diff) / (bid + 1)
+    #             duration = timer.report()
+    #
+    #             report = report_formatter.format(epoch, bid, l, ep_l, sr_psnr, ep_sr, dsl, ep_lr, ep_df, duration)
+    #             if bid % pipeline_params['print_every'] == 0:
+    #                 print(report)
+    #                 print(title, end='\r')
+    #
+    #         if is_train:
+    #             f.write(report + '\n')
+    #             f.flush()
+    #             if up_sampler is not None:
+    #                 sr_scheduler.step()
+    #             if down_sampler is not None:
+    #                 ds_scheduler.step()
+    #             if epoch % pipeline_params['save_every'] == 0 or epoch == pipeline_params['num_epoch'] - 1:
+    #                 if up_sampler is not None:
+    #                     sr_model.save_checkpoint()
+    #                 if down_sampler is not None:
+    #                     ds_model.save_checkpoint()
+    #         else:
+    #             pass
+    #         print(splitter)
