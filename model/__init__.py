@@ -102,7 +102,7 @@ class Model(nn.Module):
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
-            print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls), sum(ps) / len(ps)), self.timer.report())
+            print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls), sum(ps) / len(ps), self.timer.report()))
             print(self.t, end='\r')
 
             l.backward()
