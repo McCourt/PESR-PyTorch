@@ -12,5 +12,5 @@ class DownScaleLoss(nn.Module):
         self.range = rg
 
     def forward(self, sr, lr):
-        # return self.mse(self.down_sampler(sr, clip_round=self.clip_round), lr)
-        return torch.mean(torch.clamp(torch.abs(self.down_sampler(sr, clip_round=self.clip_round) - lr)[:, :, 2:-2, 2:-2], min=self.range))
+        return self.mse(self.down_sampler(sr, clip_round=self.clip_round), lr)
+        # return torch.mean(torch.clamp(torch.abs(self.down_sampler(sr, clip_round=self.clip_round) - lr)[:, :, 2:-2, 2:-2], min=self.range))
