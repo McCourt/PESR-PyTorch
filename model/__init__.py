@@ -55,7 +55,7 @@ class Model(nn.Module):
             self.eval()
             print('{} model is ready for training'.format(mode))
         self.metric = PSNR()
-        self.t_format = '{:^6s} | {:^8s} | {:^8s} | {:^8s}'
+        self.t_format = '{:^6s} | {:^7s} | {:^7s} | {:^7s}'
         self.r_format = '{:^6d} | {:^3.5f} | {:^3.5f} | {:^3.5f}'
         self.t = self.t_format.format('Batch', 'BLoss', 'ELoss', 'SR_PSNR')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
