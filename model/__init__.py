@@ -92,9 +92,9 @@ class Model(nn.Module):
 
     def train_step(self, data_loader, optimizer, scheduler, loss_fn):
         self.train()
+        ls, ps = list(), list()
         for bid, batch in enumerate(data_loader):
             hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
-            ls, ps = list(), list()
             optimizer.zero_grad()
             sr = self.forward(lr)
 
