@@ -5,3 +5,4 @@ from model.upscaler.SESR import SqueezeExcitationSR
 from model.upscaler.SRRN import SRResNet
 from model.upscaler.VDSR import VDSR
 from model.upscaler.DSSR import DSSR
+from model.upscaler.EDSR import EDSR
