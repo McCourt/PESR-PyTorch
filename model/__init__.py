@@ -115,8 +115,9 @@ class Model(nn.Module):
     def test_step(self, data_loader, loss_fn):
         self.eval()
         ls = list()
-        for bid, batch in enumerate(data_loader):
-            hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
-            sr = self.forward(lr)
-            ls.append(loss_fn(hr, sr).detach().cpu().numpy())
+        with torch.no_grad():
+            for bid, batch in enumerate(data_loader):
+                hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
+                sr = self.forward(lr)
+                ls.append(loss_fn(hr, sr).detach().cpu().numpy())
         return np.mean(ls)
