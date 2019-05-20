@@ -95,7 +95,7 @@ if __name__ == '__main__':
         else:
             raise Exception('No trainable parameters in training mode')
 
-        dataset = SRTrainDataset(
+        train_dataset = SRTrainDataset(
             hr_dir=hr_dir,
             lr_dir=lr_dir,
             h=pipeline_params['window'][0],
@@ -103,10 +103,15 @@ if __name__ == '__main__':
             scale=scale,
             num_per=pipeline_params['num_per']
         )
-    else:
-        dataset = SRTestDataset(hr_dir=hr_dir, lr_dir=lr_dir)
-    data_loader = DataLoader(
-        dataset,
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=pipeline_params['batch_size'] if is_train else 1,
+            shuffle=True,
+            num_workers=pipeline_params['num_worker']
+        )
+    val_dataset = SRTestDataset(hr_dir=hr_dir, lr_dir=lr_dir)
+    val_loader = DataLoader(
+        val_dataset,
         batch_size=pipeline_params['batch_size'] if is_train else 1,
         shuffle=True if is_train else False,
         num_workers=pipeline_params['num_worker']
@@ -124,11 +129,21 @@ if __name__ == '__main__':
     cnt = 0
     print(title)
     print(splitter)
+    best_val = None
+    for epoch in range(begin_epoch, num_epoch):
+        sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
+        torch.cuda.empty_cache()
+        val_l = sr_model.test_step(val_dataset)
+        if best_val is None or best_val > val_l:
+            sr_model.save_checkpoint()
+
+
+    '''
     with open(log_dir, 'a') as f:
         for epoch in range(begin_epoch, num_epoch):
             epoch_ls, epoch_sr, epoch_lr, epoch_diff = [], [], [], []
             sr_l, ds_l, sr_psnr, ds_psnr = -1., -1., -1., -1.
-            for bid, batch in enumerate(data_loader):
+            for bid, batch in enumerate(train_loader):
                 hr, lr, ls = batch['hr'].cuda(), batch['lr'].cuda(), list()
                 timer.refresh()
 
@@ -200,3 +215,4 @@ if __name__ == '__main__':
             else:
                 pass
             print(splitter)
+    '''
