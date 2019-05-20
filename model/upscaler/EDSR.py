@@ -30,7 +30,7 @@ class BasicGroup(nn.Module):
 
 
 class EDSR(nn.Module):
-    def __init__(self, num_groups=6, num_channel=256):
+    def __init__(self, num_groups=7, num_channel=256):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
