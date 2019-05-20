@@ -65,35 +65,19 @@ if __name__ == '__main__':
     log_dir = os.path.join(root_dir, common_params['log_dir'].format(model_name))
     num_epoch = train_params['num_epoch'] if is_train else 1
 
-    # Define upscale model and data parallel
-    if up_sampler is not None:
-        sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
-        sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=is_train)
-        sr_loss = nn.L1Loss().cuda()
-
-    # Define downscale model and data parallel and loss functions
-    if down_sampler is not None:
-        ds_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(down_sampler))
-        ds_model = Model(name=down_sampler, mode='downscaler', checkpoint=ds_ckpt, train=is_train)
-        ds_loss = nn.MSELoss().cuda()
-    else:
-        ds_loss = DownScaleLoss(clip_round=False).cuda()
+    sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
+    sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=is_train)
+    sr_loss = nn.L1Loss().cuda()
+    ds_loss = DownScaleLoss(clip_round=False).cuda()
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if is_train:
         lr = train_params['learning_rate'] * train_params['decay_rate'] ** begin_epoch
-        params = list()
-        if up_sampler or down_sampler:
-            if up_sampler is not None:
-                sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=lr)
-                sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
-                                                                      gamma=train_params['decay_rate'],
-                                                                      last_epoch=begin_epoch - 1)
-            if down_sampler is not None:
-                ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=lr)
-                ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer,
-                                                                      gamma=train_params['decay_rate'],
-                                                                      last_epoch=begin_epoch - 1)
+        if up_sampler is not None:
+            sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=lr)
+            sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
+                                                                  gamma=train_params['decay_rate'],
+                                                                  last_epoch=begin_epoch - 1)
         else:
             raise Exception('No trainable parameters in training mode')
 
@@ -122,8 +106,6 @@ if __name__ == '__main__':
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
     print(sr_model.splitter)
-    timer = Timer()
-    cnt = 0
     print(sr_model.t)
     print(sr_model.splitter)
     best_val = None
