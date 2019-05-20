@@ -36,9 +36,9 @@ if __name__ == '__main__':
         params = load_parameters(path='parameter.json')
         print('Parameters loaded')
         print(''.join(['-' for i in range(30)]))
-        pipeline_params, common_params = params[mode], params['common']
-        for i in sorted(pipeline_params):
-            print('{:<15s} -> {}'.format(str(i), pipeline_params[i]))
+        train_params, test_params, common_params = params['train'], params['test'], params['common']
+        for i in sorted(train_params):
+            print('{:<15s} -> {}'.format(str(i), train_params[i]))
     except Exception as e:
         print(e)
         raise ValueError('Parameter not found.')
@@ -52,16 +52,18 @@ if __name__ == '__main__':
     # Prepare all directory and devices
     root_dir = common_params['root_dir']
     is_train = True if mode == 'train' else False
-    begin_epoch = pipeline_params['begin_epoch'] if is_train else 0
+    begin_epoch = train_params['begin_epoch'] if is_train else 0
     model_name = '+'.join([str(i) for i in [up_sampler, down_sampler]])
     trim, scale, psnr = common_params['trim'], common_params['scale'], PSNR()
-    hr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['hr_dir'])
-    lr_dir = os.path.join(root_dir, common_params['s0_dir'], pipeline_params['lr_dir'])
-    sr_dir = os.path.join(root_dir, common_params['s1_dir'], up_sampler, pipeline_params['sr_dir'])
+    train_hr_dir = os.path.join(root_dir, common_params['s0_dir'], train_params['hr_dir'])
+    train_lr_dir = os.path.join(root_dir, common_params['s0_dir'], train_params['lr_dir'])
+    val_hr_dir = os.path.join(root_dir, common_params['s0_dir'], test_params['hr_dir'])
+    val_lr_dir = os.path.join(root_dir, common_params['s0_dir'], test_params['lr_dir'])
+    sr_dir = os.path.join(root_dir, common_params['s1_dir'], up_sampler, train_params['sr_dir'])
     if not os.path.isdir(sr_dir):
         os.makedirs(sr_dir)
     log_dir = os.path.join(root_dir, common_params['log_dir'].format(model_name))
-    num_epoch = pipeline_params['num_epoch'] if is_train else 1
+    num_epoch = train_params['num_epoch'] if is_train else 1
 
     # Define upscale model and data parallel
     if up_sampler is not None:
@@ -79,42 +81,42 @@ if __name__ == '__main__':
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if is_train:
-        lr = pipeline_params['learning_rate'] * pipeline_params['decay_rate'] ** begin_epoch
+        lr = train_params['learning_rate'] * train_params['decay_rate'] ** begin_epoch
         params = list()
         if up_sampler or down_sampler:
             if up_sampler is not None:
                 sr_optimizer = torch.optim.Adam(sr_model.parameters(), lr=lr)
                 sr_scheduler = torch.optim.lr_scheduler.ExponentialLR(sr_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      gamma=train_params['decay_rate'],
                                                                       last_epoch=begin_epoch - 1)
             if down_sampler is not None:
                 ds_optimizer = torch.optim.Adam(ds_model.parameters(), lr=lr)
                 ds_scheduler = torch.optim.lr_scheduler.ExponentialLR(ds_optimizer,
-                                                                      gamma=pipeline_params['decay_rate'],
+                                                                      gamma=train_params['decay_rate'],
                                                                       last_epoch=begin_epoch - 1)
         else:
             raise Exception('No trainable parameters in training mode')
 
         train_dataset = SRTrainDataset(
-            hr_dir=hr_dir,
-            lr_dir=lr_dir,
-            h=pipeline_params['window'][0],
-            w=pipeline_params['window'][1],
+            hr_dir=train_hr_dir,
+            lr_dir=train_lr_dir,
+            h=train_params['window'][0],
+            w=train_params['window'][1],
             scale=scale,
-            num_per=pipeline_params['num_per']
+            num_per=train_params['num_per']
         )
         train_loader = DataLoader(
             train_dataset,
-            batch_size=pipeline_params['batch_size'] if is_train else 1,
+            batch_size=train_params['batch_size'] if is_train else 1,
             shuffle=True,
-            num_workers=pipeline_params['num_worker']
+            num_workers=train_params['num_worker']
         )
-    val_dataset = SRTestDataset(hr_dir=hr_dir, lr_dir=lr_dir)
+    val_dataset = SRTestDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir)
     val_loader = DataLoader(
         val_dataset,
-        batch_size=pipeline_params['batch_size'] if is_train else 1,
+        batch_size=train_params['batch_size'] if is_train else 1,
         shuffle=True if is_train else False,
-        num_workers=pipeline_params['num_worker']
+        num_workers=train_params['num_worker']
     )
 
     # Training loop and saver as checkpoints

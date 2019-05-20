@@ -6,7 +6,8 @@
     "srresnet": "SRResNet",
     "squeeze_excitation": "SqueezeExcitationSR",
     "vdsr": "VDSR",
-    "dssr": "DSSR"
+    "dssr": "DSSR",
+    "edsr": "EDSR"
   },
   "downscaler": {
     "bicubic": "BicubicDownSample",
