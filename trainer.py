@@ -107,15 +107,15 @@ if __name__ == '__main__':
         )
         train_loader = DataLoader(
             train_dataset,
-            batch_size=train_params['batch_size'] if is_train else 1,
+            batch_size=train_params['batch_size'],
             shuffle=True,
             num_workers=train_params['num_worker']
         )
     val_dataset = SRTestDataset(hr_dir=val_hr_dir, lr_dir=val_lr_dir)
     val_loader = DataLoader(
         val_dataset,
-        batch_size=train_params['batch_size'] if is_train else 1,
-        shuffle=True if is_train else False,
+        batch_size=1,
+        shuffle=False,
         num_workers=train_params['num_worker']
     )
 
