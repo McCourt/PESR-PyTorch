@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from importlib import import_module
 from src.helper import load_parameters, Timer
-from loss import PSNR
+from ..loss import PSNR
 import os
 import numpy as np
 

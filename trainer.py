@@ -137,7 +137,6 @@ if __name__ == '__main__':
         if best_val is None or best_val > val_l:
             sr_model.save_checkpoint()
 
-
     '''
     with open(log_dir, 'a') as f:
         for epoch in range(begin_epoch, num_epoch):
