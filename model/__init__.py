@@ -56,9 +56,9 @@ class Model(nn.Module):
             self.eval()
             print('{} model is ready for training'.format(mode))
         self.metric = PSNR()
-        self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} '
-        self.r_format = '{:^6d} | {:^6d} | {:^.4f} | {:^.4f} | {:^.4f} | {:^.4E} '
-        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'Runtime')
+        self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} '
+        self.r_format = '{:^6d} | {:^6d} | {:^.4f} | {:^.4f} | {:^.4f} | {:^.4f} | {:^.4E} '
+        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
 
     def load_checkpoint(self):
@@ -102,7 +102,8 @@ class Model(nn.Module):
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
-            print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls), sum(ps) / len(ps), self.timer.report()))
+            print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls),
+                                       psnr, sum(ps) / len(ps), self.timer.report()))
             print(self.t, end='\r')
 
             l.backward()
