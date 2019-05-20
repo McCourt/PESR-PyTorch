@@ -55,8 +55,8 @@ class Model(nn.Module):
             self.eval()
             print('{} model is ready for training'.format(mode))
         self.metric = PSNR()
-        self.t_format = '{:^6s} | {:^7s} | {:^7s} | {:^7s}'
-        self.r_format = '{:^6d} | {:^3.5f} | {:^3.5f} | {:^3.5f}'
+        self.t_format = '{:^6s} | {:^6s} | {:^6s} | {:^6s} '
+        self.r_format = '{:^6d} | {:^3.4f} | {:^3.4f} | {:^3.4f} '
         self.t = self.t_format.format('Batch', 'BLoss', 'ELoss', 'SR_PSNR')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
 
@@ -96,16 +96,16 @@ class Model(nn.Module):
             ls, ps = list(), list()
             optimizer.zero_grad()
             sr = self.forward(lr)
+
             l = loss_fn(sr, hr)
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
             print(self.r_format.format(bid, l, sum(ls) / len(ls), sum(ps) / len(ps)))
+            print(self.t, end='\r')
 
             l.backward()
             optimizer.step()
-
-            print(self.t, end='\r')
 
         scheduler.step()
         with open(self.log, 'a') as f:

@@ -128,9 +128,9 @@ if __name__ == '__main__':
     print(sr_model.splitter)
     best_val = None
     for epoch in range(begin_epoch, num_epoch):
-        sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
+        # sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
         torch.cuda.empty_cache()
-        val_l = sr_model.test_step(val_dataset)
+        val_l = sr_model.test_step(val_loader, sr_loss)
         if best_val is None or best_val > val_l:
             sr_model.save_checkpoint()
 
