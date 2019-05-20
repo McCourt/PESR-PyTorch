@@ -121,16 +121,11 @@ if __name__ == '__main__':
 
     # Training loop and saver as checkpoints
     print('Using device {}'.format(device))
-    title_formatter = '{:^6s} | {:^6s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^8s} | {:^10s} '
-    report_formatter = '{:^6d} | {:^6d} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^8.4f} | {:^10.4f} '
-    title = title_formatter.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'SR_PSNR', 'AVG_SR',
-                                   'DS_PSNR', 'AVG_DS', 'AVG_DIFF', 'RunTime')
-    splitter = ''.join(['-' for i in range(len(title))])
-    print(splitter)
+    print(sr_model.splitter)
     timer = Timer()
     cnt = 0
-    print(title)
-    print(splitter)
+    print(sr_model.t)
+    print(sr_model.splitter)
     best_val = None
     for epoch in range(begin_epoch, num_epoch):
         sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
