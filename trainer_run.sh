@@ -1,6 +1,6 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -W ignore trainer.py --mode='train'
+CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -W ignore main.py --mode='train'
 
-#python3 -W ignore //usr/project/xtmp/superresoluter/superresolution/trainer.py \
+#python3 -W ignore //usr/project/xtmp/superresoluter/superresolution/main.py \
 #	--model-name='edsr_pyr' \
 #	--hr-dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_HR' \
 #	--lr-dir='/usr/project/xtmp/superresoluter/dataset/DIV2K/DIV2K_train_LR_bicubic/X4' \

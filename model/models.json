@@ -5,7 +5,9 @@
     "res2net": "Res2NetSR",
     "srresnet": "SRResNet",
     "squeeze_excitation": "SqueezeExcitationSR",
-    "vdsr": "VDSR"
+    "vdsr": "VDSR",
+    "dssr": "DSSR",
+    "edsr": "EDSR"
   },
   "downscaler": {
     "bicubic": "BicubicDownSample",
@@ -13,6 +15,6 @@
     "trained": "DownSampler"
   },
   "discriminator": {
-    "vgg": "Discriminator_VGG_128"
+    "vgg_enhance_net": "Discriminator_VGG_128"
   }
 }

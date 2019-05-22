@@ -26,13 +26,51 @@ class ConvolutionBlock(nn.Module):
         return self.model(x)
 
 
+class DepthSeparableConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels=None, kernel_size=3, bias=True,
+                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
+        super().__init__()
+        out_channels = in_channels if out_channels is None else out_channels
+        model_body = []
+        model_body.append(
+            convolution(
+                in_channels=in_channels,
+                out_channels=in_channels,
+                kernel_size=kernel_size,
+                bias=bias,
+                padding=padding,
+                groups=in_channels
+            )
+        )
+        if batch_norm is not None:
+            model_body.append(batch_norm(out_channels))
+        if activation is not None:
+            model_body.append(activation(inplace=True))
+        model_body.append(
+            convolution(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                kernel_size=1,
+                bias=bias
+            )
+        )
+        if batch_norm is not None:
+            model_body.append(batch_norm(out_channels))
+        if activation is not None:
+            model_body.append(activation(inplace=True))
+        self.model = nn.Sequential(*tuple(model_body))
+
+    def forward(self, x):
+        return self.model(x)
+
+
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=0.1,
-                 activation=nn.LeakyReLU, padding=1, batch_norm=None, bias=True):
+                 activation=nn.LeakyReLU, padding=1, batch_norm=None, bias=True, basic_block=ConvolutionBlock):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
         model_body = [
-            ConvolutionBlock(
+            basic_block(
                 in_channels=in_channels,
                 out_channels=out_channels,
                 kernel_size=kernel_size,
@@ -43,7 +81,7 @@ class ResBlock(nn.Module):
             )
         ]
         model_body = model_body + [
-            ConvolutionBlock(
+            basic_block(
                 in_channels=out_channels,
                 kernel_size=kernel_size,
                 activation=activation,
@@ -53,7 +91,7 @@ class ResBlock(nn.Module):
             for _ in range(num_blocks - 2)
         ]
         model_body.append(
-            ConvolutionBlock(
+            basic_block(
                 in_channels=out_channels,
                 kernel_size=kernel_size,
                 padding=padding,
@@ -70,7 +108,7 @@ class ResBlock(nn.Module):
 
 
 class Res2Block(nn.Module):
-    def __init__(self, in_channels=64, up_channels=64, out_channels=64, residual_weight=0.1):
+    def __init__(self, in_channels=64, up_channels=64, out_channels=64, residual_weight=0.5):
         super().__init__()
         self.residual_weight = residual_weight
         self.conv_1x1_in = ConvolutionBlock(in_channels=in_channels, out_channels=up_channels, kernel_size=1, padding=0, activation=None)
@@ -79,7 +117,7 @@ class Res2Block(nn.Module):
         self.conv_chunk_2 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
         self.conv_chunk_3 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
         self.conv_chunk_4 = ConvolutionBlock(in_channels=sub_in, out_channels=sub_out, activation=nn.LeakyReLU)
-        self.conv_1x1_out = ConvolutionBlock(in_channels=up_channels+in_channels,
+        self.conv_1x1_out = ConvolutionBlock(in_channels=up_channels,
                                              out_channels=out_channels,
                                              activation=nn.LeakyReLU)
 
@@ -90,19 +128,19 @@ class Res2Block(nn.Module):
         x2 = self.conv_chunk_2(chunks[1] + x1 * self.residual_weight)
         x3 = self.conv_chunk_3(chunks[2] + x2 * self.residual_weight)
         x4 = self.conv_chunk_4(chunks[3] + x3 * self.residual_weight)
-        concat = torch.cat([x, x1, x2, x3, x4], dim=1)
+        concat = torch.cat([x1, x2, x3, x4], dim=1)
         # Maybe add a decay rate to deal with potential numerical stability
-        out = self.conv_1x1_out(concat)
+        out = self.conv_1x1_out(concat) + in_tensor
         return out
 
 
 class CascadingBlock(nn.Module):
-    def __init__(self, in_channels, out_channels=None, basic_block=ResBlock):
+    def __init__(self, in_channels, out_channels=None, basic_block=ConvolutionBlock):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
-        self.b1 = basic_block(in_channels, out_channels)
-        self.b2 = basic_block(out_channels, out_channels)
-        self.b3 = basic_block(out_channels, out_channels)
+        self.b1 = ResBlock(in_channels, out_channels, basic_block=basic_block)
+        self.b2 = ResBlock(out_channels, out_channels, basic_block=basic_block)
+        self.b3 = ResBlock(out_channels, out_channels, basic_block=basic_block)
 
         self.c1 = ConvolutionBlock(out_channels * 2, out_channels, kernel_size=1, padding=0)
         self.c2 = ConvolutionBlock(out_channels * 3, out_channels, kernel_size=1, padding=0)
