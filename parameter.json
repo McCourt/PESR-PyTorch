@@ -1,7 +1,7 @@
 {
   "common": {
-    "up_sampler": "dssr",
-    "down_sampler": null,
+    "name": "dssr",
+    "type": "upscaler",
     "scale": 4,
     "metric": ["PSNR"],
     "trim": 6,

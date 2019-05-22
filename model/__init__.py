@@ -5,6 +5,8 @@ from src.helper import load_parameters, Timer
 from loss.psnr import PSNR
 import os
 import numpy as np
+from dataset import SRTrainDataset, SRTestDataset
+from torch.utils.data import DataLoader
 
 
 def save_checkpoint(state_dict, save_dir):
@@ -29,37 +31,80 @@ def report_num_params(model):
 
 
 class Model(nn.Module):
-    def __init__(self, name, mode, checkpoint=None, train=True, map_location=None, log=None, **kwargs):
+    def __init__(self, arg_dir='parameter.json', is_train=True, **kwargs):
         super().__init__()
-        params = load_parameters(path='model/models.json')
+        try:
+            m_param = load_parameters(path='model/models.json')
+            arg_params = load_parameters(path=arg_dir)
+            print('Parameters loaded')
+            print(''.join(['-' for i in range(30)]))
+            for i in sorted(arg_params):
+                for j in sorted(i):
+                    print('{:<6s} -> {:<15s} -> {}'.format(str(i), str(j), arg_params[i][j]))
+            t_param, v_param, c_param = arg_params['train'], arg_params['test'], arg_params['common']
+        except Exception as e:
+            print(e)
+            raise ValueError('Parameter not found.')
 
-        if mode not in params.keys():
-            raise ValueError('Wrong mode. Try {}'.format(', '.join(params.keys())))
-        elif name not in params[mode]:
-            raise ValueError('Wrong model name. Try {}'.format(', '.join(params[mode].keys())))
-        path = '.'.join(['model', mode])
-        module = getattr(import_module(path), params[mode][name.lower()])
-        self.model = module(**kwargs)
-        self.model = nn.DataParallel(self.model).cuda()
-        report_num_params(self.model)
+        self.model_name = c_param['name']
+        self.mode = c_param['type']
+        self.is_train = is_train
+        self.epoch = t_param['begin_epoch'] if self.is_train else 0
+        self.num_epoch = t_param['num_epoch'] if is_train else 1
+        self.lr = t_param['learning_rate'] * t_param['decay_rate'] ** self.epoch
+        self.decay_rate = t_param['decay_rate']
+        self.device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
+        print('Using device {}'.format(self.device))
+        if self.model_name is None:
+            raise Exception('You must define either an upscale model or a downscale model for super resolution')
+        if self.mode not in m_param.keys():
+            raise ValueError('Wrong mode. Try {}'.format(', '.join(m_param.keys())))
+        if self.model_name not in m_param[self.mode]:
+            raise ValueError('Wrong model name. Try {}'.format(', '.join(m_param[self.mode].keys())))
 
-        self.checkpoint, self.mode, self.map_location, self.log = checkpoint, mode, map_location, log
-        self.epoch = 0
-        self.load_checkpoint()
-        self.timer = Timer()
+        root_dir = self.c_param['root_dir']
+        self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
+        self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'])
+        self.sr_out_dir = os.path.join(root_dir, self.c_param['s1_dir'], self.model_name, self.t_param['sr_dir'])
+        if not os.path.isdir(self.sr_out_dir):
+            os.makedirs(self.sr_out_dir)
 
-        self.is_train = train
-        if not self.is_train:
-            print('Disabling auto gradient and switching to TEST mode')
-            self.train()
-        else:
-            self.eval()
-            print('{} model is ready for training'.format(mode))
+        self.log_dir = os.path.join(root_dir, c_param['log_dir'].format(self.model_name))
+        self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name))
+        self.map_location = t_param['map_location']
         self.metric = PSNR()
         self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} '
         self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^8.4E} '
         self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
+
+        path = '.'.join(['model', self.mode])
+        module = getattr(import_module(path), m_param[self.mode][self.model_name.lower()])
+        self.model = module(**kwargs)
+        self.model = nn.DataParallel(self.model).cuda()
+        report_num_params(self.model)
+        self.load_checkpoint()
+        self.timer = Timer()
+
+        if not self.is_train:
+            print('Disabling auto gradient and switching to TEST mode')
+            self.eval()
+        else:
+            self.train()
+            print('{} model is ready for training'.format(self.mode))
+            self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'])
+            self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'])
+            self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+            self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.decay_rate)
+            train_dataset = SRTrainDataset(
+                hr_dir=self.train_hr_dir, lr_dir=self.train_lr_dir, h=t_param['window'][0], w=t_param['window'][1],
+                scale=c_param['scale'], num_per=t_param['num_per']
+            )
+            self.train_loader = DataLoader(
+                train_dataset, batch_size=t_param['batch_size'], shuffle=True, num_workers=t_param['num_worker']
+            )
+        val_dataset = SRTestDataset(hr_dir=self.val_hr_dir, lr_dir=self.val_lr_dir)
+        self.val_loader = DataLoader( val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
     def load_checkpoint(self):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
@@ -90,12 +135,14 @@ class Model(nn.Module):
             output = torch.clamp(torch.round(output), 0., 255.)
         return output
 
-    def train_step(self, data_loader, optimizer, scheduler, loss_fn):
+    def train_step(self, loss_fn):
+        if not self.is_train:
+            raise Exception('Training disabled. Please reinitialize the model.')
         self.train()
         ls, ps = list(), list()
-        for bid, batch in enumerate(data_loader):
+        for bid, batch in enumerate(self.train_loader):
             hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
-            optimizer.zero_grad()
+            self.optimizer.zero_grad()
             sr = self.forward(lr)
 
             l = loss_fn(hr, sr, lr)
@@ -107,29 +154,52 @@ class Model(nn.Module):
             print(self.t, end='\r')
 
             l.backward()
-            optimizer.step()
+            self.optimizer.step()
             self.timer.refresh()
 
         self.epoch += 1
-        scheduler.step()
+        self.scheduler.step()
         with open(self.log, 'a') as f:
-            f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls),
-                                       -1.0, sum(ps) / len(ps), self.timer.report()))
+            f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls), -1.0, sum(ps) / len(ps),
+                                         self.timer.report()))
             f.write('\n')
         print(self.splitter)
 
-    def test_step(self, data_loader, loss_fn):
+    def test_step(self, loss_fn):
         self.eval()
         ls, ps = list(), list()
         with torch.no_grad():
-            for bid, batch in enumerate(data_loader):
+            for bid, batch in enumerate(self.val_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
                 psnr = self.metric(sr, hr).detach().cpu().item()
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
-                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls),
-                                       psnr, sum(ps) / len(ps), self.timer.report()))
+                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
                 self.timer.refresh()
         return np.mean(ls)
+
+    def train_model(self, loss_fn):
+        print(self.splitter)
+        print(self.t)
+        print(self.splitter)
+        best_val = None
+        for epoch in range(self.num_epoch):
+            self.train_step(loss_fn)
+            val_l = self.test_step(loss_fn)
+            if best_val is None or best_val > val_l:
+                self.save_checkpoint()
+                best_val = val_l
+                print(self.splitter)
+                print('Saving best-by-far model at {}'.format(best_val))
+                print(self.splitter)
+
+    def eval_model(self, loss_fn):
+        print(self.splitter)
+        print(self.t)
+        print(self.splitter)
+        best_val = self.test_step(loss_fn)
+        print(self.splitter)
+        print('Best-by-far model stays at {}'.format(best_val))
+        print(self.splitter)
