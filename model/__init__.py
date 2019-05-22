@@ -41,10 +41,10 @@ class Model(nn.Module):
             t_param, v_param, c_param = arg_params['train'], arg_params['test'], arg_params['common']
             if is_train:
                 for i in sorted(t_param):
-                    print('{:<15s} -> {}'.format(str(i), arg_params[i]))
+                    print('{:<15s} -> {}'.format(str(i), t_param[i]))
             else:
                 for i in sorted(v_param):
-                    print('{:<15s} -> {}'.format(str(i), arg_params[i]))
+                    print('{:<15s} -> {}'.format(str(i), v_param[i]))
         except Exception as e:
             print(e)
             raise ValueError('Parameter not found.')
