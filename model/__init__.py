@@ -209,5 +209,5 @@ class Model(nn.Module):
         print(self.splitter)
         best_val = self.test_step(loss_fn, save=save)
         print(self.splitter)
-        print('Best-by-far model stays at {}'.format(best_val))
+        print('Best-by-far model stays at {:.4f}'.format(best_val))
         print(self.splitter)
