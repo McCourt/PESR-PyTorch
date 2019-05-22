@@ -28,12 +28,16 @@ if __name__ == '__main__':
             mode = str(opt)
             if mode not in ['train', 'test']:
                 raise Exception('Wrong pipeline mode detected')
+            is_train = mode == 'train'
         else:
             raise Exception("Redundant Argument Detected")
 
-    model = Model()
+    model = Model(is_train=is_train)
     loss = DownScaleLoss()
-    model.train_model(loss_fn=loss)
+    if is_train:
+        model.train_model(loss_fn=loss)
+    else:
+        model.eval_model(loss_fn=loss)
 
     # # Training loop and saver as checkpoints
     # print('Using device {}'.format(device))

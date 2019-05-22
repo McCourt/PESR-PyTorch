@@ -31,7 +31,7 @@ def report_num_params(model):
 
 
 class Model(nn.Module):
-    def __init__(self, arg_dir='parameter.json', is_train=True, **kwargs):
+    def __init__(self, is_train=True, arg_dir='parameter.json', **kwargs):
         super().__init__()
         try:
             m_param = load_parameters(path='model/models.json')
