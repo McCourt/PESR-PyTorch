@@ -12,7 +12,8 @@ from torch.utils.data import DataLoader
 def save_checkpoint(state_dict, save_dir):
     try:
         torch.save(state_dict, save_dir)
-    except:
+    except Exception as e:
+        print(e)
         raise Exception('checkpoint saving failure')
 
 
@@ -22,7 +23,8 @@ def load_checkpoint(load_dir, map_location=None):
         checkpoint = torch.load(load_dir, map_location=map_location)
         print('loading successful')
         return checkpoint
-    except:
+    except Exception as e:
+        print(e)
         print('No checkpoint and begin new training')
 
 
@@ -99,15 +101,12 @@ class Model(nn.Module):
             self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'])
             self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.decay_rate)
-            train_dataset = SRTrainDataset(
-                hr_dir=self.train_hr_dir, lr_dir=self.train_lr_dir, h=t_param['window'][0], w=t_param['window'][1],
-                scale=c_param['scale'], num_per=t_param['num_per']
-            )
-            self.train_loader = DataLoader(
-                train_dataset, batch_size=t_param['batch_size'], shuffle=True, num_workers=t_param['num_worker']
-            )
+            train_dataset = SRTrainDataset(hr_dir=self.train_hr_dir, lr_dir=self.train_lr_dir, h=t_param['window'][0],
+                                           w=t_param['window'][1], scale=c_param['scale'], num_per=t_param['num_per'])
+            self.train_loader = DataLoader(train_dataset, batch_size=t_param['batch_size'], shuffle=True,
+                                           num_workers=t_param['num_worker'])
         val_dataset = SRTestDataset(hr_dir=self.val_hr_dir, lr_dir=self.val_lr_dir)
-        self.val_loader = DataLoader( val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
+        self.val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
     def load_checkpoint(self):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
@@ -122,14 +121,15 @@ class Model(nn.Module):
                     print('Checkpoint loaded successfully')
             except:
                 print('Checkpoint failed to load, continuing without pretrained checkpoint')
-                #raise ValueError('Wrong Checkpoint path or loaded erroneously')
+                # raise ValueError('Wrong Checkpoint path or loaded erroneously')
         else:
             print('No checkpoint and start new training for {} model'.format(self.mode))
 
     def save_checkpoint(self, add_time=False):
         try:
             torch.save(self.state_dict(), self.checkpoint)
-        except:
+        except Exception as e:
+            print(e)
             raise Exception('checkpoint saving failed')
 
     def forward(self, x, clip_round=False):
@@ -195,7 +195,7 @@ class Model(nn.Module):
                 self.save_checkpoint()
                 best_val = val_l
                 print(self.splitter)
-                print('Saving best-by-far model at {}'.format(best_val))
+                print('Saving best-by-far model at {:.4f}'.format(best_val))
                 print(self.splitter)
 
     def eval_model(self, loss_fn):
