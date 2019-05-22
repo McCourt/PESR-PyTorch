@@ -35,23 +35,21 @@ if __name__ == '__main__':
     loss = DownScaleLoss()
     model.train_model(loss_fn=loss)
 
-<<<<<<< HEAD
-    # Training loop and saver as checkpoints
-    print('Using device {}'.format(device))
-    print(sr_model.splitter)
-    print(sr_model.t)
-    print(sr_model.splitter)
-    best_val = None
-    for epoch in range(begin_epoch, num_epoch):
-        if is_train:
-            sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
-        val_l = sr_model.test_step(val_loader, sr_loss)
-        if best_val is None or best_val < val_l:
-            if is_train:
-                sr_model.save_checkpoint()
-            best_val = val_l
-            print('Saving best-by-far model at {}'.format(best_val))
-=======
+    # # Training loop and saver as checkpoints
+    # print('Using device {}'.format(device))
+    # print(sr_model.splitter)
+    # print(sr_model.t)
+    # print(sr_model.splitter)
+    # best_val = None
+    # for epoch in range(begin_epoch, num_epoch):
+    #     if is_train:
+    #         sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
+    #     val_l = sr_model.test_step(val_loader, sr_loss)
+    #     if best_val is None or best_val < val_l:
+    #         if is_train:
+    #             sr_model.save_checkpoint()
+    #         best_val = val_l
+    #         print('Saving best-by-far model at {}'.format(best_val))
     # # Load JSON arguments
     # try:
     #     params = load_parameters(path='parameter.json')
@@ -139,4 +137,3 @@ if __name__ == '__main__':
     #             sr_model.save_checkpoint()
     #         best_val = val_l
     #         print('Saving best-by-far model at {}'.format(best_val))
->>>>>>> ae1b84331eb7c64059f7133cd9cd572df7f3f17f

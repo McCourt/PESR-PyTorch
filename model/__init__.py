@@ -178,9 +178,7 @@ class Model(nn.Module):
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
                 self.timer.refresh()
-<<<<<<< HEAD
-        return np.mean(ps)
-=======
+
         return np.mean(ls)
 
     def train_model(self, loss_fn):
@@ -206,4 +204,3 @@ class Model(nn.Module):
         print(self.splitter)
         print('Best-by-far model stays at {}'.format(best_val))
         print(self.splitter)
->>>>>>> ae1b84331eb7c64059f7133cd9cd572df7f3f17f

@@ -1,12 +1,8 @@
 {
   "common": {
-<<<<<<< HEAD
-    "up_sampler": "edsr",
-    "down_sampler": null,
-=======
+
     "name": "dssr",
     "type": "upscaler",
->>>>>>> ae1b84331eb7c64059f7133cd9cd572df7f3f17f
     "scale": 4,
     "metric": ["PSNR"],
     "trim": 6,
