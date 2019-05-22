@@ -113,7 +113,7 @@ if __name__ == '__main__':
         if is_train:
             sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
         val_l = sr_model.test_step(val_loader, sr_loss)
-        if best_val is None or best_val > val_l:
+        if best_val is None or best_val < val_l:
             if is_train:
                 sr_model.save_checkpoint()
             best_val = val_l

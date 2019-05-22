@@ -132,4 +132,4 @@ class Model(nn.Module):
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls),
                                        psnr, sum(ps) / len(ps), self.timer.report()))
                 self.timer.refresh()
-        return np.mean(ls)
+        return np.mean(ps)
