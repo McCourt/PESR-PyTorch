@@ -38,10 +38,13 @@ class Model(nn.Module):
             arg_params = load_parameters(path=arg_dir)
             print('Parameters loaded')
             print(''.join(['-' for i in range(30)]))
-            for i in sorted(arg_params):
-                for j in sorted(i):
-                    print('{:<6s} -> {:<15s} -> {}'.format(str(i), str(j), arg_params[i][j]))
             t_param, v_param, c_param = arg_params['train'], arg_params['test'], arg_params['common']
+            if is_train:
+                for i in sorted(t_param):
+                    print('{:<15s} -> {}'.format(str(i), arg_params[i]))
+            else:
+                for i in sorted(v_param):
+                    print('{:<15s} -> {}'.format(str(i), arg_params[i]))
         except Exception as e:
             print(e)
             raise ValueError('Parameter not found.')
@@ -62,10 +65,10 @@ class Model(nn.Module):
         if self.model_name not in m_param[self.mode]:
             raise ValueError('Wrong model name. Try {}'.format(', '.join(m_param[self.mode].keys())))
 
-        root_dir = self.c_param['root_dir']
+        root_dir = c_param['root_dir']
         self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
         self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'])
-        self.sr_out_dir = os.path.join(root_dir, self.c_param['s1_dir'], self.model_name, self.t_param['sr_dir'])
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, t_param['sr_dir'])
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 

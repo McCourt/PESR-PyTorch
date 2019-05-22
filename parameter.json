@@ -1,6 +1,5 @@
 {
   "common": {
-
     "name": "dssr",
     "type": "upscaler",
     "scale": 4,
