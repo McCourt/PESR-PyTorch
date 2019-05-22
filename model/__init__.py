@@ -181,8 +181,7 @@ class Model(nn.Module):
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
                 self.timer.refresh()
-
-        return np.mean(ls)
+        return np.mean(ps)
 
     def train_model(self, loss_fn):
         print(self.splitter)
