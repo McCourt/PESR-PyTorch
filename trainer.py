@@ -66,9 +66,9 @@ if __name__ == '__main__':
     num_epoch = train_params['num_epoch'] if is_train else 1
 
     sr_ckpt = os.path.join(root_dir, common_params['ckpt_dir'].format(up_sampler))
-    sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=is_train)
-    sr_loss = nn.L1Loss().cuda()
-    ds_loss = DownScaleLoss(clip_round=False).cuda()
+    sr_model = Model(name=up_sampler, mode='upscaler', checkpoint=sr_ckpt, train=is_train, log=log_dir)
+    sr_loss = DownScaleLoss().cuda() # nn.L1Loss().cuda()
+    # ds_loss = DownScaleLoss(clip_round=False).cuda()
 
     # Define optimizer, learning rate scheduler, data source and data loader
     if is_train:
@@ -110,8 +110,11 @@ if __name__ == '__main__':
     print(sr_model.splitter)
     best_val = None
     for epoch in range(begin_epoch, num_epoch):
-        sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
+        if is_train:
+            sr_model.train_step(train_loader, sr_optimizer, sr_scheduler, sr_loss)
         val_l = sr_model.test_step(val_loader, sr_loss)
         if best_val is None or best_val > val_l:
-            sr_model.save_checkpoint()
+            if is_train:
+                sr_model.save_checkpoint()
             best_val = val_l
+            print('Saving best-by-far model at {}'.format(best_val))

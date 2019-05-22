@@ -98,7 +98,7 @@ class Model(nn.Module):
             optimizer.zero_grad()
             sr = self.forward(lr)
 
-            l = loss_fn(sr, hr)
+            l = loss_fn(hr, sr, lr)
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
@@ -109,19 +109,27 @@ class Model(nn.Module):
             l.backward()
             optimizer.step()
             self.timer.refresh()
-            self.epoch += 1
 
+        self.epoch += 1
         scheduler.step()
         with open(self.log, 'a') as f:
-            f.write(self.r_format.format(bid, 0.0, sum(ls) / len(ls), sum(ps) / len(ps)))
+            f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls),
+                                       -1.0, sum(ps) / len(ps), self.timer.report()))
+            f.write('\n')
         print(self.splitter)
 
     def test_step(self, data_loader, loss_fn):
         self.eval()
-        ls = list()
+        ls, ps = list(), list()
         with torch.no_grad():
             for bid, batch in enumerate(data_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
-                ls.append(loss_fn(hr, sr).detach().cpu().numpy())
+                psnr = self.metric(sr, hr).detach().cpu().item()
+                l = loss_fn(hr, sr, lr).detach().cpu().item()
+                ps.append(psnr)
+                ls.append(l)
+                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls),
+                                       psnr, sum(ps) / len(ps), self.timer.report()))
+                self.timer.refresh()
         return np.mean(ls)

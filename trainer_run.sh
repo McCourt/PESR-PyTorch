@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -W ignore trainer.py --mode='train'
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3 -W ignore trainer.py --mode='train'
 
 #python3 -W ignore //usr/project/xtmp/superresoluter/superresolution/trainer.py \
 #	--model-name='edsr_pyr' \
