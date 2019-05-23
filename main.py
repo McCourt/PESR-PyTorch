@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # Define and train model
     model = Model(is_train=is_train)
-    loss = DownScaleLoss()
+    loss = torch.nn.L1Loss() # DownScaleLoss()
     if is_train:
         model.train_model(loss_fn=loss)
     else:

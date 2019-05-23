@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0 python3 -W ignore main.py --mode='test'
+CUDA_VISIBLE_DEVICES=2 python3 -W ignore main.py --mode='test'
 
 #python3 -W ignore //usr/project/xtmp/superresoluter/superresolution/main.py \
 #	--model-name='edsr_pyr' \

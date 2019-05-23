@@ -149,7 +149,7 @@ class Model(nn.Module):
             self.optimizer.zero_grad()
             sr = self.forward(lr)
 
-            l = loss_fn(hr, sr, lr)
+            l = loss_fn(hr, sr)
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
@@ -163,7 +163,7 @@ class Model(nn.Module):
 
         self.epoch += 1
         self.scheduler.step()
-        with open(self.log, 'a') as f:
+        with open(self.log_dir, 'a') as f:
             f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls), -1.0, sum(ps) / len(ps),
                                          self.timer.report()))
             f.write('\n')
@@ -177,7 +177,7 @@ class Model(nn.Module):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
                 psnr = self.metric(sr, hr).detach().cpu().item()
-                l = loss_fn(hr, sr, lr).detach().cpu().item()
+                l = loss_fn(hr, sr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
@@ -196,7 +196,7 @@ class Model(nn.Module):
         for epoch in range(self.num_epoch):
             self.train_step(loss_fn)
             val_l = self.test_step(loss_fn)
-            if best_val is None or best_val > val_l:
+            if best_val is None or best_val < val_l:
                 self.save_checkpoint()
                 best_val = val_l
                 print(self.splitter)
