@@ -78,17 +78,12 @@ class SRTrainDataset(Dataset):
             self.lrh, self.lrw, _ = self.lr.shape
             self.hrh, self.hrw, _ = self.hr.shape
 
-        lr_h_center = np.random.randint(0, self.lrh - self.h) + self.h // 2
-        lr_w_center = np.random.randint(0, self.lrw - self.w) + self.w // 2
-        hr_h_center = (lr_h_center - self.lrh // 2) * self.scale + self.hrh // 2
-        hr_w_center = (lr_w_center - self.lrw // 2) * self.scale + self.hrw // 2
-        lr_h_from, lr_w_from = lr_h_center - self.h // 2, lr_w_center - self.w // 2
-        hr_h_from, hr_w_from = hr_h_center - self.h // 2 * self.scale, hr_w_center - self.w // 2 * self.scale
-        lr_h_to, lr_w_to = lr_h_from + self.h, lr_w_from + self.w
-        hr_h_to, hr_w_to = hr_h_from + self.h * self.scale, hr_w_from + self.w * self.scale
-
-        lr = self.lr[lr_h_from:lr_h_to, lr_w_from:lr_w_to, :]
-        hr = self.hr[hr_h_from:hr_h_to, hr_w_from:hr_w_to, :]
+        lr_x = np.random.randint(0, self.lrh - self.h)
+        lr_y = np.random.randint(0, self.lrw - self.w)
+        hr_x = lr_x * self.scale
+        hr_y = lr_y * self.scale
+        lr = self.lr[lr_x:lr_x + self.h, lr_y:lr_y + self.w, :]
+        hr = self.hr[hr_x:hr_x + self.h * self.scale, hr_y:hr_y + self.w * self.scale, :]
 
         if self.rotate and np.random.rand() < self.rotate_rate:
             angle = np.random.choice([1, 2, 3])
