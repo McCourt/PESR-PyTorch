@@ -28,8 +28,8 @@ if __name__ == '__main__':
 
     # Define and train model
     model = Model(is_train=is_train)
-    loss = torch.nn.L1Loss() # DownScaleLoss()
+    loss = DownScaleLoss()
     if is_train:
         model.train_model(loss_fn=loss)
     else:
-        model.eval_model(loss_fn=loss)
+        model.eval_model(loss_fn=loss, save=True)

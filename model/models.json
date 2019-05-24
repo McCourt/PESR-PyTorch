@@ -7,6 +7,7 @@
     "squeeze_excitation": "SqueezeExcitationSR",
     "vdsr": "VDSR",
     "dssr": "DSSR",
+    "vdssr": "VDSSR",
     "edsr": "EDSR"
   },
   "downscaler": {

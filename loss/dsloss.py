@@ -3,7 +3,7 @@ from model.downscaler.bicubic import BicubicDownSample
 
 
 class DownScaleLoss(nn.Module):
-    def __init__(self, weight=1.0, clip_round=False):
+    def __init__(self, weight=0.0, clip_round=False):
         super().__init__()
         self.down_sampler = BicubicDownSample()
         self.clip_round = clip_round

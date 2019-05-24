@@ -71,7 +71,7 @@ class Model(nn.Module):
         root_dir = c_param['root_dir']
         self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
         self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'])
-        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, t_param['sr_dir'])
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'])
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 
@@ -149,7 +149,7 @@ class Model(nn.Module):
             self.optimizer.zero_grad()
             sr = self.forward(lr)
 
-            l = loss_fn(hr, sr)
+            l = loss_fn(hr, sr, lr)
             ls.append(l)
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
@@ -177,22 +177,27 @@ class Model(nn.Module):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
                 psnr = self.metric(sr, hr).detach().cpu().item()
-                l = loss_fn(hr, sr).detach().cpu().item()
+                l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
+                print(self.t, end='\r')
                 self.timer.refresh()
                 if save:
                     img = torch.clamp(torch.round(sr), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                     img = np.squeeze(np.moveaxis(img, 1, -1), axis=0).astype(np.uint8)
-                    imwrite(os.path.join(self.sr_out_dir, batch['name']), img, format='png', compress_level=0)
+                    imwrite(os.path.join(self.sr_out_dir, *batch['name']), img, format='png', compress_level=0)
         return np.mean(ps)
 
     def train_model(self, loss_fn):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = None
+        best_val = self.test_step(loss_fn)
+        torch.cuda.empty_cache()
+        print(self.splitter)
+        print('Best-by-far model stays at {:.4f}'.format(best_val))
+        print(self.splitter)
         for epoch in range(self.num_epoch):
             self.train_step(loss_fn)
             val_l = self.test_step(loss_fn)
@@ -201,7 +206,7 @@ class Model(nn.Module):
                 best_val = val_l
                 print(self.splitter)
                 print('Saving best-by-far model at {:.4f}'.format(best_val))
-                print(self.splitter)
+            print(self.splitter)
 
     def eval_model(self, loss_fn, save=False):
         print(self.splitter)
@@ -210,4 +215,5 @@ class Model(nn.Module):
         best_val = self.test_step(loss_fn, save=save)
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
+        print('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)

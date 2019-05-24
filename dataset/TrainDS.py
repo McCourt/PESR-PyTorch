@@ -8,7 +8,7 @@ from skimage.color import gray2rgb
 class SRTrainDataset(Dataset):
     def __init__(self, hr_dir, lr_dir, h=40, w=40, scale=1, num_per=600,
                  img_format='png', hr_formatter=None, lr_formatter=None,
-                 rgb_shuffle=True, rotate=True, flip=True,
+                 rgb_shuffle=False, rotate=False, flip=False,
                  shuffle_rate=0.1, rotate_rate=0.1, flip_rate=0.1):
         """
         This method is implemented to deal with data inputs in the SR training process.
