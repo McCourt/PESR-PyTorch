@@ -169,13 +169,22 @@ class Model(nn.Module):
             f.write('\n')
         print(self.splitter)
 
-    def test_step(self, loss_fn, save=False):
+    def test_step(self, loss_fn, self_ensemble=False, save=False):
         self.eval()
         ls, ps = list(), list()
         with torch.no_grad():
             for bid, batch in enumerate(self.val_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
+                if self_ensemble:
+                    sr += self.forward(lr.flip(3)).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(1, [2, 3])).rot90(3, [2, 3]).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(2, [2, 3])).rot90(2, [2, 3]).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(3, [2, 3])).rot90(1, [2, 3]).flip(3)
+                    sr += self.forward(lr.rot90(1, [2, 3])).rot90(3, [2, 3]) 
+                    sr += self.forward(lr.rot90(2, [2, 3])).rot90(2, [2, 3])
+                    sr += self.forward(lr.rot90(3, [2, 3])).rot90(1, [2, 3])
+                    sr /= 8.0
                 psnr = self.metric(sr, hr).detach().cpu().item()
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
@@ -208,11 +217,11 @@ class Model(nn.Module):
                 print('Saving best-by-far model at {:.4f}'.format(best_val))
             print(self.splitter)
 
-    def eval_model(self, loss_fn, save=False):
+    def eval_model(self, loss_fn, self_ensemble=False, save=False):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = self.test_step(loss_fn, save=save)
+        best_val = self.test_step(loss_fn, self_ensemble=self_ensemble, save=save)
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
         print('Images saved to {}'.format(self.sr_out_dir))

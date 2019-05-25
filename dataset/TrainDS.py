@@ -8,7 +8,7 @@ from skimage.color import gray2rgb
 class SRTrainDataset(Dataset):
     def __init__(self, hr_dir, lr_dir, h=40, w=40, scale=1, num_per=600,
                  img_format='png', hr_formatter=None, lr_formatter=None,
-                 rgb_shuffle=False, rotate=False, flip=False,
+                 rgb_shuffle=True, rotate=True, flip=True,
                  shuffle_rate=0.1, rotate_rate=0.1, flip_rate=0.1):
         """
         This method is implemented to deal with data inputs in the SR training process.
@@ -87,19 +87,23 @@ class SRTrainDataset(Dataset):
 
         if self.rotate and np.random.rand() < self.rotate_rate:
             angle = np.random.choice([1, 2, 3])
-            lr = np.rot90(lr, angle)
-            hr = np.rot90(hr, angle)
+            lr = np.rot90(lr, angle).copy()
+            hr = np.rot90(hr, angle).copy()
         elif self.flip and np.random.rand() < self.flip_rate:
             if np.random.rand() < .5:
-                lr = np.flipud(lr)
-                hr = np.flipud(hr)
+                lr = np.flipud(lr).copy()
+                hr = np.flipud(hr).copy()
+                # lr = lr[::-1, :, :]
+                # hr = hr[::-1, :, :]
             else:
-                lr = np.fliplr(lr)
-                hr = np.fliplr(hr)
+                lr = np.fliplr(lr).copy()
+                hr = np.fliplr(hr).copy()
+                # lr = lr[:, ::-1, :]
+                # hr = hr[:, ::-1, :]
         elif self.rgb_shuffle and np.random.rand() < self.shuffle_rate:
             new_order = np.random.permutation([0, 1, 2])
-            lr = lr[:, :, new_order]
-            hr = hr[:, :, new_order]
+            lr = lr[:, :, new_order].copy()
+            hr = hr[:, :, new_order].copy()
         else:
             pass
         return {'hr': np.moveaxis(hr, -1, 0), 'lr': np.moveaxis(lr, -1, 0), 'name': self.name}
