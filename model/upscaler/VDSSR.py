@@ -7,7 +7,7 @@ class BasicBlock(nn.Module):
     def __init__(self, num_channel, res_scale=1):
         super().__init__()
         self.model_body = nn.Sequential(
-            CascadingBlock(num_channel),
+            CascadingBlock(num_channel, basic_block=DepthSeparableConvBlock),
             ChannelAttentionBlock(num_channel)
         )
         self.res_scale = res_scale
@@ -29,8 +29,8 @@ class BasicGroup(nn.Module):
         return self.model_body(x) * self.res_scale + x
 
 
-class EDSR(nn.Module):
-    def __init__(self, num_groups=2, num_channel=256):
+class VDSSR(nn.Module):
+    def __init__(self, num_groups=14, num_channel=64):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),

@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "dssr",
+    "name": "vdssr",
     "type": "upscaler",
     "scale": 4,
     "metric": ["PSNR"],
@@ -16,7 +16,7 @@
     "hr_dir": "div2k/HR/DIV2K_train_HR",
     "lr_dir": "div2k/LR/X4",
     "sr_dir": "div2k/",
-    "batch_size": 64,
+    "batch_size": 32,
     "num_epoch": 1000,
     "window": [48, 48],
     "learning_rate": 1e-4,
@@ -26,7 +26,7 @@
     "loss": ["MSE"],
     "optimizer": "Adam",
     "ds_beta": 1.0,
-    "begin_epoch": 0,
+    "begin_epoch": 100,
     "num_worker": 8,
     "map_location": null,
     "save_every": 1,
@@ -34,9 +34,9 @@
   },
   "test": {
     "hr_dir": "Set5/HR/",
-    "lr_dir": "Set5/LR_matlab/",
+    "lr_dir": "Set5/LR_matlab",
     "sr_dir": "Set5/",
-    "save": true,
+    "save": false,
     "map_location": null,
     "num_worker": 8,
     "save_every": 1,

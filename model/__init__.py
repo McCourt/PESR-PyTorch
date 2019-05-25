@@ -71,7 +71,7 @@ class Model(nn.Module):
         root_dir = c_param['root_dir']
         self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
         self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'])
-        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, t_param['sr_dir'])
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'])
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 
@@ -163,51 +163,66 @@ class Model(nn.Module):
 
         self.epoch += 1
         self.scheduler.step()
-        with open(self.log, 'a') as f:
+        with open(self.log_dir, 'a') as f:
             f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls), -1.0, sum(ps) / len(ps),
                                          self.timer.report()))
             f.write('\n')
         print(self.splitter)
 
-    def test_step(self, loss_fn, save=False):
+    def test_step(self, loss_fn, self_ensemble=False, save=False):
         self.eval()
         ls, ps = list(), list()
         with torch.no_grad():
             for bid, batch in enumerate(self.val_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
                 sr = self.forward(lr)
+                if self_ensemble:
+                    sr += self.forward(lr.flip(3)).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(1, [2, 3])).rot90(3, [2, 3]).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(2, [2, 3])).rot90(2, [2, 3]).flip(3)
+                    sr += self.forward(lr.flip(3).rot90(3, [2, 3])).rot90(1, [2, 3]).flip(3)
+                    sr += self.forward(lr.rot90(1, [2, 3])).rot90(3, [2, 3]) 
+                    sr += self.forward(lr.rot90(2, [2, 3])).rot90(2, [2, 3])
+                    sr += self.forward(lr.rot90(3, [2, 3])).rot90(1, [2, 3])
+                    sr /= 8.0
                 psnr = self.metric(sr, hr).detach().cpu().item()
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
+                print(self.t, end='\r')
                 self.timer.refresh()
                 if save:
                     img = torch.clamp(torch.round(sr), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                     img = np.squeeze(np.moveaxis(img, 1, -1), axis=0).astype(np.uint8)
-                    imwrite(os.path.join(self.sr_out_dir, batch['name']), img, format='png', compress_level=0)
+                    imwrite(os.path.join(self.sr_out_dir, *batch['name']), img, format='png', compress_level=0)
         return np.mean(ps)
 
     def train_model(self, loss_fn):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = None
+        best_val = self.test_step(loss_fn)
+        torch.cuda.empty_cache()
+        print(self.splitter)
+        print('Best-by-far model stays at {:.4f}'.format(best_val))
+        print(self.splitter)
         for epoch in range(self.num_epoch):
             self.train_step(loss_fn)
             val_l = self.test_step(loss_fn)
-            if best_val is None or best_val > val_l:
+            if best_val is None or best_val < val_l:
                 self.save_checkpoint()
                 best_val = val_l
                 print(self.splitter)
                 print('Saving best-by-far model at {:.4f}'.format(best_val))
-                print(self.splitter)
+            print(self.splitter)
 
-    def eval_model(self, loss_fn, save=False):
+    def eval_model(self, loss_fn, self_ensemble=False, save=False):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = self.test_step(loss_fn, save=save)
+        best_val = self.test_step(loss_fn, self_ensemble=self_ensemble, save=save)
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
+        print('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)
