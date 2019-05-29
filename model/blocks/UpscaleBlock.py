@@ -5,11 +5,11 @@ from math import log2
 
 
 class PixelShuffleUpscale(nn.Module):
-    def __init__(self, channels, scale=2, activation=None, batch_norm=None):
+    def __init__(self, channels, scale=2, activation=None, batch_norm=None, basic_block=ConvolutionBlock):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
-            model_body.append(ConvolutionBlock(channels, channels * 4))
+            model_body.append(basic_block(channels, channels * 4))
             model_body.append(nn.PixelShuffle(2))
             if activation is not None:
                 model_body.append(activation(True))

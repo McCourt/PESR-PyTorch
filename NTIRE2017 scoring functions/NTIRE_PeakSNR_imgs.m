@@ -27,6 +27,7 @@ end
 if max(G(:)) > 1    
     G = im2double(G);
 end
+
 E = F - G; % error signal
 N = numel(E); % Assume the original signal is at peak (|F|=1)
 res = 10*log10( N / sum(E(:).^2) );

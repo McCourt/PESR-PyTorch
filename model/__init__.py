@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from importlib import import_module
-from src.helper import load_parameters, Timer
+from src.helper import load_parameters, Timer, fourier_transform
 from loss.psnr import PSNR
 import os
 import numpy as np
@@ -146,6 +146,7 @@ class Model(nn.Module):
         ls, ps = list(), list()
         for bid, batch in enumerate(self.train_loader):
             hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
+            # hr, lr = fourier_transform(batch['hr']).cuda(), fourier_transform(batch['lr']).cuda()
             self.optimizer.zero_grad()
             sr = self.forward(lr)
 

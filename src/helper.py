@@ -22,3 +22,8 @@ class Timer(object):
 def load_parameters(path):
     with open(path, 'r') as f:
         return json.load(f)
+
+    
+def fourier_transform(img):
+    img = torch.squeeze(img[:, 0, :, :] * 65.481 + img[:, 1, :, :] * 128.553 + img[:, 2, :, :] * 24.966 + 16)
+    return torch.rfft(img, 2)
