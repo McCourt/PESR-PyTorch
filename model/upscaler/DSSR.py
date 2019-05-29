@@ -39,8 +39,8 @@ class DSSR(nn.Module):
         self.model_1 = nn.Sequential(*tuple([BasicGroup(num_channel) for _ in range(num_groups)]))
 
         self.model_2 = nn.Sequential(
-            PixelShuffleUpscale(channels=num_channel),
-            PixelShuffleUpscale(channels=num_channel),
+            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
+            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(sign=1)
         )
