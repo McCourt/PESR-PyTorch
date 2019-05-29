@@ -13,7 +13,7 @@ class PSNR(nn.Module):
         self.mse = nn.MSELoss()
         self.require_grad = False
 
-    def forward(self, hr, sr, trim=10, round_clip=True):
+    def forward(self, hr, sr, trim=6, round_clip=True):
         if round_clip:
             hr = torch.clamp(torch.round(hr), 0., 255.) / 255.
             hr = hr[:, :, trim:-trim, trim:-trim]

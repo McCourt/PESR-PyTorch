@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "edsr",
+    "name": "dssr",
     "type": "upscaler",
     "scale": 4,
     "metric": ["PSNR"],
@@ -33,8 +33,8 @@
     "print_every": 1
   },
   "test": {
-    "hr_dir": "Set5/HR/",
-    "lr_dir": "Set5/LR_matlab/",
+    "hr_dir": "div2k_valid/HR/",
+    "lr_dir": "div2k_valid/LR/X4/",
     "sr_dir": "Set5/",
     "save": false,
     "map_location": null,

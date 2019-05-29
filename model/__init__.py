@@ -109,7 +109,7 @@ class Model(nn.Module):
         val_dataset = SRTestDataset(hr_dir=self.val_hr_dir, lr_dir=self.val_lr_dir)
         self.val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
-    def load_checkpoint(self):
+    def load_checkpoint(self, strict=False):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
             try:
                 print('loading checkpoint from {}'.format(self.checkpoint))
@@ -118,7 +118,7 @@ class Model(nn.Module):
                     print('No checkpoint and start new training for {} model'.format(self.mode))
                 else:
                     print('loading successful and recovering checkpoints for {} model'.format(self.mode))
-                    self.load_state_dict(ckpt)
+                    self.load_state_dict(ckpt, strict=strict)
                     print('Checkpoint loaded successfully')
             except:
                 print('Checkpoint failed to load, continuing without pretrained checkpoint')
