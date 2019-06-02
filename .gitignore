@@ -1,4 +1,6 @@
 imgs/
+models/
+downsample/
 .idea/
 .ipynb_checkpoints/
 .DS_Store
