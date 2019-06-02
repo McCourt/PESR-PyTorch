@@ -1,0 +1,22 @@
+{
+  "upscaler": {
+    "pyramid_attention": "PyramidAttentionSR",
+    "pyramid_edsr": "PyramidEDSR",
+    "res2net": "Res2NetSR",
+    "srresnet": "SRResNet",
+    "squeeze_excitation": "SqueezeExcitationSR",
+    "vdsr": "VDSR",
+    "dssr": "DSSR",
+    "vdssr": "VDSSR",
+    "wdssr": "WDSSR",
+    "edsr": "EDSR"
+  },
+  "downscaler": {
+    "bicubic": "BicubicDownSample",
+    "encode_decode": "DeepDownScale",
+    "trained": "DownSampler"
+  },
+  "discriminator": {
+    "vgg_enhance_net": "Discriminator_VGG_128"
+  }
+}
