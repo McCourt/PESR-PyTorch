@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from importlib import import_module
-from src.helper import load_parameters, Timer
+from src.helper import load_parameters, Timer, fourier_transform
 from loss.psnr import PSNR
 import os
 import numpy as np
@@ -109,7 +109,7 @@ class Model(nn.Module):
         val_dataset = SRTestDataset(hr_dir=self.val_hr_dir, lr_dir=self.val_lr_dir)
         self.val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
-    def load_checkpoint(self):
+    def load_checkpoint(self, strict=False):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
             try:
                 print('loading checkpoint from {}'.format(self.checkpoint))
@@ -118,7 +118,7 @@ class Model(nn.Module):
                     print('No checkpoint and start new training for {} model'.format(self.mode))
                 else:
                     print('loading successful and recovering checkpoints for {} model'.format(self.mode))
-                    self.load_state_dict(ckpt)
+                    self.load_state_dict(ckpt, strict=strict)
                     print('Checkpoint loaded successfully')
             except:
                 print('Checkpoint failed to load, continuing without pretrained checkpoint')
@@ -146,6 +146,7 @@ class Model(nn.Module):
         ls, ps = list(), list()
         for bid, batch in enumerate(self.train_loader):
             hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
+            # hr, lr = fourier_transform(batch['hr']).cuda(), fourier_transform(batch['lr']).cuda()
             self.optimizer.zero_grad()
             sr = self.forward(lr)
 
@@ -198,11 +199,11 @@ class Model(nn.Module):
                     imwrite(os.path.join(self.sr_out_dir, *batch['name']), img, format='png', compress_level=0)
         return np.mean(ps)
 
-    def train_model(self, loss_fn):
+    def train_model(self, loss_fn, new=False):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = self.test_step(loss_fn)
+        best_val = self.test_step(loss_fn) if not new else 0
         torch.cuda.empty_cache()
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
@@ -224,5 +225,5 @@ class Model(nn.Module):
         best_val = self.test_step(loss_fn, self_ensemble=self_ensemble, save=save)
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
-        print('Images saved to {}'.format(self.sr_out_dir))
+        if save: print('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)

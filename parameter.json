@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "vdssr",
+    "name": "wdssr",
     "type": "upscaler",
     "scale": 4,
     "metric": ["PSNR"],
@@ -13,8 +13,8 @@
     "ckpt_dir": "checkpoints/{}.ckpt"
   },
   "train": {
-    "hr_dir": "div2k/HR/DIV2K_train_HR",
-    "lr_dir": "div2k/LR/X4",
+    "hr_dir": "div2k/HR/DIV2K_train_HR/",
+    "lr_dir": "div2k/LR/X4/",
     "sr_dir": "div2k/",
     "batch_size": 32,
     "num_epoch": 1000,
@@ -26,7 +26,7 @@
     "loss": ["MSE"],
     "optimizer": "Adam",
     "ds_beta": 1.0,
-    "begin_epoch": 100,
+    "begin_epoch": 0,
     "num_worker": 8,
     "map_location": null,
     "save_every": 1,
@@ -34,7 +34,7 @@
   },
   "test": {
     "hr_dir": "Set5/HR/",
-    "lr_dir": "Set5/LR_matlab",
+    "lr_dir": "Set5/LR_matlab/",
     "sr_dir": "Set5/",
     "save": false,
     "map_location": null,
