@@ -68,7 +68,7 @@ class ShuffleConvBlock(nn.Module):
     """
     Reference: https://github.com/jaxony/ShuffleNet/blob/master/model.py
     """
-    def __init__(self, in_channels, out_channels=None, groups=3, kernel_size=3, bias=True,
+    def __init__(self, in_channels, out_channels=None, groups=4, kernel_size=3, bias=True,
                  convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
         super().__init__()
         self.groups = groups
@@ -117,8 +117,7 @@ class ShuffleConvBlock(nn.Module):
     def channel_shuffle(self, x):
         batchsize, num_channels, height, width = x.data.size()
         channels_per_group = num_channels // self.groups
-        x = x.view(batchsize, groups, 
-        channels_per_group, height, width)
+        x = x.view(batchsize, self.groups, channels_per_group, height, width)
         x = torch.transpose(x, 1, 2).contiguous()
         x = x.view(batchsize, -1, height, width)
         return x
@@ -128,7 +127,10 @@ class ShuffleConvBlock(nn.Module):
         x = self.preproc(x)
         x = self.channel_shuffle(x)
         x = self.postproc(x)
-        return self.activate(residual + x)
+        out = residual + x
+        if self.activation is not None:
+            out = self.activate(out)
+        return out
     
 
 class ResBlock(nn.Module):

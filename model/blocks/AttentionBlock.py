@@ -44,3 +44,34 @@ class SpatialAttentionBlock(nn.Module):
 
     def forward(self, x):
         return x * self.model(x)
+
+class ShuffleAttention(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+        self.preproc = nn.Sequential(
+            ConvolutionBlock(in_channels=in_channels,
+                             out_channels=4,
+                             activation=nn.ReLU)
+        )
+        self.postproc = nn.Sequential(
+            ConvolutionBlock(in_channels=4,
+                             out_channels=1,
+                             activation=None),
+            nn.Sigmoid()
+        )
+
+    def channel_shuffle(self, x):
+        batchsize, num_channels, height, width = x.data.size()
+        channels_per_group = num_channels // 4
+        x = x.view(batchsize, 4, channels_per_group, height, width)
+        x = torch.transpose(x, 1, 2).contiguous()
+        x = x.view(batchsize, -1, height, width)
+        return x
+
+    def forward(self, x):
+        in_tensor = x
+        x = self.preproc(x)
+        x = self.channel_shuffle(x)
+        x = self.postproc(x)
+        return in_tensor * x
+
