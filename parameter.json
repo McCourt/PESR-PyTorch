@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "dssr",
+    "name": "wdssr",
     "type": "upscaler",
     "scale": 4,
     "metric": ["PSNR"],

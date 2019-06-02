@@ -204,6 +204,8 @@ class Model(nn.Module):
         print(self.t)
         print(self.splitter)
         best_val = self.test_step(loss_fn) if not new else 0
+        if new:
+            self.epoch = 0
         torch.cuda.empty_cache()
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
