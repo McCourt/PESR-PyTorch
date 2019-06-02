@@ -12,3 +12,7 @@ checkpoints/
 results/
 info.txt
 source_data/
+sr/
+venv.sh
+permission.sh
+logs/
