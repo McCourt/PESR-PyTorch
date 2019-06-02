@@ -1,2 +1,2 @@
 clear
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3 -W ignore main.py --mode='train'
+CUDA_VISIBLE_DEVICES=2,0,1,3 python3 -W ignore main.py --mode='train'

@@ -30,7 +30,7 @@ class BasicGroup(nn.Module):
 
 
 class DSSR(nn.Module):
-    def __init__(self, num_groups=8, num_channel=128):
+    def __init__(self, num_groups=4, num_channel=128):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
@@ -39,8 +39,8 @@ class DSSR(nn.Module):
         self.model_1 = nn.Sequential(*tuple([BasicGroup(num_channel) for _ in range(num_groups)]))
 
         self.model_2 = nn.Sequential(
-            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
-            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
+            PixelShuffleUpscale(channels=num_channel),
+            PixelShuffleUpscale(channels=num_channel),
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(sign=1)
         )

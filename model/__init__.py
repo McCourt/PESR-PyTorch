@@ -199,11 +199,11 @@ class Model(nn.Module):
                     imwrite(os.path.join(self.sr_out_dir, *batch['name']), img, format='png', compress_level=0)
         return np.mean(ps)
 
-    def train_model(self, loss_fn):
+    def train_model(self, loss_fn, new=False):
         print(self.splitter)
         print(self.t)
         print(self.splitter)
-        best_val = self.test_step(loss_fn)
+        best_val = self.test_step(loss_fn) if not new else 0
         torch.cuda.empty_cache()
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
@@ -225,5 +225,5 @@ class Model(nn.Module):
         best_val = self.test_step(loss_fn, self_ensemble=self_ensemble, save=save)
         print(self.splitter)
         print('Best-by-far model stays at {:.4f}'.format(best_val))
-        print('Images saved to {}'.format(self.sr_out_dir))
+        if save: print('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)

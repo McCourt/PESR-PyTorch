@@ -30,6 +30,6 @@ if __name__ == '__main__':
     model = Model(is_train=is_train)
     loss = DownScaleLoss()
     if is_train:
-        model.train_model(loss_fn=loss)
+        model.train_model(loss_fn=loss, new=False)
     else:
-        model.eval_model(loss_fn=loss, self_ensemble=True, save=True)
+        model.eval_model(loss_fn=loss, self_ensemble=True, save=False)
