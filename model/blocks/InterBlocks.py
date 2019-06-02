@@ -63,6 +63,73 @@ class DepthSeparableConvBlock(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+    
+class ShuffleConvBlock(nn.Module):
+    """
+    Reference: https://github.com/jaxony/ShuffleNet/blob/master/model.py
+    """
+    def __init__(self, in_channels, out_channels=None, groups=3, kernel_size=3, bias=True,
+                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
+        super().__init__()
+        self.groups = groups
+        self.activation = activation
+        out_channels = in_channels if out_channels is None else out_channels
+        bottleneck_channels = in_channels//4
+        postproc_body = []
+        self.preproc = convolution(
+                in_channels=in_channels,
+                out_channels=bottleneck_channels,
+                kernel_size=1,
+                bias=bias,
+                groups=groups
+        )
+        if batch_norm is not None:
+            postproc_body.append(batch_norm(bottleneck_channels))
+        if activation is not None:
+            postproc_body.append(activation(inplace=True))
+        postproc_body.append(
+            convolution(
+                in_channels=bottleneck_channels,
+                out_channels=bottleneck_channels,
+                kernel_size=kernel_size,
+                bias=bias,
+                padding=padding,
+                groups=bottleneck_channels
+            )
+        )
+        if batch_norm is not None:
+            postproc_body.append(batch_norm(bottleneck_channels))
+        postproc_body.append(
+            convolution(
+                in_channels=bottleneck_channels,
+                out_channels=out_channels,
+                kernel_size=1,
+                bias=bias,
+                groups=groups
+            )
+        )
+        if batch_norm is not None:
+            postproc_body.append(batch_norm(out_channels))
+        self.postproc = nn.Sequential(*tuple(postproc_body))
+        if activation is not None:
+            self.activate = activation(inplace=True)
+    
+    def channel_shuffle(self, x):
+        batchsize, num_channels, height, width = x.data.size()
+        channels_per_group = num_channels // self.groups
+        x = x.view(batchsize, groups, 
+        channels_per_group, height, width)
+        x = torch.transpose(x, 1, 2).contiguous()
+        x = x.view(batchsize, -1, height, width)
+        return x
+
+    def forward(self, x):
+        residual = x
+        x = self.preproc(x)
+        x = self.channel_shuffle(x)
+        x = self.postproc(x)
+        return self.activate(residual + x)
+    
 
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=0.1,
