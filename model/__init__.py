@@ -72,7 +72,7 @@ class Model(nn.Module):
         root_dir = c_param['root_dir']
         self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
         self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'].format(self.scale))
-        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'])
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'].format(self.scale))
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 

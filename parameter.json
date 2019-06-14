@@ -35,7 +35,7 @@
   "test": {
     "hr_dir": "valid/Urban100/HR/",
     "lr_dir": "valid/Urban100/LR_matlab/X{}/",
-    "sr_dir": "Urban100/",
+    "sr_dir": "Urban100/X{}/",
     "save": false,
     "map_location": null,
     "num_worker": 8,
