@@ -33,7 +33,7 @@
     "print_every": 1
   },
   "test": {
-    "hr_dir": "valid/Urban100/HR/",
+    "hr_dir": "valid/Urban100/HR_matlab/X{}/",
     "lr_dir": "valid/Urban100/LR_matlab/X{}/",
     "sr_dir": "Urban100/X{}/",
     "save": false,
