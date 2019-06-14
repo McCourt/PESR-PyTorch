@@ -32,4 +32,4 @@ if __name__ == '__main__':
     if is_train:
         model.train_model(loss_fn=loss, new=False)
     else:
-        model.eval_model(loss_fn=loss, self_ensemble=True, save=False)
+        model.eval_model(loss_fn=loss, self_ensemble=False, save=False)
