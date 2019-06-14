@@ -71,7 +71,7 @@ class Model(nn.Module):
 
         root_dir = c_param['root_dir']
         self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'])
-        self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'])
+        self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'].format(self.scale))
         self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'])
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
@@ -100,7 +100,7 @@ class Model(nn.Module):
             self.train()
             print('{} model is ready for training'.format(self.mode))
             self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'])
-            self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'])
+            self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'].format(self.scale))
             self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.decay_rate)
             train_dataset = SRTrainDataset(hr_dir=self.train_hr_dir, lr_dir=self.train_lr_dir, h=t_param['window'][0],

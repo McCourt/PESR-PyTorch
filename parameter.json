@@ -13,8 +13,8 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
-    "hr_dir": "div2k/HR/DIV2K_train_HR/",
-    "lr_dir": "div2k/LR/X4/",
+    "hr_dir": "train/DIV2K/HR/",
+    "lr_dir": "train/DIV2K/LR_matlab/X{}/",
     "sr_dir": "div2k/",
     "batch_size": 16,
     "num_epoch": 1000,
@@ -33,9 +33,9 @@
     "print_every": 1
   },
   "test": {
-    "hr_dir": "Urban100/HR/",
-    "lr_dir": "Urban100/LR_matlab/",
-    "sr_dir": "Set5/",
+    "hr_dir": "valid/Urban100/HR/",
+    "lr_dir": "valid/Urban100/LR_matlab/X{}/",
+    "sr_dir": "Urban100/",
     "save": false,
     "map_location": null,
     "num_worker": 8,
