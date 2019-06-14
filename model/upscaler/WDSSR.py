@@ -30,7 +30,7 @@ class BasicGroup(nn.Module):
 
 
 class WDSSR(nn.Module):
-    def __init__(self, num_groups=8, num_channel=256):
+    def __init__(self, scale=4, num_groups=8, num_channel=256):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
@@ -38,9 +38,10 @@ class WDSSR(nn.Module):
         )
         self.model_1 = nn.Sequential(*tuple([BasicGroup(num_channel) for _ in range(num_groups)]))
 
+        upscaler = [PixelShuffleUpscale(channels=num_channel,
+                                        basic_block=DepthSeparableConvBlock) for _ in range(int(log2(scale)))]
         self.model_2 = nn.Sequential(
-            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
-            PixelShuffleUpscale(channels=num_channel, basic_block=DepthSeparableConvBlock),
+            *tuple(upscaler),
             ConvolutionBlock(in_channels=num_channel, out_channels=3),
             MeanShift(sign=1)
         )

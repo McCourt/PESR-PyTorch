@@ -53,6 +53,7 @@ class Model(nn.Module):
             raise ValueError('Parameter not found.')
 
         self.model_name = c_param['name']
+        self.scale = c_param['scale']
         self.mode = c_param['type']
         self.is_train = is_train
         self.epoch = t_param['begin_epoch'] if self.is_train else 0
@@ -76,7 +77,7 @@ class Model(nn.Module):
             os.makedirs(self.sr_out_dir)
 
         self.log_dir = os.path.join(root_dir, c_param['log_dir'].format(self.model_name))
-        self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name))
+        self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name, self.scale))
         self.map_location = t_param['map_location']
         self.metric = PSNR()
         self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} '
@@ -86,7 +87,7 @@ class Model(nn.Module):
 
         path = '.'.join(['model', self.mode])
         module = getattr(import_module(path), m_param[self.mode][self.model_name.lower()])
-        self.model = module(**kwargs)
+        self.model = module(scale=self.scale, **kwargs)
         self.model = nn.DataParallel(self.model).cuda()
         report_num_params(self.model)
         self.load_checkpoint()

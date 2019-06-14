@@ -10,7 +10,7 @@
     "s1_dir": "imgs/stage_one_image/",
     "s2_dir": "imgs/stage_two_image/",
     "log_dir": "logs/{}.log",
-    "ckpt_dir": "checkpoints/{}.ckpt"
+    "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
     "hr_dir": "div2k/HR/DIV2K_train_HR/",
