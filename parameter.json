@@ -1,8 +1,8 @@
 {
   "common": {
-    "name": "dssr",
+    "name": "wdssr",
     "type": "upscaler",
-    "scale": 4,
+    "scale": 8, 
     "metric": ["PSNR"],
     "trim": 6,
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",
@@ -13,7 +13,7 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
-    "dataset": "DIV2k",
+    "dataset": "DIV2K",
     "batch_size": 16,
     "num_epoch": 1000,
     "window": [48, 48],
@@ -31,7 +31,7 @@
     "print_every": 1
   },
   "test": {
-    "dataset": "Set5",
+    "dataset": "Urban100",
     "sr_dir": "{}/X{}/",
     "save": false,
     "map_location": null,

@@ -4,6 +4,12 @@ from model import Model
 import sys
 import getopt
 
+scale = 8
+w = 1.
+new = True
+se = False
+save = False
+
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
 
@@ -28,8 +34,8 @@ if __name__ == '__main__':
 
     # Define and train model
     model = Model(is_train=is_train)
-    loss = DownScaleLoss()
+    loss = DownScaleLoss(scale=scale, weight=w)
     if is_train:
-        model.train_model(loss_fn=loss, new=False)
+        model.train_model(loss_fn=loss, new=new)
     else:
         model.eval_model(loss_fn=loss, self_ensemble=False, save=False)

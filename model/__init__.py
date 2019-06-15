@@ -167,7 +167,7 @@ class Model(nn.Module):
         self.scheduler.step()
         with open(self.log_dir, 'a') as f:
             f.write(self.r_format.format(self.epoch, -1, -1.0, sum(ls) / len(ls), -1.0, sum(ps) / len(ps),
-                                         self.timer.report()))
+                                         self.timer.report(), 'NaN'))
             f.write('\n')
         print(self.splitter)
 
