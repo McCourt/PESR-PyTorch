@@ -76,7 +76,7 @@ class Model(nn.Module):
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 
-        self.log_dir = os.path.join(root_dir, c_param['log_dir'].format(self.model_name))
+        self.log_dir = os.path.join(root_dir, c_param['log_dir'].format(self.model_name, self.scale))
         self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name, self.scale))
         self.map_location = t_param['map_location']
         self.metric = PSNR()

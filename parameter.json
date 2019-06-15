@@ -9,7 +9,7 @@
     "s0_dir": "imgs/source_image/",
     "s1_dir": "imgs/stage_one_image/",
     "s2_dir": "imgs/stage_two_image/",
-    "log_dir": "logs/{}.log",
+    "log_dir": "logs/{}_x{}.log",
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
