@@ -99,15 +99,15 @@ class Model(nn.Module):
         else:
             self.train()
             print('{} model is ready for training'.format(self.mode))
-            self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'])
+            self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'].format(self.scale))
             self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'].format(self.scale))
             self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.decay_rate)
-            train_dataset = SRTrainDataset(hr_dir=self.train_hr_dir, lr_dir=self.train_lr_dir, h=t_param['window'][0],
-                                           w=t_param['window'][1], scale=c_param['scale'], num_per=t_param['num_per'])
+            train_dataset = SRTrainDataset(dataset=t_param['dataset'], scale=self.scale, h=t_param['window'][0],
+                                           w=t_param['window'][1], num_per=t_param['num_per'])
             self.train_loader = DataLoader(train_dataset, batch_size=t_param['batch_size'], shuffle=True,
                                            num_workers=t_param['num_worker'])
-        val_dataset = SRTestDataset(hr_dir=self.val_hr_dir, lr_dir=self.val_lr_dir)
+        val_dataset = SRTestDataset(dataset=v_param['dataset'], scale=self.scale)
         self.val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
     def load_checkpoint(self, strict=False):

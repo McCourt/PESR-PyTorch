@@ -3,13 +3,12 @@ import os
 from imageio import imread
 import numpy as np
 from skimage.color import gray2rgb
+import pandas as pd
 
 
 class SRTrainDataset(Dataset):
-    def __init__(self, hr_dir, lr_dir, h=40, w=40, scale=1, num_per=600,
-                 img_format='png', hr_formatter=None, lr_formatter=None,
-                 rgb_shuffle=True, rotate=True, flip=True,
-                 shuffle_rate=0.1, rotate_rate=0.1, flip_rate=0.1):
+    def __init__(self, dataset, scale, name_dict='dataset/name_dic.csv', h=40, w=40, num_per=600, img_format='png',
+                 rgb_shuffle=True, rotate=True, flip=True, shuffle_rate=0.1, rotate_rate=0.1, flip_rate=0.1):
         """
         This method is implemented to deal with data inputs in the SR training process.
         :param hr_dir: directory name for HR images
@@ -30,19 +29,19 @@ class SRTrainDataset(Dataset):
         :param rotate_rate: probability to rotate images
         :param flip_rate: probability to flip images
         """
-        self.hr_formatter = lambda x: x if hr_formatter is None else hr_formatter
-        self.lr_formatter = lambda x: x if lr_formatter is None else lr_formatter
+        df = pd.read_csv(name_dict)
+        self.df = df[(df.usage == 'train') & (df.scale == scale) & (df.dataset == dataset)].reset_index()
 
-        hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
-        lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
-        assert len(hr_names) == len(lr_names)
-        assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
-        self.img_names = hr_names
+        # hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
+        # lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
+        # assert len(hr_names) == len(lr_names)
+        # assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
+        # self.img_names = hr_names
+        #
+        # self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]
+        # self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
 
-        self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]
-        self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
-        self.num_img = len(self.img_names)
-
+        self.num_img = len(self.df.index)
         self.scale, self.num_per = scale, num_per
         self.h, self.w = h, w
         self.rgb_shuffle, self.rotate, self.flip = rgb_shuffle, rotate, flip
@@ -64,10 +63,10 @@ class SRTrainDataset(Dataset):
         """
         if self.id is None or idx // self.num_per != self.id:
             self.id = idx // self.num_per
-            self.name = self.img_names[self.id]
+            self.name = self.df.name[self.id]
 
-            hr = np.array(imread(self.hr_names[self.id], as_gray=False)).astype(np.float32)
-            lr = np.array(imread(self.lr_names[self.id], as_gray=False)).astype(np.float32)
+            hr = np.array(imread(self.df.HR[self.id], as_gray=False)).astype(np.float32)
+            lr = np.array(imread(self.df.LR[self.id], as_gray=False)).astype(np.float32)
 
             if len(hr.shape) == 2:
                 hr = gray2rgb(hr)

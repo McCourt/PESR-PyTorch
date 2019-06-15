@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from model.blocks import ChannelAttentionBlock, MeanShift, CascadingBlock, ConvolutionBlock, PixelShuffleUpscale, DepthSeparableConvBlock
+from math import log2
 
 
 class BasicBlock(nn.Module):

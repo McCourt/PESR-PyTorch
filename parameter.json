@@ -13,7 +13,7 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
-    "hr_dir": "train/DIV2K/HR/",
+    "hr_dir": "train/DIV2K/HR_matlab/X{}/",
     "lr_dir": "train/DIV2K/LR_matlab/X{}/",
     "sr_dir": "div2k/",
     "batch_size": 16,
