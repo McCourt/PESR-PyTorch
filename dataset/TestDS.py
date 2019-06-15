@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class SRTestDataset(Dataset):
-    def __init__(self, dataset, scale, name_dict='dataset/name_dic.csv', img_format='png', hr_formatter=None, lr_formatter=None):
+    def __init__(self, scale, dataset=None, name_dict='dataset/name_dic.csv', img_format='png', hr_formatter=None, lr_formatter=None):
         """
         This method is implemented to deal with data inputs in the SR validation or testing process.
         :param hr_dir: directory name for HR images
@@ -16,30 +16,11 @@ class SRTestDataset(Dataset):
         :param hr_formatter: name formatter for HR images
         :param lr_formatter: name formatter for LR images
         """
-        # self.hr_formatter = lambda x: x if hr_formatter is None else hr_formatter
-        # # self.lr_formatter = lambda x: x if lr_formatter is None else lr_formatter
-        # self.lr_formatter = lambda x: x.replace('x4', '') if lr_formatter is None else lr_formatter
-        # hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
-        # lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
-        # assert len(hr_names) == len(lr_names)
-        # assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
-        # self.img_names = hr_names
-        #
-        # self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]
-        # self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
-        # self.num_img = len(self.hr_names)
         df = pd.read_csv(name_dict)
-        self.df = df[(df.usage == 'valid') & (df.scale == scale) & (df.dataset == dataset)].sort_values('name').reset_index()
-
-        # hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
-        # lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
-        # assert len(hr_names) == len(lr_names)
-        # assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
-        # self.img_names = hr_names
-        #
-        # self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]
-        # self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
-
+        df = df[(df.usage == 'valid') & (df.scale == scale)]
+        if dataset is not None:
+            df = df[df.dataset == dataset]
+        self.df = df.sort_values('name').reset_index()
         self.num_img = len(self.df.index)
 
     def __len__(self):

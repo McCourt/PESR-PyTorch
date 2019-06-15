@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class SRTrainDataset(Dataset):
-    def __init__(self, dataset, scale, name_dict='dataset/name_dic.csv', h=40, w=40, num_per=600, img_format='png',
+    def __init__(self, scale, dataset=None, name_dict='dataset/name_dic.csv', h=40, w=40, num_per=600, img_format='png',
                  rgb_shuffle=True, rotate=True, flip=True, shuffle_rate=0.1, rotate_rate=0.1, flip_rate=0.1):
         """
         This method is implemented to deal with data inputs in the SR training process.
@@ -30,16 +30,10 @@ class SRTrainDataset(Dataset):
         :param flip_rate: probability to flip images
         """
         df = pd.read_csv(name_dict)
-        self.df = df[(df.usage == 'train') & (df.scale == scale) & (df.dataset == dataset)].reset_index()
-
-        # hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
-        # lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])
-        # assert len(hr_names) == len(lr_names)
-        # assert all(self.hr_formatter(i) == self.lr_formatter(j) for i, j in zip(hr_names, lr_names))
-        # self.img_names = hr_names
-        #
-        # self.hr_names = [os.path.join(hr_dir, hr_name) for hr_name in hr_names]
-        # self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
+        df = df[(df.usage == 'train') & (df.scale == scale)]
+        if dataset is not None:
+            df = df[df.dataset == dataset]
+        self.df = df.sort_values('name').reset_index()
 
         self.num_img = len(self.df.index)
         self.scale, self.num_per = scale, num_per
