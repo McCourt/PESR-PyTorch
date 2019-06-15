@@ -13,6 +13,7 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
+    "dataset": "DIV2k",
     "hr_dir": "train/DIV2K/HR_matlab/X{}/",
     "lr_dir": "train/DIV2K/LR_matlab/X{}/",
     "sr_dir": "div2k/",
@@ -33,6 +34,7 @@
     "print_every": 1
   },
   "test": {
+    "dataset": "Urban100",
     "hr_dir": "valid/Urban100/HR_matlab/X{}/",
     "lr_dir": "valid/Urban100/LR_matlab/X{}/",
     "sr_dir": "Urban100/X{}/",
