@@ -44,10 +44,10 @@ class Model(nn.Module):
             t_param, v_param, c_param = arg_params['train'], arg_params['test'], arg_params['common']
             if is_train:
                 for i in sorted(t_param):
-                    print('{:<15s} -> {}'.format(str(i), t_param[i]))
+                    if 'dir' not in str(i): print('{:<15s} -> {}'.format(str(i), t_param[i]))
             else:
                 for i in sorted(v_param):
-                    print('{:<15s} -> {}'.format(str(i), v_param[i]))
+                    if 'dir' not in str(i): print('{:<15s} -> {}'.format(str(i), v_param[i]))
         except Exception as e:
             print(e)
             raise ValueError('Parameter not found.')
@@ -70,9 +70,9 @@ class Model(nn.Module):
             raise ValueError('Wrong model name. Try {}'.format(', '.join(m_param[self.mode].keys())))
 
         root_dir = c_param['root_dir']
-        self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'].format(self.scale))
-        self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'].format(self.scale))
-        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'].format(self.scale))
+        # self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'].format(self.scale))
+        # self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'].format(self.scale))
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'].format(v_param['dataset'], self.scale))
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 
@@ -81,7 +81,7 @@ class Model(nn.Module):
         self.map_location = t_param['map_location']
         self.metric = PSNR()
         self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} | {}'
-        self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^8.4E} | {}'
+        self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^.2E} | {}'
         self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime', 'Name')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
 
@@ -99,8 +99,8 @@ class Model(nn.Module):
         else:
             self.train()
             print('{} model is ready for training'.format(self.mode))
-            self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'].format(self.scale))
-            self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'].format(self.scale))
+            # self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'].format(self.scale))
+            # self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'].format(self.scale))
             self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
             self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.decay_rate)
             train_dataset = SRTrainDataset(dataset=t_param['dataset'], scale=self.scale, h=t_param['window'][0],
@@ -177,6 +177,7 @@ class Model(nn.Module):
         with torch.no_grad():
             for bid, batch in enumerate(self.val_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
+                self.timer.refresh()
                 sr = self.forward(lr)
                 if self_ensemble:
                     sr += self.forward(lr.flip(3)).flip(3)
@@ -192,9 +193,8 @@ class Model(nn.Module):
                 ps.append(psnr)
                 ls.append(l)
                 print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr,
-                                           sum(ps) / len(ps), self.timer.report(), batch['name']))
+                                           sum(ps) / len(ps), self.timer.report(), *batch['name']))
                 print(self.t, end='\r')
-                self.timer.refresh()
                 if save:
                     img = torch.clamp(torch.round(sr), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                     img = np.squeeze(np.moveaxis(img, 1, -1), axis=0).astype(np.uint8)

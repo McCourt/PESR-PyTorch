@@ -29,7 +29,7 @@ class SRTestDataset(Dataset):
         # self.lr_names = [os.path.join(lr_dir, lr_name) for lr_name in lr_names]
         # self.num_img = len(self.hr_names)
         df = pd.read_csv(name_dict)
-        self.df = df[(df.usage == 'valid') & (df.scale == scale) & (df.dataset == dataset)].reset_index()
+        self.df = df[(df.usage == 'valid') & (df.scale == scale) & (df.dataset == dataset)].sort_values('name').reset_index()
 
         # hr_names = sorted([i for i in os.listdir(hr_dir) if img_format in i])
         # lr_names = sorted([i for i in os.listdir(lr_dir) if img_format in i])

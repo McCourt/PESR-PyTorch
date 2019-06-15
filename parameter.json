@@ -14,9 +14,6 @@
   },
   "train": {
     "dataset": "DIV2k",
-    "hr_dir": "train/DIV2K/HR_matlab/X{}/",
-    "lr_dir": "train/DIV2K/LR_matlab/X{}/",
-    "sr_dir": "div2k/",
     "batch_size": 16,
     "num_epoch": 1000,
     "window": [48, 48],
@@ -34,10 +31,8 @@
     "print_every": 1
   },
   "test": {
-    "dataset": "Urban100",
-    "hr_dir": "valid/Urban100/HR_matlab/X{}/",
-    "lr_dir": "valid/Urban100/LR_matlab/X{}/",
-    "sr_dir": "Urban100/X{}/",
+    "dataset": "Set5",
+    "sr_dir": "{}/X{}/",
     "save": false,
     "map_location": null,
     "num_worker": 8,
