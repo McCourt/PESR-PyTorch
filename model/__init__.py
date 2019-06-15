@@ -80,9 +80,9 @@ class Model(nn.Module):
         self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name, self.scale))
         self.map_location = t_param['map_location']
         self.metric = PSNR()
-        self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} '
-        self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^8.4E} '
-        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime')
+        self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} | {}'
+        self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^8.4E} | {}'
+        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime', 'Name')
         self.splitter = ''.join(['-' for i in range(len(self.t))])
 
         path = '.'.join(['model', self.mode])
@@ -156,7 +156,7 @@ class Model(nn.Module):
             psnr = self.metric(sr, hr).detach().cpu().item()
             ps.append(psnr)
             print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls),
-                                       psnr, sum(ps) / len(ps), self.timer.report()))
+                                       psnr, sum(ps) / len(ps), self.timer.report(), 'NaN'))
             print(self.t, end='\r')
 
             l.backward()
@@ -191,7 +191,8 @@ class Model(nn.Module):
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
-                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, sum(ps) / len(ps), self.timer.report()))
+                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr,
+                                           sum(ps) / len(ps), self.timer.report(), batch['name']))
                 print(self.t, end='\r')
                 self.timer.refresh()
                 if save:
