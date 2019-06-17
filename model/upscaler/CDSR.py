@@ -1,15 +1,16 @@
 import torch
 from torch import nn
-from model.blocks import ChannelAttentionBlock, MeanShift, CascadingBlock, ConvolutionBlock, PixelShuffleUpscale, DepthSeparableConvBlock
+from model.blocks import ChannelAttV2, MeanShift
+from model.blocks import CascadingBlock, ConvolutionBlock, PixelShuffleUpscale, DepthSeparableConvBlock
 from math import log2
 
 
 class BasicBlock(nn.Module):
-    def __init__(self, num_channel, res_scale=1):
+    def __init__(self, num_channel, res_scale=1, attention=ChannelAttV2):
         super().__init__()
         self.model_body = nn.Sequential(
             CascadingBlock(num_channel, basic_block=DepthSeparableConvBlock),
-            ChannelAttentionBlock(num_channel)
+            attention(num_channel)
         )
         self.res_scale = res_scale
 

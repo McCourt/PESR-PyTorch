@@ -9,6 +9,7 @@
     "dssr": "DSSR",
     "vdssr": "VDSSR",
     "wdssr": "WDSSR",
+    "cssr": "CDSR",
     "edsr": "EDSR"
   },
   "downscaler": {
