@@ -31,7 +31,7 @@ class BasicGroup(nn.Module):
         return self.model_body(x) * self.res_scale + x
 
 
-class DSSR(nn.Module):
+class CSSR(nn.Module):
     def __init__(self, scale=4, num_groups=4, num_channel=128):
         super().__init__()
         self.model_0 = nn.Sequential(

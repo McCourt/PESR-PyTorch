@@ -8,3 +8,4 @@ from model.upscaler.EDSR import EDSR
 from model.upscaler.DSSR import DSSR
 from model.upscaler.VDSSR import VDSSR
 from model.upscaler.WDSSR import WDSSR
+from model.upscaler.CDSR import CSSR
