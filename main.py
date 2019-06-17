@@ -4,7 +4,7 @@ from model import Model
 import sys
 import getopt
 
-scale = 2
+scale = 4
 ds_weight = .1
 is_new = True
 self_ensemble = False

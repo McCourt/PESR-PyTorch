@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "vdssr",
+    "name": "cdsr",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 6,
