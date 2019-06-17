@@ -34,7 +34,7 @@ def report_num_params(model):
 
 
 class Model(nn.Module):
-    def __init__(self, is_train=True, arg_dir='parameter.json', **kwargs):
+    def __init__(self, scale, is_train=True, arg_dir='parameter.json', **kwargs):
         super().__init__()
         try:
             m_param = load_parameters(path='model/models.json')
@@ -53,7 +53,7 @@ class Model(nn.Module):
             raise ValueError('Parameter not found.')
 
         self.model_name = c_param['name']
-        self.scale = c_param['scale']
+        self.scale = scale # c_param['scale']
         self.mode = c_param['type']
         self.is_train = is_train
         self.epoch = t_param['begin_epoch'] if self.is_train else 0

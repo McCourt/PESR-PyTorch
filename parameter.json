@@ -1,8 +1,7 @@
 {
   "common": {
-    "name": "wdssr",
+    "name": "vdssr",
     "type": "upscaler",
-    "scale": 8, 
     "metric": ["PSNR"],
     "trim": 6,
     "root_dir": "/usr/xtmp/superresoluter/superresolution/",

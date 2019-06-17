@@ -4,11 +4,11 @@ from model import Model
 import sys
 import getopt
 
-scale = 8
-w = 1.
-new = True
-se = False
-save = False
+scale = 2
+ds_weight = .1
+is_new = True
+self_ensemble = False
+save_img = False
 
 if __name__ == '__main__':
     print('{} GPUs Available'.format(torch.cuda.device_count()))
@@ -33,9 +33,9 @@ if __name__ == '__main__':
             raise Exception("Redundant Argument Detected")
 
     # Define and train model
-    model = Model(is_train=is_train)
-    loss = DownScaleLoss(scale=scale, weight=w)
+    model = Model(scale=scale, is_train=is_train)
+    loss = DownScaleLoss(scale=scale, weight=ds_weight)
     if is_train:
-        model.train_model(loss_fn=loss, new=new)
+        model.train_model(loss_fn=loss, new=is_new)
     else:
-        model.eval_model(loss_fn=loss, self_ensemble=False, save=False)
+        model.eval_model(loss_fn=loss, self_ensemble=self_ensemble, save=save_img)
