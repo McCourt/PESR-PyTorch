@@ -1,18 +1,14 @@
 import torch
 import torch.nn as nn
 from importlib import import_module
-from src.helper import load_parameters, Timer, fourier_transform
+from src.helper import load_parameters, Timer, fourier_transform, report_time
 from loss.psnr import PSNR
 import os
 import numpy as np
 from dataset import SRTrainDataset, SRTestDataset
 from torch.utils.data import DataLoader
 from imageio import imwrite
-from datetime import datetime
 
-
-def report_time():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def save_checkpoint(state_dict, save_dir):
     try:
@@ -140,6 +136,8 @@ class Model(nn.Module):
 
     def save_checkpoint(self, add_time=False):
         try:
+            if add_time:
+                torch.save(self.state_dict(), '{}_{}'.format(report_time(), self.checkpoint))
             torch.save(self.state_dict(), self.checkpoint)
         except Exception as e:
             print(e)

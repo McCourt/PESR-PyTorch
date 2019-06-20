@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from time import time
 import json
+from datetime import datetime
 
 
 def since(begin):
@@ -23,7 +24,11 @@ def load_parameters(path):
     with open(path, 'r') as f:
         return json.load(f)
 
-    
+
 def fourier_transform(img):
     img = torch.squeeze(img[:, 0, :, :] * 65.481 + img[:, 1, :, :] * 128.553 + img[:, 2, :, :] * 24.966 + 16)
     return torch.rfft(img, 2)
+
+
+def report_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")

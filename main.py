@@ -3,6 +3,9 @@ from loss import DownScaleLoss
 from model import Model
 import sys
 import getopt
+from datetime import datetime
+from src.helper import report_time
+
 
 scale = 8
 ds_weight = .02
@@ -36,6 +39,15 @@ if __name__ == '__main__':
     model = Model(scale=scale, is_train=is_train)
     loss = DownScaleLoss(scale=scale, weight=ds_weight)
     if is_train:
-        model.train_model(loss_fn=loss, new=is_new)
+        try:
+            model.train_model(loss_fn=loss, new=is_new)
+        except KeyboardInterrupt:
+            save = input("{}: Interrupted and save model? (y/n)".format(report_time()))
+            assert(save in ['y', 'n'], 'Invalid input')
+            if save == 'n':
+                model.save_checkpoint(add_time=True)
+            sys.exit(0)
+        except:
+            sys.exit(-1)
     else:
         model.eval_model(loss_fn=loss, self_ensemble=self_ensemble, save=save_img)
