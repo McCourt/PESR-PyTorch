@@ -4,14 +4,14 @@ from model import Model
 import sys
 import getopt
 
-scale = 4
-ds_weight = .1
-is_new = True
-self_ensemble = False
-save_img = False
+scale = 8
+ds_weight = .02
+is_new = False
+self_ensemble = False #True
+save_img = True
 
 if __name__ == '__main__':
-    print('{} GPUs Available'.format(torch.cuda.device_count()))
+    print('----->>>{}<<<-----'.format('{} GPUs Available'.format(torch.cuda.device_count())))
 
     # Load system arguments
     args = sys.argv[1:]

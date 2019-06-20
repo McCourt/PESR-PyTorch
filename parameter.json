@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "cdsr",
+    "name": "dssr",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 6,
@@ -30,7 +30,7 @@
     "print_every": 1
   },
   "test": {
-    "dataset": "Urban100",
+    "dataset": "Set5",
     "sr_dir": "{}/X{}/",
     "save": false,
     "map_location": null,

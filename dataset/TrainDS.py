@@ -30,9 +30,13 @@ class SRTrainDataset(Dataset):
         :param flip_rate: probability to flip images
         """
         df = pd.read_csv(name_dict)
-        df = df[(df.usage == 'train') & (df.scale == scale)]
+        # df = df[df.usage == 'train']
+        df = df[df.scale == scale]
         if dataset is not None:
-            df = df[df.dataset == dataset]
+            if type(dataset) is str:
+                df = df[df.dataset == dataset]
+            else:
+                df = df[df.dataset.isin(dataset)]
         self.df = df.sort_values('name').reset_index()
 
         self.num_img = len(self.df.index)
