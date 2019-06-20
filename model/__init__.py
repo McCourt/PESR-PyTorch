@@ -137,8 +137,9 @@ class Model(nn.Module):
     def save_checkpoint(self, add_time=False):
         try:
             if add_time:
-                torch.save(self.state_dict(), '{}_{}'.format(self.checkpoint, report_time()))
+                torch.save(self.state_dict(), '{}_{}.ckpt'.format(self.checkpoint.replace('.ckpt', ''), report_time()))
             torch.save(self.state_dict(), self.checkpoint)
+            print('{}: checkpoint saving succeeded'.format(report_time()))
         except Exception as e:
             print(e)
             raise Exception('checkpoint saving failed')
