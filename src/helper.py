@@ -32,3 +32,6 @@ def fourier_transform(img):
 
 def report_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def output_report(report, end='\n'):
+    print('{}: {}'.format(report_time(), report), end=end)
