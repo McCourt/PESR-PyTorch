@@ -42,7 +42,7 @@ if __name__ == '__main__':
         try:
             model.train_model(loss_fn=loss, new=is_new)
         except KeyboardInterrupt:
-            save = input("{}: Interrupted and save model? (y/n)".format(report_time()))
+            save = input("\n{}: Interrupted and save model? (y/n)".format(report_time()))
             assert(save in ['y', 'n'], 'Invalid input')
             if save == 'y':
                 model.save_checkpoint(add_time=True)
