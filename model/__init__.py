@@ -10,6 +10,10 @@ from torch.utils.data import DataLoader
 from imageio import imwrite
 from datetime import datetime
 
+
+def report_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 def save_checkpoint(state_dict, save_dir):
     try:
         torch.save(state_dict, save_dir)
@@ -30,7 +34,7 @@ def load_checkpoint(load_dir, map_location=None):
 
 
 def report_num_params(model):
-    print('{}: Number of parameters of model: {:.2E}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), sum(p.numel() for p in model.parameters() if p.requires_grad)))
+    print('{}: Number of parameters of model: {:.2E}'.format(report_time(), sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
 
 class Model(nn.Module):
@@ -66,7 +70,7 @@ class Model(nn.Module):
         self.lr = t_param['learning_rate'] * t_param['decay_rate'] ** self.epoch
         self.decay_rate = t_param['decay_rate']
         self.device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
-        print('{}: Using device {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.device))
+        print('{}: Using device {}'.format(report_time(), self.device))
         if self.model_name is None:
             raise Exception('You must define either an upscale model or a downscale model for super resolution')
         if self.mode not in m_param.keys():
@@ -100,12 +104,12 @@ class Model(nn.Module):
         self.timer = Timer()
 
         if not self.is_train:
-            print('{}: Disabling auto gradient and switching to TEST mode'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            print('{}: Disabling auto gradient and switching to TEST mode'.format(report_time()))
             self.eval()
-            print('{}: {} model is ready for testing'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.mode))
+            print('{}: {} model is ready for testing'.format(report_time(), self.mode))
         else:
             self.train()
-            print('{}: {} model is ready for training'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.mode))
+            print('{}: {} model is ready for training'.format(report_time(), self.mode))
             # self.train_hr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['hr_dir'].format(self.scale))
             # self.train_lr_dir = os.path.join(root_dir, c_param['s0_dir'], t_param['lr_dir'].format(self.scale))
             self.optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
@@ -120,19 +124,19 @@ class Model(nn.Module):
     def load_checkpoint(self, strict=False):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
             try:
-                print('{}: loading checkpoint from {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.checkpoint))
+                print('{}: loading checkpoint from {}'.format(report_time(), self.checkpoint))
                 ckpt = torch.load(self.checkpoint, map_location=self.map_location)
                 if ckpt is None:
-                    print('{}: No checkpoint and start new training for {} model'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.mode))
+                    print('{}: No checkpoint and start new training for {} model'.format(report_time(), self.mode))
                 else:
-                    print('{}: loading successful and recovering checkpoints for {} model'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.mode))
+                    print('{}: loading successful and recovering checkpoints for {} model'.format(report_time(), self.mode))
                     self.load_state_dict(ckpt, strict=strict)
-                    print('{}: Checkpoint loaded successfully'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                    print('{}: Checkpoint loaded successfully'.format(report_time()))
             except:
                 print('Checkpoint failed to load, continuing without pretrained checkpoint')
                 # raise ValueError('Wrong Checkpoint path or loaded erroneously')
         else:
-            print('{}: No checkpoint and start new training for {} model'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.mode))
+            print('{}: No checkpoint and start new training for {} model'.format(report_time(), self.mode))
 
     def save_checkpoint(self, add_time=False):
         try:
@@ -192,7 +196,7 @@ class Model(nn.Module):
                     sr += self.forward(lr.flip(3).rot90(1, [2, 3])).rot90(3, [2, 3]).flip(3)
                     sr += self.forward(lr.flip(3).rot90(2, [2, 3])).rot90(2, [2, 3]).flip(3)
                     sr += self.forward(lr.flip(3).rot90(3, [2, 3])).rot90(1, [2, 3]).flip(3)
-                    sr += self.forward(lr.rot90(1, [2, 3])).rot90(3, [2, 3]) 
+                    sr += self.forward(lr.rot90(1, [2, 3])).rot90(3, [2, 3])
                     sr += self.forward(lr.rot90(2, [2, 3])).rot90(2, [2, 3])
                     sr += self.forward(lr.rot90(3, [2, 3])).rot90(1, [2, 3])
                     sr /= 8.0
@@ -219,7 +223,7 @@ class Model(nn.Module):
             self.epoch = 0
         torch.cuda.empty_cache()
         print(self.splitter)
-        print('{}: Best-by-far model stays at {:.4f}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), best_val))
+        print('{}: Best-by-far model stays at {:.4f}'.format(report_time(), best_val))
         print(self.splitter)
         for epoch in range(self.num_epoch):
             self.train_step(loss_fn)
@@ -228,9 +232,9 @@ class Model(nn.Module):
                 self.save_checkpoint()
                 best_val = val_l
                 print(self.splitter)
-                print('{}: Saving best-by-far model at {:.4f}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), best_val))
+                print('{}: Saving best-by-far model at {:.4f}'.format(report_time(), best_val))
             else:
-                print('{}: Best-by-far model stays at {:.4f}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), best_val))
+                print('{}: Best-by-far model stays at {:.4f}'.format(report_time(), best_val))
             print(self.splitter)
 
     def eval_model(self, loss_fn, self_ensemble=False, save=False):
@@ -239,6 +243,6 @@ class Model(nn.Module):
         print(self.splitter)
         best_val = self.test_step(loss_fn, self_ensemble=self_ensemble, save=save)
         print(self.splitter)
-        print('{}: Best-by-far model stays at {:.4f}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), best_val))
-        if save: print('{}: Images saved to {}'.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), self.sr_out_dir))
+        print('{}: Best-by-far model stays at {:.4f}'.format(report_time(), best_val))
+        if save: print('{}: Images saved to {}'.format(report_time(), self.sr_out_dir))
         print(self.splitter)
