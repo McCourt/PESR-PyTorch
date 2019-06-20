@@ -44,7 +44,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             save = input("{}: Interrupted and save model? (y/n)".format(report_time()))
             assert(save in ['y', 'n'], 'Invalid input')
-            if save == 'n':
+            if save == 'y':
                 model.save_checkpoint(add_time=True)
             sys.exit(0)
         except:

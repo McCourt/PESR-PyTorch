@@ -137,7 +137,7 @@ class Model(nn.Module):
     def save_checkpoint(self, add_time=False):
         try:
             if add_time:
-                torch.save(self.state_dict(), '{}_{}'.format(report_time(), self.checkpoint))
+                torch.save(self.state_dict(), '{}_{}'.format(self.checkpoint, report_time()))
             torch.save(self.state_dict(), self.checkpoint)
         except Exception as e:
             print(e)
