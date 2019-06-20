@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from importlib import import_module
-from src.helper import load_parameters, Timer, fourier_transform, output_report
+from src.helper import load_parameters, Timer, fourier_transform, output_report, report_time
 from loss.psnr import PSNR
 import os
 import numpy as np
