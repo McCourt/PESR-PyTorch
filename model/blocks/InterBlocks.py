@@ -4,10 +4,14 @@ from torch import nn
 
 class ConvolutionBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, bias=True,
-                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
+                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1, rep_pad=False):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
-        model_body = [
+        model_body = []
+        if rep_pad:
+            model_body.append(nn.ReplicationPad2d(padding))
+            padding = 0
+        model_body.append(
             convolution(
                 in_channels=in_channels,
                 out_channels=out_channels,
@@ -15,7 +19,7 @@ class ConvolutionBlock(nn.Module):
                 bias=bias,
                 padding=padding
             )
-        ]
+        )
         if batch_norm is not None:
             model_body.append(batch_norm(out_channels))
         if activation is not None:
@@ -28,10 +32,13 @@ class ConvolutionBlock(nn.Module):
 
 class DepthSeparableConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels=None, kernel_size=3, bias=True,
-                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1):
+                 convolution=nn.Conv2d, activation=None, batch_norm=None, padding=1, rep_pad=False):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
         model_body = []
+        if rep_pad:
+            model_body.append(nn.ReplicationPad2d(padding))
+            padding = 0
         model_body.append(
             convolution(
                 in_channels=in_channels,
@@ -134,7 +141,7 @@ class ShuffleConvBlock(nn.Module):
     
 
 class ResBlock(nn.Module):
-    def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=0.1,
+    def __init__(self, in_channels, out_channels=None, kernel_size=3, num_blocks=2, res_scale=0.1, rep_pad=False,
                  activation=nn.LeakyReLU, padding=1, batch_norm=None, bias=True, basic_block=ConvolutionBlock):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
@@ -146,7 +153,8 @@ class ResBlock(nn.Module):
                 activation=activation,
                 padding=padding,
                 batch_norm=batch_norm,
-                bias=bias
+                bias=bias,
+                rep_pad=rep_pad
             )
         ]
         model_body = model_body + [
@@ -156,8 +164,9 @@ class ResBlock(nn.Module):
                 activation=activation,
                 padding=padding,
                 batch_norm=batch_norm,
-                bias=bias)
-            for _ in range(num_blocks - 2)
+                bias=bias,
+                rep_pad=rep_pad
+            ) for _ in range(num_blocks - 2)
         ]
         model_body.append(
             basic_block(
@@ -165,7 +174,8 @@ class ResBlock(nn.Module):
                 kernel_size=kernel_size,
                 padding=padding,
                 batch_norm=batch_norm,
-                bias=bias
+                bias=bias,
+                rep_pad=rep_pad
             )
         )
 
@@ -204,16 +214,16 @@ class Res2Block(nn.Module):
 
 
 class CascadingBlock(nn.Module):
-    def __init__(self, in_channels, out_channels=None, basic_block=ConvolutionBlock):
+    def __init__(self, in_channels, out_channels=None, basic_block=ConvolutionBlock, rep_pad=False):
         super().__init__()
         out_channels = in_channels if out_channels is None else out_channels
-        self.b1 = ResBlock(in_channels, out_channels, basic_block=basic_block)
-        self.b2 = ResBlock(out_channels, out_channels, basic_block=basic_block)
-        self.b3 = ResBlock(out_channels, out_channels, basic_block=basic_block)
+        self.b1 = ResBlock(in_channels, out_channels, basic_block=basic_block, rep_pad=rep_pad)
+        self.b2 = ResBlock(out_channels, out_channels, basic_block=basic_block, rep_pad=rep_pad)
+        self.b3 = ResBlock(out_channels, out_channels, basic_block=basic_block, rep_pad=rep_pad)
 
-        self.c1 = ConvolutionBlock(out_channels * 2, out_channels, kernel_size=1, padding=0)
-        self.c2 = ConvolutionBlock(out_channels * 3, out_channels, kernel_size=1, padding=0)
-        self.c3 = ConvolutionBlock(out_channels * 4, out_channels, kernel_size=1, padding=0)
+        self.c1 = ConvolutionBlock(out_channels * 2, out_channels, kernel_size=1, padding=0, rep_pad=rep_pad)
+        self.c2 = ConvolutionBlock(out_channels * 3, out_channels, kernel_size=1, padding=0, rep_pad=rep_pad)
+        self.c3 = ConvolutionBlock(out_channels * 4, out_channels, kernel_size=1, padding=0, rep_pad=rep_pad)
 
     def forward(self, x):
         x = torch.cat([x, self.b1(x)], dim=1)

@@ -2,25 +2,28 @@ import torch
 import torch.nn as nn
 
 
-def mse_psnr(mse_loss, r=255.):
+def mse_psnr(mse_loss, r=256.):
     return 10 * torch.log10(r ** 2 / mse_loss)
 
 
 class PSNR(nn.Module):
-    def __init__(self, r=255.):
+    def __init__(self, r=256.):
         super().__init__()
         self.r = r
         self.mse = nn.MSELoss()
         self.require_grad = False
 
-    def forward(self, hr, sr, trim=10, round_clip=False):
+    def forward(self, hr, sr, scale=4, trim=0, round_clip=False):
         diff = (sr - hr) / self.r
         gray_coeffs = [65.738, 129.057, 25.064]
         convert = diff.new_tensor(gray_coeffs).view(1, 3, 1, 1) / 256
         diff = diff.mul(convert).sum(dim=1)
-        shave = 10 #scale + 6
+        shave = scale
 
-        valid = diff[..., shave:-shave, shave:-shave]
+        if shave > 0: 
+            valid = diff[..., shave:-shave, shave:-shave]
+        else:
+            valid = diff
         mse = valid.pow(2).mean()
         return -10 * torch.log10(mse)
         '''

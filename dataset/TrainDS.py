@@ -71,9 +71,11 @@ class SRTrainDataset(Dataset):
             if len(lr.shape) == 2:
                 lr = gray2rgb(lr)
 
-            self.hr, self.lr = hr, lr
-            self.lrh, self.lrw, _ = self.lr.shape
-            self.hrh, self.hrw, _ = self.hr.shape
+            lrh, lrw, _ = lr.shape
+            if lrh > self.h and lrw > self.w:
+                self.hr, self.lr = hr, lr
+                self.lrh, self.lrw, _ = self.lr.shape
+                self.hrh, self.hrw, _ = self.hr.shape
 
         lr_x = np.random.randint(0, self.lrh - self.h)
         lr_y = np.random.randint(0, self.lrw - self.w)

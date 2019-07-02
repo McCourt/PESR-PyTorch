@@ -61,6 +61,7 @@ class Model(nn.Module):
             raise ValueError('Parameter not found.')
 
         self.is_train = is_train
+        self.trim = c_param['trim']
         self.epoch = t_param['begin_epoch'] if self.is_train else 0
         self.num_epoch = t_param['num_epoch'] if is_train else 1
         self.lr = t_param['learning_rate'] * t_param['decay_rate'] ** self.epoch
@@ -117,7 +118,7 @@ class Model(nn.Module):
         val_dataset = SRTestDataset(dataset=v_param['dataset'], scale=self.scale)
         self.val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=t_param['num_worker'])
 
-    def load_checkpoint(self, strict=False):
+    def load_checkpoint(self, strict=True):
         if self.checkpoint is not None and os.path.isfile(self.checkpoint):
             try:
                 output_report('loading checkpoint from {}'.format(self.checkpoint))
@@ -163,7 +164,7 @@ class Model(nn.Module):
 
             l = loss_fn(hr, sr, lr)
             ls.append(l)
-            psnr = self.metric(sr, hr).detach().cpu().item()
+            psnr = self.metric(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
             ps.append(psnr)
             print(self.refresher, end='\r')
             print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls),
@@ -199,7 +200,7 @@ class Model(nn.Module):
                     sr += self.forward(lr.rot90(2, [2, 3])).rot90(2, [2, 3])
                     sr += self.forward(lr.rot90(3, [2, 3])).rot90(1, [2, 3])
                     sr /= 8.0
-                psnr = self.metric(sr, hr).detach().cpu().item()
+                psnr = self.metric(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
                 ls.append(l)
@@ -208,9 +209,11 @@ class Model(nn.Module):
                                            sum(ps) / len(ps), self.timer.report(), *batch['name']))
                 print(self.t, end='\r')
                 if save:
+                    name = batch['name'][0]
+                    if self_ensemble: name = name.replace('.png', '_SE.png')
                     img = torch.clamp(torch.round(sr), 0., 255.).detach().cpu().numpy().astype(np.uint8)
                     img = np.squeeze(np.moveaxis(img, 1, -1), axis=0).astype(np.uint8)
-                    imwrite(os.path.join(self.sr_out_dir, *batch['name']), img, format='png', compress_level=0)
+                    imwrite(os.path.join(self.sr_out_dir, name), img, format='png', compress_level=0)
         return np.mean(ps)
 
     def train_model(self, loss_fn, new=False):
@@ -227,10 +230,10 @@ class Model(nn.Module):
         for epoch in range(self.num_epoch):
             self.train_step(loss_fn)
             val_l = self.test_step(loss_fn)
-            if best_val is None or best_val < val_l:
+            print(self.splitter)
+            if best_val is None or best_val < val_l or epoch < 10:
                 self.save_checkpoint()
                 best_val = val_l
-                print(self.splitter)
                 output_report('Saving best-by-far model at {:.4f}'.format(best_val))
             else:
                 output_report('Best-by-far model stays at {:.4f}'.format(best_val))

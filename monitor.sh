@@ -1,5 +1,5 @@
 while true; do
   clear
   ./tester_run.sh
-  sleep 30m
+  sleep 10m
 done

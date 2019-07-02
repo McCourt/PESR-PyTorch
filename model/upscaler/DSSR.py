@@ -5,10 +5,10 @@ from math import log2
 
 
 class BasicBlock(nn.Module):
-    def __init__(self, num_channel, res_scale=1):
+    def __init__(self, num_channel, res_scale=1, rep_pad=False):
         super().__init__()
         self.model_body = nn.Sequential(
-            CascadingBlock(num_channel, basic_block=DepthSeparableConvBlock),
+            CascadingBlock(num_channel, basic_block=DepthSeparableConvBlock, rep_pad=rep_pad),
             ChannelAttentionBlock(num_channel)
         )
         self.res_scale = res_scale
@@ -18,11 +18,11 @@ class BasicBlock(nn.Module):
 
 
 class BasicGroup(nn.Module):
-    def __init__(self, num_channel, num_block=5, res_scale=1):
+    def __init__(self, num_channel, num_block=5, res_scale=1, rep_pad=False):
         super().__init__()
         self.model_body = nn.Sequential(
-            *tuple([BasicBlock(num_channel) for _ in range(num_block)]),
-            ConvolutionBlock(in_channels=num_channel)
+            *tuple([BasicBlock(num_channel, rep_pad=rep_pad) for _ in range(num_block)]),
+            ConvolutionBlock(in_channels=num_channel, rep_pad=rep_pad)
         )
         self.res_scale = res_scale
 
@@ -31,19 +31,19 @@ class BasicGroup(nn.Module):
 
 
 class DSSR(nn.Module):
-    def __init__(self, scale=4, num_groups=4, num_channel=128):
+    def __init__(self, scale=4, num_groups=4, num_channel=128, rep_pad=False):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),
-            ConvolutionBlock(in_channels=3, out_channels=num_channel)
+            ConvolutionBlock(in_channels=3, out_channels=num_channel, rep_pad=rep_pad)
         )
-        self.model_1 = nn.Sequential(*tuple([BasicGroup(num_channel) for _ in range(num_groups)]))
+        self.model_1 = nn.Sequential(*tuple([BasicGroup(num_channel, rep_pad=rep_pad) for _ in range(num_groups)]))
 
         upscaler = [PixelShuffleUpscale(channels=num_channel,
-                                        basic_block=DepthSeparableConvBlock) for _ in range(int(log2(scale)))]
+                                        basic_block=DepthSeparableConvBlock, rep_pad=rep_pad) for _ in range(int(log2(scale)))]
         self.model_2 = nn.Sequential(
             *tuple(upscaler),
-            ConvolutionBlock(in_channels=num_channel, out_channels=3),
+            ConvolutionBlock(in_channels=num_channel, out_channels=3, rep_pad=rep_pad),
             MeanShift(sign=1)
         )
 

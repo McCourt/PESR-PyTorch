@@ -7,11 +7,18 @@ from datetime import datetime
 from src.helper import report_time
 
 
-scale = 8
-ds_weight = .02
+scale = 4
+ds_weight = 0.02
 is_new = False
-self_ensemble = False #True
+self_ensemble = False
+save_img = False
+
+# is_new = True
+# self_ensemble = True
 save_img = True
+num_groups=12
+rep_pad=False
+
 
 if __name__ == '__main__':
     print('----->>>{}<<<-----'.format('{} GPUs Available'.format(torch.cuda.device_count())))
@@ -36,7 +43,7 @@ if __name__ == '__main__':
             raise Exception("Redundant Argument Detected")
 
     # Define and train model
-    model = Model(scale=scale, is_train=is_train)
+    model = Model(scale=scale, is_train=is_train, num_groups=num_groups, rep_pad=rep_pad)
     loss = DownScaleLoss(scale=scale, weight=ds_weight)
     if is_train:
         try:
@@ -47,7 +54,8 @@ if __name__ == '__main__':
             if save == 'y':
                 model.save_checkpoint(add_time=True)
             sys.exit(0)
-        except:
+        except Exception as e:
+            print(e)
             sys.exit(-1)
     else:
         model.eval_model(loss_fn=loss, self_ensemble=self_ensemble, save=save_img)

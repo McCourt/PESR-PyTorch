@@ -5,11 +5,11 @@ from math import log2
 
 
 class PixelShuffleUpscale(nn.Module):
-    def __init__(self, channels, scale=2, activation=None, batch_norm=None, basic_block=ConvolutionBlock):
+    def __init__(self, channels, scale=2, activation=None, batch_norm=None, basic_block=ConvolutionBlock, **kargs):
         super().__init__()
         model_body = []
         for _ in range(int(log2(scale))):
-            model_body.append(basic_block(channels, channels * 4))
+            model_body.append(basic_block(channels, channels * 4, **kargs))
             model_body.append(nn.PixelShuffle(2))
             if activation is not None:
                 model_body.append(activation(True))
@@ -22,7 +22,7 @@ class PixelShuffleUpscale(nn.Module):
 
 
 class TransposeUpscale(nn.Module):
-    def __init__(self, channels, scale=2, activation=nn.LeakyReLU, batch_norm=None, mode=1):
+    def __init__(self, channels, scale=2, activation=nn.LeakyReLU, batch_norm=None, mode=1, rep_pad=False):
         super().__init__()
         if mode == 1:
             k_size, p_size = 4, 1
@@ -38,7 +38,8 @@ class TransposeUpscale(nn.Module):
                                    out_channels=channels,
                                    kernel_size=k_size,
                                    padding=p_size,
-                                   stride=2)
+                                   stride=2,
+                                   rep_pad=rep_pad)
             )
             if activation is not None:
                 model_body.append(activation(True))
