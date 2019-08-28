@@ -31,7 +31,7 @@ class BasicGroup(nn.Module):
 
 
 class DSSR(nn.Module):
-    def __init__(self, scale=4, num_groups=4, num_channel=128, rep_pad=False):
+    def __init__(self, scale=4, num_groups=12, num_channel=128, rep_pad=False):
         super().__init__()
         self.model_0 = nn.Sequential(
             MeanShift(sign=-1),

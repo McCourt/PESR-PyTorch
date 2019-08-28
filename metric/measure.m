@@ -1,7 +1,8 @@
-function [psnr_avg,ssim_avg,niqe_avg] = measure(dataset, scale)
+function [psnr_avg,ssim_avg,niqe_avg] = measure(dataset, model, scale)
 
 hr_dir = sprintf('/usr/xtmp/superresoluter/superresolution/imgs/source_image/valid/%s/HR_matlab/X%d', dataset, scale);
-sr_dir = sprintf('/usr/xtmp/superresoluter/superresolution/imgs/stage_one_image/dssr/%s/X%d', dataset, scale);
+sr_dir = sprintf('/usr/xtmp/superresoluter/superresolution/imgs/stage_one_image/%s/%s/X%d', dataset, model, scale);
+
 psnr_list = 0;
 ssim_list = 0;
 niqe_list = 0;
