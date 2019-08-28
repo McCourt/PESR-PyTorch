@@ -3,6 +3,7 @@ import torch.nn as nn
 from importlib import import_module
 from src.helper import load_parameters, Timer, fourier_transform, output_report, report_time
 from loss.psnr import PSNR
+from loss.ssim import SSIM
 import os
 import numpy as np
 from dataset import SRTrainDataset, SRTestDataset
@@ -85,7 +86,8 @@ class Model(nn.Module):
         self.log_dir = os.path.join(root_dir, c_param['log_dir'].format(self.model_name, self.scale))
         self.checkpoint = os.path.join(root_dir, c_param['ckpt_dir'].format(self.model_name, self.scale))
         self.map_location = t_param['map_location']
-        self.metric = PSNR()
+        self.psnr = PSNR()
+        self.ssim = SSIM()
         self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} | {}'
         self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^.2E} | {}'
         self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime', 'Model:{}/Scale:{}'.format(self.model_name, self.scale))
@@ -139,7 +141,8 @@ class Model(nn.Module):
         try:
             if add_time:
                 torch.save(self.state_dict(), '{}_{}.ckpt'.format(self.checkpoint.replace('.ckpt', ''), report_time()).replace(' ', '_'))
-            torch.save(self.state_dict(), self.checkpoint)
+            else:
+                torch.save(self.state_dict(), self.checkpoint)
             output_report('checkpoint saving succeeded')
         except Exception as e:
             print(e)
@@ -164,7 +167,7 @@ class Model(nn.Module):
 
             l = loss_fn(hr, sr, lr)
             ls.append(l)
-            psnr = self.metric(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
+            psnr = self.psnr(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
             ps.append(psnr)
             print(self.refresher, end='\r')
             print(self.r_format.format(self.epoch, bid, l, sum(ls) / len(ls),
@@ -185,7 +188,7 @@ class Model(nn.Module):
 
     def test_step(self, loss_fn, self_ensemble=False, save=False):
         self.eval()
-        ls, ps = list(), list()
+        ls, ps, ss = list(), list(), list()
         with torch.no_grad():
             for bid, batch in enumerate(self.val_loader):
                 hr, lr = batch['hr'].cuda(), batch['lr'].cuda()
@@ -200,12 +203,14 @@ class Model(nn.Module):
                     sr += self.forward(lr.rot90(2, [2, 3])).rot90(2, [2, 3])
                     sr += self.forward(lr.rot90(3, [2, 3])).rot90(1, [2, 3])
                     sr /= 8.0
-                psnr = self.metric(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
+                psnr = self.psnr(sr, hr, scale=self.scale, trim=self.trim).detach().cpu().item()
+                ssim = self.ssim(sr, hr).detach().cpu().item()
                 l = loss_fn(hr, sr, lr).detach().cpu().item()
                 ps.append(psnr)
+                ss.append(ssim)
                 ls.append(l)
                 print(self.refresher, end='\r')
-                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr,
+                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, #sum(ss) / len(ss),
                                            sum(ps) / len(ps), self.timer.report(), *batch['name']))
                 print(self.t, end='\r')
                 if save:
@@ -231,11 +236,13 @@ class Model(nn.Module):
             self.train_step(loss_fn)
             val_l = self.test_step(loss_fn)
             print(self.splitter)
-            if best_val is None or best_val < val_l or epoch < 10:
+            if best_val is None or best_val < val_l:
                 self.save_checkpoint()
+                # self.save_checkpoint(add_time=True)
                 best_val = val_l
                 output_report('Saving best-by-far model at {:.4f}'.format(best_val))
             else:
+                self.save_checkpoint(add_time=True)
                 output_report('Best-by-far model stays at {:.4f}'.format(best_val))
             print(self.splitter)
 
@@ -248,3 +255,29 @@ class Model(nn.Module):
         output_report('Best-by-far model stays at {:.4f}'.format(best_val))
         if save: output_report('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)
+
+        
+class TTOptimizor(nn.Module):
+    def __init__(self, scale, is_train=True, arg_dir='parameter.json', **kwargs):
+        super().__init__()
+        try:
+            m_param = load_parameters(path='model/models.json')
+            arg_params = load_parameters(path=arg_dir)
+            print('+' + ''.join(['-' for i in range(30)]) + '+')
+            print('|{:^30}|'.format('Parameters loaded'))
+            print('+' + ''.join(['-' for i in range(30)]) + '+')
+            t_param, c_param = arg_params['tto'], arg_params['common']
+            self.model_name = c_param['name']
+            self.scale = scale
+            self.mode = c_param['type']
+            print('|{:<15s} -> {:<11s}|'.format('model', self.model_name))
+            print('|{:<15s} -> {:<11s}|'.format('scale', str(self.scale)))
+            print('|{:<15s} -> {:<11s}|'.format('model_type', self.mode))
+            for i in sorted(t_param):
+                if 'dir' not in str(i): print('|{:<15s} -> {:<11s}|'.format(str(i), str(t_param[i])))
+            print('+' + ''.join(['-' for i in range(30)]) + '+')
+        except Exception as e:
+            print(e)
+            raise ValueError('Parameter not found.')
+            
+        

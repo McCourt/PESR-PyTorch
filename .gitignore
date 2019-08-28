@@ -16,3 +16,4 @@ venv.sh
 permission.sh
 logs/
 ckpt_backup/
+ckpt_choice/

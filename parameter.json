@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "dssr",
+    "name": "edsr",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 0,
@@ -12,10 +12,10 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
-    "dataset": "DIV2K",
+    "dataset": ["CelebA20K"],
     "batch_size": 16,
     "num_epoch": 100,
-    "window": [48, 48],
+    "window": [32, 32],
     "learning_rate": 1e-4,
     "decay_rate": 0.9976922,
     "decay_step": 200,
@@ -39,15 +39,15 @@
   },
   "tto": {
     "method": "bicubic+reg",
-    "hr_dir": "Set5/HR/",
-    "lr_dir": "Set5/LR_PIL/x4/",
-    "sr_dir": "EnhanceNet-E/Set5/x4",
+    "hr_dir": "valid/Set5/HR_matlab/X4",
+    "lr_dir": "valid/Set5/LR_matlab/X4/",
+    "sr_dir": "dssr/Set5/X4",
     "tto_dir": "EnhanceNet-E-bicubic+reg/Set5/x4",
     "learning_rate": 1e-2,
-    "beta_bds": 0.0,
-    "beta_reg": 0.0,
+    "beta_bds": 1.0,
+    "beta_reg": 0.002,
     "beta_disc": 0.0,
-    "beta_shift": 1.0,
+    "beta_shift": 0.0,
     "beta_tds": 0.0,
     "num_epoch": 500,
     "save": true,

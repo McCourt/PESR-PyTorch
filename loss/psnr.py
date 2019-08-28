@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 
 
-def mse_psnr(mse_loss, r=256.):
+def mse_psnr(mse_loss, r=255.):
     return 10 * torch.log10(r ** 2 / mse_loss)
 
 
 class PSNR(nn.Module):
-    def __init__(self, r=256.):
+    def __init__(self, r=255.):
         super().__init__()
         self.r = r
         self.mse = nn.MSELoss()

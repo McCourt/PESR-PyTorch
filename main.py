@@ -1,5 +1,5 @@
 import torch
-from loss import DownScaleLoss
+from loss import DSLoss as Loss
 from model import Model
 import sys
 import getopt
@@ -7,16 +7,16 @@ from datetime import datetime
 from src.helper import report_time
 
 
-scale = 4
-ds_weight = 0.02
+scale = 32
+ds_weight = 0.0
 is_new = False
 self_ensemble = False
 save_img = False
 
-# is_new = True
+is_new = True
 # self_ensemble = True
-save_img = True
-num_groups=12
+# save_img = True
+num_groups=32
 rep_pad=False
 
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     # Define and train model
     model = Model(scale=scale, is_train=is_train, num_groups=num_groups, rep_pad=rep_pad)
-    loss = DownScaleLoss(scale=scale, weight=ds_weight)
+    loss = Loss(scale=scale, weight=ds_weight)
     if is_train:
         try:
             model.train_model(loss_fn=loss, new=is_new)

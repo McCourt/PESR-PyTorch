@@ -2,20 +2,30 @@ import torch.nn as nn
 from model.downscaler.bicubic import BicubicDownSample
 
 
-class DownScaleLoss(nn.Module):
-    def __init__(self, scale, weight=0.02, clip_round=False):
+class DownsampleLoss(nn.Module):
+    def __init__(self, scale, clip_round=False, metric=nn.L1Loss, downsampler=BicubicDownSample):
         super().__init__()
-        self.down_sampler = BicubicDownSample(factor=scale)
+        self.down_sampler = downsampler(factor=scale)
         self.clip_round = clip_round
-        self.metric = nn.L1Loss()
-        self.w = weight
-        self.r = 0.5
-        self.trim = scale + 6
+        self.metric = metric()
 
-    def forward(self, hr, sr, lr, ):
+    def forward(self, sr, lr):
         dsr = self.down_sampler(sr, clip_round=self.clip_round)
-        # dhr = self.down_sampler(hr, clip_round=self.clip_round)
-        # dsl = torch.mean(torch.clamp(torch.abs(self.down_sampler(sr, clip_round=self.clip_round) - lr)[:, :, 2:-2, 2:-2], min=self.r)
-        return self.metric(dsr, lr) * self.w + self.metric(sr, hr)
-        # return self.metric(dsr, dhr) * self.w + self.metric(sr, hr)
-        # return dsl * self.w + self.metric(sr, hr)
+        dhr = self.down_sampler(hr, clip_round=self.clip_round)
+        return self.metric(dsr, lr)
+
+
+class DSLoss(nn.Module):
+    def __init__(self, scale, weight=0.02, clip_round=False, metric=nn.L1Loss, decay_ratio=0.9977):
+        super().__init__()
+        self.downsample_loss = DownsampleLoss(scale=factor, clip_round=clip_round, metric=metric)
+        self.clip_round = clip_round
+        self.metric = metric()
+        self.w = weight
+        self.p = decay_ratio
+
+    def decay(self):
+        self.w *= self.p
+        
+    def forward(self, hr, sr, lr):
+        return self.downsample_loss(sr, lr) * self.w + self.metric(sr, hr)
