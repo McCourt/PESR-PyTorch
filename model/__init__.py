@@ -31,7 +31,8 @@ def load_checkpoint(load_dir, map_location=None):
 
 
 def report_num_params(model):
-    output_report('Number of parameters of model: {:.2E}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
+    output_report(
+        'Number of parameters of model: {:.2E}'.format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
 
 class Model(nn.Module):
@@ -45,7 +46,7 @@ class Model(nn.Module):
             print('+' + ''.join(['-' for i in range(30)]) + '+')
             t_param, v_param, c_param = arg_params['train'], arg_params['test'], arg_params['common']
             self.model_name = c_param['name']
-            self.scale = scale # c_param['scale']
+            self.scale = scale  # c_param['scale']
             self.mode = c_param['type']
             print('|{:<15s} -> {:<11s}|'.format('model', self.model_name))
             print('|{:<15s} -> {:<11s}|'.format('scale', str(self.scale)))
@@ -79,7 +80,8 @@ class Model(nn.Module):
         root_dir = c_param['root_dir']
         # self.val_hr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['hr_dir'].format(self.scale))
         # self.val_lr_dir = os.path.join(root_dir, c_param['s0_dir'], v_param['lr_dir'].format(self.scale))
-        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name, v_param['sr_dir'].format(v_param['dataset'], self.scale))
+        self.sr_out_dir = os.path.join(root_dir, c_param['s1_dir'], self.model_name,
+                                       v_param['sr_dir'].format(v_param['dataset'], self.scale))
         if not os.path.isdir(self.sr_out_dir):
             os.makedirs(self.sr_out_dir)
 
@@ -90,12 +92,19 @@ class Model(nn.Module):
         self.ssim = SSIM()
         self.t_format = '{:^6s} | {:^6s} | {:^7s} | {:^7s} | {:^7s} | {:^7s} | {:^8s} | {}'
         self.r_format = '{:^6d} | {:^6d} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^7.4f} | {:^.2E} | {}'
-        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime', 'Model:{}/Scale:{}'.format(self.model_name, self.scale))
+        self.t = self.t_format.format('Epoch', 'Batch', 'BLoss', 'ELoss', 'PSNR', 'AVGPSNR', 'Runtime',
+                                      'Model:{}/Scale:{}'.format(self.model_name, self.scale))
         self.splitter = ''.join(['-' for i in range(len(self.t))])
         self.refresher = ''.join([' ' for i in range(len(self.t))])
 
         path = '.'.join(['model', self.mode])
-        module = getattr(import_module(path), m_param[self.mode][self.model_name.lower()])
+        try:
+            module = getattr(import_module(path), m_param[self.mode][self.model_name.lower()])
+        except:
+            try:
+                module = getattr(import_module(path), self.model_name)
+            except:
+                raise Exception('Can not find the model {}'.format(self.model_name))
         self.model = module(scale=self.scale, **kwargs)
         self.model = nn.DataParallel(self.model).cuda()
         report_num_params(self.model)
@@ -140,7 +149,8 @@ class Model(nn.Module):
     def save_checkpoint(self, add_time=False):
         try:
             if add_time:
-                torch.save(self.state_dict(), '{}_{}.ckpt'.format(self.checkpoint.replace('.ckpt', ''), report_time()).replace(' ', '_'))
+                torch.save(self.state_dict(),
+                           '{}_{}.ckpt'.format(self.checkpoint.replace('.ckpt', ''), report_time()).replace(' ', '_'))
             else:
                 torch.save(self.state_dict(), self.checkpoint)
             output_report('checkpoint saving succeeded')
@@ -210,7 +220,7 @@ class Model(nn.Module):
                 ss.append(ssim)
                 ls.append(l)
                 print(self.refresher, end='\r')
-                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr, #sum(ss) / len(ss),
+                print(self.r_format.format(-1, bid, l, sum(ls) / len(ls), psnr,  # sum(ss) / len(ss),
                                            sum(ps) / len(ps), self.timer.report(), *batch['name']))
                 print(self.t, end='\r')
                 if save:
@@ -257,7 +267,7 @@ class Model(nn.Module):
         if save: output_report('Images saved to {}'.format(self.sr_out_dir))
         print(self.splitter)
 
-        
+
 class TTOptimizor(nn.Module):
     def __init__(self, scale, is_train=True, arg_dir='parameter.json', **kwargs):
         super().__init__()
@@ -280,5 +290,3 @@ class TTOptimizor(nn.Module):
         except Exception as e:
             print(e)
             raise ValueError('Parameter not found.')
-            
-        

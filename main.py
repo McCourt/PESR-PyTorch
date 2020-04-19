@@ -43,7 +43,8 @@ if __name__ == '__main__':
             raise Exception("Redundant Argument Detected")
 
     # Define and train model
-    model = Model(scale=scale, is_train=is_train, num_groups=num_groups, rep_pad=rep_pad)
+    model = Model(scale=scale, is_train=is_train, num_blocks=32, num_channel=256) # EDSR
+    # model = Model(scale=scale, is_train=is_train, num_groups=12, num_channel=128, rep_pad=False) # DSSR
     loss = Loss(scale=scale, weight=ds_weight)
     if is_train:
         try:
