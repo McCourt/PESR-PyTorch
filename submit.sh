@@ -1,0 +1,1 @@
+sbatch -p compsci-gpu --gres=gpu:4 --exclude=gpu-compute[1-3] trainer_run.sh
