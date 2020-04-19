@@ -8,7 +8,7 @@ from src.helper import report_time
 
 
 scale = 4
-ds_weight = 0.
+ds_weight = 0.1
 is_new = False
 self_ensemble = False
 save_img = False
@@ -16,8 +16,8 @@ save_img = False
 # is_new = True
 # self_ensemble = True
 save_img = True
-num_groups=12
-rep_pad=False
+num_groups = 12
+rep_pad = False
 
 
 if __name__ == '__main__':
