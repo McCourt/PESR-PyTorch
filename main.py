@@ -7,16 +7,16 @@ from datetime import datetime
 from src.helper import report_time
 
 
-scale = 32
-ds_weight = 0.0
+scale = 4
+ds_weight = 0.
 is_new = False
 self_ensemble = False
 save_img = False
 
-is_new = True
+# is_new = True
 # self_ensemble = True
-# save_img = True
-num_groups=32
+save_img = True
+num_groups=12
 rep_pad=False
 
 

@@ -217,6 +217,7 @@ class Model(nn.Module):
                     name = batch['name'][0]
                     if self_ensemble: name = name.replace('.png', '_SE.png')
                     img = torch.clamp(torch.round(sr), 0., 255.).detach().cpu().numpy().astype(np.uint8)
+                    # img = torch.round(sr).detach().cpu().numpy().astype(np.uint8)
                     img = np.squeeze(np.moveaxis(img, 1, -1), axis=0).astype(np.uint8)
                     imwrite(os.path.join(self.sr_out_dir, name), img, format='png', compress_level=0)
         return np.mean(ps)

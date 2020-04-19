@@ -17,3 +17,4 @@ permission.sh
 logs/
 ckpt_backup/
 ckpt_choice/
+checkpoints_archive/

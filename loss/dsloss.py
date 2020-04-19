@@ -11,14 +11,13 @@ class DownsampleLoss(nn.Module):
 
     def forward(self, sr, lr):
         dsr = self.down_sampler(sr, clip_round=self.clip_round)
-        dhr = self.down_sampler(hr, clip_round=self.clip_round)
         return self.metric(dsr, lr)
 
 
 class DSLoss(nn.Module):
-    def __init__(self, scale, weight=0.02, clip_round=False, metric=nn.L1Loss, decay_ratio=0.9977):
+    def __init__(self, scale, weight=0.00, clip_round=False, metric=nn.L1Loss, decay_ratio=0.9977):
         super().__init__()
-        self.downsample_loss = DownsampleLoss(scale=factor, clip_round=clip_round, metric=metric)
+        self.downsample_loss = DownsampleLoss(scale=scale, clip_round=clip_round, metric=metric)
         self.clip_round = clip_round
         self.metric = metric()
         self.w = weight

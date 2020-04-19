@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "edsr",
+    "name": "dssr",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 0,
@@ -12,10 +12,10 @@
     "ckpt_dir": "checkpoints/{}_x{}.ckpt"
   },
   "train": {
-    "dataset": ["CelebA20K"],
+    "dataset": ["DIV2K"],
     "batch_size": 16,
-    "num_epoch": 100,
-    "window": [32, 32],
+    "num_epoch": 500,
+    "window": [48, 48],
     "learning_rate": 1e-4,
     "decay_rate": 0.9976922,
     "decay_step": 200,
@@ -23,14 +23,14 @@
     "loss": ["MSE"],
     "optimizer": "Adam",
     "ds_beta": 1.0,
-    "begin_epoch": 200,
+    "begin_epoch": 0,
     "num_worker": 8,
     "map_location": null,
     "save_every": 1,
     "print_every": 1
   },
   "test": {
-    "dataset": "Set5",
+    "dataset": "Manga109",
     "sr_dir": "{}/X{}/",
     "map_location": null,
     "num_worker": 16,
