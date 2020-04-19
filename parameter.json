@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "dssr",
+    "name": "pesr_conv",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 0,
@@ -30,7 +30,7 @@
     "print_every": 1
   },
   "test": {
-    "dataset": "Manga109",
+    "dataset": "DIV2K_valid",
     "sr_dir": "{}/X{}/",
     "map_location": null,
     "num_worker": 16,
