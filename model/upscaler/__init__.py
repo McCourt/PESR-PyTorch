@@ -5,7 +5,9 @@ from model.upscaler.SESR import SqueezeExcitationSR
 from model.upscaler.SRRN import SRResNet
 from model.upscaler.VDSR import VDSR
 from model.upscaler.EDSR import EDSR
-from model.upscaler.DSSR import DSSR
+from model.upscaler.PESR import PESR
+from model.upscaler.PESR_CONV import PESR_CONV_CAS
+from model.upscaler.PESR_RES import PESR_DCONV_RES
 from model.upscaler.VDSSR import VDSSR
 from model.upscaler.WDSSR import WDSSR
 from model.upscaler.CDSR import CDSR
