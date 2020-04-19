@@ -1,6 +1,6 @@
 {
   "common": {
-    "name": "pesr_conv",
+    "name": "pesr_res",
     "type": "upscaler",
     "metric": ["PSNR"],
     "trim": 0,
